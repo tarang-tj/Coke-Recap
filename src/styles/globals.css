@@ -1,0 +1,33 @@
+@import './tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--coke-black);
+  color: var(--cream);
+  overscroll-behavior: none;
+}
+
+/* Use Playfair Display + Inter via system fallback for now; webfonts in phase 5. */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Disable text selection on the persistent canvas overlay to avoid double-touch issues. */
+canvas {
+  outline: none;
+  touch-action: pan-y;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

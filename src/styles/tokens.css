@@ -1,0 +1,11 @@
+/* Brand tokens — single source of truth for colors. */
+:root {
+  --coke-red: #F40009;
+  --coke-black: #1B1B1B;
+  --cream: #F1E9DA;
+  --caramel: #A06A00;
+  --off-white: #FFFEF6;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+}
