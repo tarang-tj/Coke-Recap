@@ -1,40 +1,42 @@
 import { role } from '../../data/portfolio-content';
 
-// Two-column layout: large quote + body left, focus areas right.
-// Single column on mobile via Tailwind responsive grid.
+// Editorial spread layout — large display quote left, focus areas right.
 
 export function RoleSection() {
   return (
     <section className="w-full max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16 items-start">
-      {/* Left: 3/5 width */}
-      <div className="md:col-span-3 flex flex-col gap-6">
+      {/* Left: 3/5 */}
+      <div className="md:col-span-3 flex flex-col gap-8">
         {/* Eyebrow */}
-        <span className="text-caramel text-xs uppercase tracking-widest font-body font-semibold">
-          {role.heading}
+        <span className="font-body text-[0.65rem] uppercase tracking-[0.35em] text-caramel">
+          01 / Role
         </span>
 
-        {/* Large display quote */}
-        <p className="font-display text-3xl md:text-4xl lg:text-5xl text-cream leading-snug">
+        {/* Large editorial quote */}
+        <h2 className="font-display text-5xl md:text-7xl text-cream leading-[1.05] drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)]">
           {role.body[0]}
-        </p>
+        </h2>
 
         {/* Secondary body */}
-        <p className="font-body text-base md:text-lg text-cream/70 leading-relaxed max-w-prose">
+        <p className="font-body text-lg text-cream/70 leading-relaxed max-w-prose">
           {role.body[1]}
         </p>
       </div>
 
-      {/* Right: 2/5 width */}
-      <div className="md:col-span-2 flex flex-col gap-4">
-        <span className="text-caramel text-xs uppercase tracking-widest font-body font-semibold">
-          Focus areas
+      {/* Right: 2/5 */}
+      <div className="md:col-span-2 flex flex-col gap-6 md:pt-20">
+        <span className="font-body text-[0.65rem] uppercase tracking-[0.35em] text-caramel">
+          Focus Areas
         </span>
 
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-0">
           {role.focusAreas.map((area) => (
-            <li key={area} className="flex items-start gap-3 font-body text-cream/90 text-base md:text-lg">
-              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-caramel flex-shrink-0" />
-              {area}
+            <li key={area} className="flex flex-col gap-0 py-4 border-b border-cream/10 first:border-t">
+              {/* Caramel underline accent bar */}
+              <span className="block w-5 h-px bg-caramel mb-2" aria-hidden="true" />
+              <span className="font-body text-base md:text-lg text-cream/90 leading-snug">
+                {area}
+              </span>
             </li>
           ))}
         </ul>

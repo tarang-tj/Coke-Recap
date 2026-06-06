@@ -1,3 +1,9 @@
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/playfair-display/900.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
 @import './tokens.css';
 @tailwind base;
 @tailwind components;
@@ -12,7 +18,6 @@ body {
   overscroll-behavior: none;
 }
 
-/* Use Playfair Display + Inter via system fallback for now; webfonts in phase 5. */
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

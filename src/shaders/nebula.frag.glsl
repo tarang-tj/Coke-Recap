@@ -1,7 +1,8 @@
 // nebula.frag.glsl
 // Additive-blend emissive core for the agent act icosahedron.
-// Layered fbm in warm cream/caramel/coke-red, rim-softened at edges,
-// with a breathing pulse modulated by uTime.
+// 3-stop palette: cream → caramel → coke-red.
+// High-frequency "neural" noise layered over low-frequency fbm.
+// Strong rim via pow(1 - dot(viewDir, normal), 2) for bloom edge glow.
 
 precision highp float;
 
@@ -13,7 +14,7 @@ uniform float uTime;
 uniform float uReducedMotion;
 uniform float uLocalT;
 
-// --- noise helpers (same pattern as liquid.frag.glsl) ---
+// ── noise helpers ─────────────────────────────────────────────────────────────
 
 float hash(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -38,10 +39,11 @@ float noise3(vec3 p) {
   return mix(b.x, b.y, f.x);
 }
 
-float fbm(vec3 p) {
+// Low-frequency fbm — 5 octaves for richer large-scale structure
+float fbmLow(vec3 p) {
   float v   = 0.0;
   float amp = 0.5;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     v   += amp * noise3(p);
     p   *= 2.02;
     amp *= 0.5;
@@ -49,36 +51,61 @@ float fbm(vec3 p) {
   return v;
 }
 
+// High-frequency "neural" fbm — tight scale, 3 octaves
+float fbmHigh(vec3 p) {
+  float v   = 0.0;
+  float amp = 0.5;
+  for (int i = 0; i < 3; i++) {
+    v   += amp * noise3(p);
+    p   *= 3.8;
+    amp *= 0.45;
+  }
+  return v;
+}
+
 void main() {
-  // Animate upward drift; freeze when reduced-motion is on.
-  float t = uTime * mix(0.3, 0.0, uReducedMotion);
+  float t = uTime * mix(0.28, 0.0, uReducedMotion);
 
-  // Sample fbm in world space to avoid UV seams.
-  vec3 q = vWorldPos * 0.7 + vec3(0.0, t, 0.0);
-  float n = fbm(q);
+  // Low-freq base: large colour blobs drifting upward
+  vec3 q = vWorldPos * 0.65 + vec3(0.0, t, t * 0.3);
+  float nLow = fbmLow(q);
 
-  // Palette: cream -> caramel -> faint coke-red
+  // High-freq neural crackle layered on top
+  vec3 qHigh = vWorldPos * 3.2 + vec3(t * 0.7, -t * 0.4, 0.0);
+  float nHigh = fbmHigh(qHigh) * 0.38;
+
+  float n = clamp(nLow + nHigh, 0.0, 1.0);
+
+  // 3-stop palette: cream → caramel → coke-red
   vec3 cream   = vec3(0.945, 0.914, 0.855);  // #F1E9DA
-  vec3 caramel = vec3(0.627, 0.416, 0.0);    // #A06A00
-  vec3 cokeRed = vec3(0.957, 0.0,   0.035);  // #F40009
+  vec3 caramel = vec3(0.627, 0.416, 0.000);  // #A06A00
+  vec3 cokeRed = vec3(0.957, 0.000, 0.035);  // #F40009
 
   vec3 col = cream;
-  col = mix(col, caramel, smoothstep(0.3, 0.65, n));
-  col = mix(col, cokeRed, smoothstep(0.65, 1.0, n) * 0.55);
+  col = mix(col, caramel, smoothstep(0.28, 0.60, n));
+  col = mix(col, cokeRed, smoothstep(0.60, 1.00, n) * 0.72);
 
-  // Rim softening: faces pointing away from the viewer fade out.
-  // dot(normalised surface normal, normalised view direction) ~ 1 at center,
-  // ~ 0 at silhouette. pow sharpens the fall-off.
-  vec3  viewDir = normalize(-vViewPos);
-  float rimDot  = max(0.0, dot(normalize(vNormal), viewDir));
-  float rim     = pow(rimDot, 1.5);
+  // ── rim lighting ──────────────────────────────────────────────────────────
+  // Center glow stays bright; rim edge flares for bloom halo effect.
+  vec3  viewDir   = normalize(-vViewPos);
+  float facing    = max(0.0, dot(normalize(vNormal), viewDir));
+  float centerGlow = pow(facing, 1.2);
+  float rimGlow   = pow(1.0 - facing, 2.0) * 1.6;
+  float rim = clamp(centerGlow + rimGlow * 0.55, 0.0, 1.0);
 
-  // Breathing pulse — skip when reduced-motion is requested.
-  float pulse = 1.0 + mix(0.6 * sin(uTime * 1.5), 0.0, uReducedMotion);
+  // ── breathing pulse ───────────────────────────────────────────────────────
+  float pulse = 1.0 + mix(
+    0.55 * sin(uTime * 1.6) + 0.15 * sin(uTime * 4.1),
+    0.0,
+    uReducedMotion
+  );
 
-  // Final additive colour: rim controls opacity so edges dissolve.
-  vec3 finalCol = col * pulse;
-  float alpha   = rim * (0.7 + 0.3 * n);
+  // ── Gaussian brightness peak at localT = 0.5 ─────────────────────────────
+  float peak = exp(-pow((uLocalT - 0.5) * 4.0, 2.0));
+  float brightness = pulse * (1.0 + peak * 0.8);
+
+  vec3  finalCol = col * brightness;
+  float alpha    = rim * (0.65 + 0.35 * n) * (0.7 + 0.3 * peak);
 
   gl_FragColor = vec4(finalCol, alpha);
 }
