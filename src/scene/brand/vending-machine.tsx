@@ -1,6 +1,14 @@
 /**
  * VendingMachine — nostalgic 1960s-style Coca-Cola vending machine hub.
  * Cream body, chrome trim, illuminated header, lit selection buttons, glass bay.
+ *
+ * Polish pass 3 (phase-02) additions:
+ *   - Rounded chrome top hood above the cabinet
+ *   - Embossed "Drink Coca-Cola" slogan on lower cabinet front
+ *   - Bottle-shaped buttons (mini CokeBottle heads, same interactions as before)
+ *   - Enriched coin-slot: chrome rim + "$0.10" price badge
+ *   - More substantial footed base with chrome corner kickplates
+ *   - Subtle side-panel "Coca-Cola" embossing
  */
 import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -122,6 +130,13 @@ interface SelectButtonProps {
   onHoverEnd: () => void;
 }
 
+/**
+ * Bottle-shaped selection button.
+ * The chrome bezel is preserved; the pill cylinder is replaced by a tiny
+ * CokeBottle (scale 0.12, showLogo=false) so the button head reads as a
+ * miniature bottle cap viewed from the front. Hover lift, press scrunch,
+ * and emissive glow-on-lit are all kept from the original cylinder pill.
+ */
 function SelectButton({
   index,
   item,
@@ -141,14 +156,15 @@ function SelectButton({
       onPointerOut={(e) => { e.stopPropagation(); onHoverEnd(); }}
       onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
     >
-      {/* Chrome bezel */}
+      {/* Chrome bezel ring — kept from original */}
       <mesh position={[0, 0, -0.02]}>
         <cylinderGeometry args={[0.13, 0.13, 0.04, 24]} />
         <meshStandardMaterial color={CHROME} roughness={0.25} metalness={0.85} />
       </mesh>
-      {/* Illuminated pill button */}
-      <mesh scale={isPressed ? 0.92 : 1}>
-        <cylinderGeometry args={[0.1, 0.1, 0.06, 24]} />
+
+      {/* Glow disc behind the bottle — replaces the old lit pill */}
+      <mesh position={[0, 0, -0.01]} scale={isPressed ? 0.92 : 1}>
+        <cylinderGeometry args={[0.10, 0.10, 0.02, 24]} />
         <meshStandardMaterial
           color={lit ? '#FFD740' : COKE_RED}
           emissive={lit ? '#FFD740' : '#660000'}
@@ -157,9 +173,20 @@ function SelectButton({
           metalness={0.2}
         />
       </mesh>
-      <Text
+
+      {/* Mini bottle head — top-down view of the contour bottle */}
+      <group
         position={[0, 0, 0.04]}
-        fontSize={0.09}
+        scale={isPressed ? 0.88 : 1}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
+        <CokeBottle scale={0.12} showLogo={false} highlight={lit ? 1 : 0.2} />
+      </group>
+
+      {/* Number index floating in front */}
+      <Text
+        position={[0, 0, 0.12]}
+        fontSize={0.07}
         color={lit ? DARK : CREAM}
         anchorX="center"
         anchorY="middle"
@@ -275,7 +302,36 @@ export function VendingMachine({
           </mesh>
         ))}
 
-        {/* ── ILLUMINATED HEADER SIGN ── */}
+        {/* ── ROUNDED CHROME TOP HOOD ── */}
+        {/* Main hood body — sits above the upper chrome trim at y=2.78 */}
+        <RoundedBox
+          args={[2.85, 0.38, 1.18]}
+          radius={0.12}
+          smoothness={4}
+          position={[0, 3.06, 0.02]}
+        >
+          <meshStandardMaterial
+            color={CHROME}
+            roughness={0.18}
+            metalness={0.88}
+          />
+        </RoundedBox>
+        {/* Hood front overhang — slight forward curve to mimic vintage visor */}
+        <RoundedBox
+          args={[2.65, 0.14, 0.28]}
+          radius={0.07}
+          smoothness={3}
+          position={[0, 2.88, 0.62]}
+        >
+          <meshStandardMaterial color={CHROME} roughness={0.22} metalness={0.85} />
+        </RoundedBox>
+        {/* Hood top cap strip */}
+        <mesh position={[0, 3.26, 0.0]}>
+          <boxGeometry args={[2.76, 0.06, 1.1]} />
+          <meshStandardMaterial color="#B8B4AC" roughness={0.15} metalness={0.92} />
+        </mesh>
+
+        {/* ── ILLUMINATED HEADER SIGN ── (UNCHANGED — user approved) */}
         <RoundedBox
           args={[2.5, 0.85, 0.08]}
           radius={0.03}
@@ -391,7 +447,7 @@ export function VendingMachine({
           />
         </mesh>
 
-        {/* ── SELECTION BUTTONS (interactive) ── */}
+        {/* ── SELECTION BUTTONS (interactive — now bottle-shaped) ── */}
         {items.map((item, i) => (
           <SelectButton
             key={`btn-${item.id}`}
@@ -405,17 +461,58 @@ export function VendingMachine({
           />
         ))}
 
-        {/* ── COIN SLOT (left) ── */}
+        {/* ── COIN SLOT (left) — enriched with chrome rim + price badge ── */}
         <group position={[-1.05, -0.6, 0.6]}>
-          <RoundedBox args={[0.5, 0.7, 0.06]} radius={0.02} smoothness={2}>
+          {/* Panel backing */}
+          <RoundedBox args={[0.5, 0.72, 0.06]} radius={0.02} smoothness={2}>
             <meshStandardMaterial color="#2A1010" roughness={0.5} metalness={0.2} />
           </RoundedBox>
+
+          {/* Coin slot opening */}
           <mesh position={[0, 0.15, 0.04]}>
             <boxGeometry args={[0.28, 0.04, 0.02]} />
             <meshStandardMaterial color="#080002" roughness={0.95} />
           </mesh>
-          <Text position={[0, -0.2, 0.04]} fontSize={0.07} color={CREAM} anchorX="center">
+
+          {/* Chrome rim around the coin slot */}
+          <mesh position={[0, 0.15, 0.05]}>
+            <boxGeometry args={[0.32, 0.08, 0.01]} />
+            <meshStandardMaterial color={CHROME} roughness={0.22} metalness={0.88} />
+          </mesh>
+          {/* Inner cutout — slightly smaller chrome frame overlay to create inset look */}
+          <mesh position={[0, 0.15, 0.06]}>
+            <boxGeometry args={[0.29, 0.05, 0.005]} />
+            <meshStandardMaterial color="#2A1010" roughness={0.5} metalness={0.2} />
+          </mesh>
+          {/* Slot slit visible in center */}
+          <mesh position={[0, 0.15, 0.065]}>
+            <boxGeometry args={[0.22, 0.025, 0.005]} />
+            <meshStandardMaterial color="#080002" roughness={0.95} />
+          </mesh>
+
+          {/* "INSERT COIN" label */}
+          <Text position={[0, -0.08, 0.04]} fontSize={0.07} color={CREAM} anchorX="center">
             INSERT COIN
+          </Text>
+
+          {/* "$0.10" price badge — vintage realism */}
+          <RoundedBox
+            args={[0.22, 0.10, 0.015]}
+            radius={0.015}
+            smoothness={2}
+            position={[0, -0.24, 0.04]}
+          >
+            <meshStandardMaterial color={CHROME} roughness={0.28} metalness={0.82} />
+          </RoundedBox>
+          <Text
+            position={[0, -0.24, 0.052]}
+            fontSize={0.065}
+            color={DARK}
+            anchorX="center"
+            anchorY="middle"
+            letterSpacing={0.02}
+          >
+            $0.10
           </Text>
         </group>
 
@@ -439,15 +536,83 @@ export function VendingMachine({
           />
         </mesh>
 
-        {/* ── BASE / FEET ── */}
+        {/* ── EMBOSSED "Drink Coca-Cola" SLOGAN — lower cabinet front ── */}
+        {/* Recessed plate (slightly inset) */}
+        <mesh position={[0, -2.3, 0.57]}>
+          <boxGeometry args={[1.6, 0.22, 0.005]} />
+          <meshStandardMaterial color="#D8D0C0" roughness={0.7} metalness={0.05} />
+        </mesh>
+        {/* Embossed text — sits just proud of the plate (z + 0.015) */}
+        <Text
+          position={[0, -2.30, 0.585]}
+          fontSize={0.10}
+          color={CHROME}
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.06}
+          outlineColor="#8A8078"
+          outlineWidth={0.003}
+        >
+          Drink Coca-Cola
+        </Text>
+
+        {/* ── SIDE EMBOSSING — subtle "Coca-Cola" on cream side panels ── */}
+        {/* Left side panel embossing */}
+        <Text
+          position={[-1.38, -0.5, 0.0]}
+          rotation={[0, -Math.PI / 2, 0]}
+          fontSize={0.09}
+          color="#C8BEB0"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.12}
+          outlineColor="#A89880"
+          outlineWidth={0.002}
+          fillOpacity={0.35}
+        >
+          Coca-Cola
+        </Text>
+        {/* Right side panel embossing */}
+        <Text
+          position={[1.38, -0.5, 0.0]}
+          rotation={[0, Math.PI / 2, 0]}
+          fontSize={0.09}
+          color="#C8BEB0"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.12}
+          outlineColor="#A89880"
+          outlineWidth={0.002}
+          fillOpacity={0.35}
+        >
+          Coca-Cola
+        </Text>
+
+        {/* ── FOOTED BASE — more substantial, chrome kickplates ── */}
+        {/* Main base plate — extended and taller */}
         <mesh position={[0, -2.85, 0.1]}>
-          <boxGeometry args={[2.6, 0.12, 1.0]} />
+          <boxGeometry args={[2.7, 0.18, 1.05]} />
           <meshStandardMaterial color="#3A3530" roughness={0.7} metalness={0.3} />
         </mesh>
-        {/* Rubber feet */}
-        {([-1.0, 1.0] as const).map((x) => (
-          <mesh key={`foot-${x}`} position={[x, -2.92, 0.45]}>
-            <cylinderGeometry args={[0.08, 0.1, 0.06, 12]} />
+
+        {/* Chrome front kickplate — full-width strip along the base front */}
+        <mesh position={[0, -2.82, 0.57]}>
+          <boxGeometry args={[2.7, 0.14, 0.025]} />
+          <meshStandardMaterial color={CHROME} roughness={0.22} metalness={0.88} />
+        </mesh>
+
+        {/* Chrome corner kickplates — front-left and front-right */}
+        {([-1.3, 1.3] as const).map((x) => (
+          <mesh key={`kick-${x}`} position={[x, -2.82, 0.46]}>
+            <boxGeometry args={[0.08, 0.14, 0.24]} />
+            <meshStandardMaterial color={CHROME} roughness={0.20} metalness={0.90} />
+          </mesh>
+        ))}
+
+        {/* Rubber feet — moved outward so visible from front */}
+        {([-1.15, 1.15] as const).map((x) => (
+          <mesh key={`foot-${x}`} position={[x, -2.95, 0.45]}>
+            <cylinderGeometry args={[0.09, 0.11, 0.06, 12]} />
             <meshStandardMaterial color="#1A1816" roughness={0.95} />
           </mesh>
         ))}
