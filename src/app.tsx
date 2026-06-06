@@ -13,6 +13,7 @@ import { ChapterOverlay } from './ui/chapter-overlay';
 import { StartGate } from './ui/start-gate';
 import { SceneLoader } from './ui/scene-loader';
 import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
+import { CreditHud } from './ui/credit-hud';
 
 // Root shell — a single-viewport spatial experience (no scroll).
 //   - persistent <Canvas> holds the vending-machine hub + the 4 chapter "stages"
@@ -44,6 +45,7 @@ export function App() {
           <ChapterOverlay />
           <StartGate />
           <ReducedMotionToggle />
+          <CreditHud />
           <SceneLoader />
         </div>
       </NavigationProvider>
