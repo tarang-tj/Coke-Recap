@@ -4,9 +4,8 @@ import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
 import nebulaVert from '../../shaders/nebula.vert.glsl?raw';
 import nebulaFrag from '../../shaders/nebula.frag.glsl?raw';
-import { useScrollRef } from '../scroll-context';
+import { useNavigation } from '../navigation-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
-import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
 import { agent } from '../../data/portfolio-content';
 import { DynamicRibbon } from '../brand/dynamic-ribbon';
 
@@ -17,11 +16,6 @@ import { DynamicRibbon } from '../brand/dynamic-ribbon';
 const CREAM = '#F1E9DA';
 const CARAMEL = '#A06A00';
 const COKE_RED = '#E8000B';
-
-// Gaussian peak centred at localT=0.5
-function gaussianPeak(localT: number): number {
-  return Math.exp(-Math.pow((localT - 0.5) * 4, 2));
-}
 
 // ─── 3 orbital ring configs (trimmed from 5) ──────────────────────────────────
 const RING_CONFIGS = [
@@ -74,6 +68,8 @@ function OrbitalRing({
     const g = groupRef.current;
     const m = matRef.current;
     if (!g || !m) return;
+    // Skip all work when the agent view is faded out (avoids per-frame cost on other views).
+    if (envelopeRef.current <= 0.003) return;
 
     if (!reduced) g.rotation.z += dt * 0.35 * dir;
 
@@ -142,6 +138,7 @@ function DataDot({ seed, reduced, elapsedRef, envelopeRef }: DataDotProps) {
     const mesh = meshRef.current;
     const mat = matRef.current;
     if (!mesh || !mat) return;
+    if (envelopeRef.current <= 0.003) return; // skip when agent view is faded out
 
     const elapsed = reduced ? seed.phase * 10 : elapsedRef.current;
     const envelope = envelopeRef.current;
@@ -180,8 +177,12 @@ function DataDot({ seed, reduced, elapsedRef, envelopeRef }: DataDotProps) {
 // ─── main act ─────────────────────────────────────────────────────────────────
 
 export function ActAgent() {
-  const scrollRef = useScrollRef();
+  const { view } = useNavigation();
   const reduced = useReducedMotion();
+
+  // View-state envelope: damped 0→1 when 'agent' is active, 1→0 otherwise
+  const viewRef = useRef(view); viewRef.current = view;
+  const envRef = useRef(0);
   const groupRef = useRef<THREE.Group>(null);
   const nebulaMat = useRef<THREE.ShaderMaterial>(null);
 
@@ -207,14 +208,17 @@ export function ActAgent() {
     const g = groupRef.current;
     if (!g) return;
 
-    const globalT = scrollRef.current ?? 0;
-    const { active, localT } = getActWindow('agent', globalT);
+    // Critically damped fade in/out (~0.4 s time constant)
+    const target = viewRef.current === 'agent' ? 1 : 0;
+    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
+    const active = envRef.current > 0.002;
 
     g.visible = active;
     if (!active) return;
 
-    const envelope = actEnvelope(localT);
-    const peak = gaussianPeak(localT);
+    const envelope = envRef.current;
+    // Envelope doubles as the ignition peak (bright as view focuses)
+    const peak = envelope;
 
     elapsedRef.current = clock.elapsedTime;
     envelopeRef.current = envelope;
@@ -225,12 +229,12 @@ export function ActAgent() {
     if (mat) {
       if (!reduced) mat.uniforms.uTime.value += dt;
       mat.uniforms.uReducedMotion.value = reduced ? 1.0 : 0.0;
-      mat.uniforms.uLocalT.value = localT;
+      mat.uniforms.uLocalT.value = envelope;
     }
 
     if (!reduced) g.rotation.y += dt * 0.18;
 
-    // Gaussian breathing scale — peaks at localT=0.5
+    // Breathing scale driven by envelope
     const breathScale = 0.65 + 0.35 * envelope + 0.15 * peak;
     g.scale.setScalar(breathScale);
   });

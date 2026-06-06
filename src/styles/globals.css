@@ -14,6 +14,9 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* Single-viewport experience — navigation is spatial (no document scroll). */
+  height: 100%;
+  overflow: hidden;
   /* Rich Coca-Cola red radial gradient — shows through the transparent canvas */
   background: radial-gradient(
     circle at 50% 35%,
@@ -25,6 +28,15 @@ body {
   background-attachment: fixed;
   color: var(--cream);
   overscroll-behavior: none;
+}
+
+/* Chapter content cross-fade when the active view changes. */
+@keyframes coke-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.coke-fade-in {
+  animation: coke-fade-in 0.5s var(--ease-out-expo, ease) both;
 }
 
 body {

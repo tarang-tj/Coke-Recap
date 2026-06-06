@@ -2,9 +2,8 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PresentationControls } from '@react-three/drei';
-import { useScrollRef } from '../scroll-context';
+import { useNavigation } from '../navigation-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
-import { getActWindow } from '../../hooks/use-act-window';
 
 // Act 4 — Bottle (closing reveal)
 // LatheGeometry traces the classic Coca-Cola contour / hobble-skirt silhouette.
@@ -45,8 +44,12 @@ function buildBottlePoints(): THREE.Vector2[] {
 
 export function ActBottle() {
   const groupRef = useRef<THREE.Group>(null);
-  const scrollRef = useScrollRef();
+  const { view } = useNavigation();
   const reduced = useReducedMotion();
+
+  // View-state envelope: damped 0→1 when 'takeaways' is active, 1→0 otherwise
+  const viewRef = useRef(view); viewRef.current = view;
+  const envRef = useRef(0);
 
   const geometry = useMemo(() => {
     const points = buildBottlePoints();
@@ -61,14 +64,16 @@ export function ActBottle() {
     const group = groupRef.current;
     if (!group) return;
 
-    const globalT = scrollRef.current ?? 0;
-    const { active, localT } = getActWindow('bottle', globalT);
+    // Critically damped fade in/out (~0.4 s time constant)
+    const target = viewRef.current === 'takeaways' ? 1 : 0;
+    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
+    const active = envRef.current > 0.002;
 
     group.visible = active;
     if (!active) return;
 
-    // Scale lerp 0.001 → 6.0 across localT — dramatic reveal
-    const scale = THREE.MathUtils.lerp(0.001, 6.0, localT);
+    // Scale lerp 0.001 → 3.0 driven by envelope — dramatic reveal
+    const scale = THREE.MathUtils.lerp(0.001, 3.0, envRef.current);
     group.scale.setScalar(scale);
 
     if (!reduced) {
