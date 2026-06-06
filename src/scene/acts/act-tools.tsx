@@ -2,9 +2,8 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text, RoundedBox } from '@react-three/drei';
-import { useScrollRef } from '../scroll-context';
+import { useNavigation } from '../navigation-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
-import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
 import { tools } from '../../data/portfolio-content';
 
 // Act 2 — Tools
@@ -136,8 +135,12 @@ function CanLabelChip({
 
 export function ActTools() {
   const groupRef = useRef<THREE.Group>(null);
-  const scrollRef = useScrollRef();
+  const { view } = useNavigation();
   const reduced = useReducedMotion();
+
+  // View-state envelope: damped 0→1 when 'tools' is active, 1→0 otherwise
+  const viewRef = useRef(view); viewRef.current = view;
+  const envRef = useRef(0);
 
   const activeRef = useRef<boolean>(false);
   const elapsedRef = useRef<number>(0);
@@ -155,12 +158,14 @@ export function ActTools() {
     [],
   );
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, dt) => {
     const group = groupRef.current;
     if (!group) return;
 
-    const globalT = scrollRef.current ?? 0;
-    const { active, localT } = getActWindow('tools', globalT);
+    // Critically damped fade in/out (~0.4 s time constant)
+    const target = viewRef.current === 'tools' ? 1 : 0;
+    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
+    const active = envRef.current > 0.002;
 
     group.visible = active;
     activeRef.current = active;
@@ -168,9 +173,9 @@ export function ActTools() {
     if (!active) return;
 
     elapsedRef.current = clock.elapsedTime;
-    envelopeRef.current = actEnvelope(localT);
-    // Advance highlighted index 0..5 across the act window
-    highlightedRef.current = Math.min(tools.length - 1, Math.floor(localT * tools.length));
+    envelopeRef.current = envRef.current;
+    // Cycle highlighted chip by time so tools light up in sequence while focused
+    highlightedRef.current = Math.floor((elapsedRef.current / 1.4)) % tools.length;
 
     // Slowly rotate the whole ring; freeze when reduced motion
     if (!reduced) {
