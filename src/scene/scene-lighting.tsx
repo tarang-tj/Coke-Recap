@@ -7,7 +7,7 @@ import { Environment } from '@react-three/drei';
 export function SceneLighting() {
   return (
     <>
-      {/* Free IBL reflections — lifts all PBR/transmission materials */}
+      {/* Free IBL reflections — lifts all PBR/metalness materials */}
       <Environment preset="night" />
 
       {/* Modest ambient — enough to read shapes without flattening the red */}
@@ -27,7 +27,7 @@ export function SceneLighting() {
         color="#A8C8E8"
       />
 
-      {/* Soft warm fill — keeps glass/transmission readable */}
+      {/* Soft warm fill — keeps specular surfaces readable */}
       <pointLight
         position={[0, 0, 0]}
         intensity={0.6}
