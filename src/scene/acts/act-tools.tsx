@@ -1,4 +1,4 @@
-import { useRef, useMemo, useCallback, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSceneMixes } from '../scene-transition-context';
@@ -6,335 +6,609 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { tools } from '../../data/portfolio-content';
 import { CokeBottle } from '../brand/coke-bottle';
 
-// Act 2 — Tools: featured bottle carousel
+// Act 2 — Tools: wooden Coca-Cola bottle crate still-life
 //
-// Layout: one large featured bottle at [1.6, 0, 0.2], five queued bottles in a
-// shallow arc behind it. Featured cycles every 3.5s (auto). Hovering a queued
-// bottle pulls it forward immediately. Featured bottle renders with animated
-// liquid, bubbles, and condensation.
+// A 24-slot (6×4) divided wooden crate sits on aged wood planks.
+// 6 contour bottles stand in 6 slots, each wearing a paper neck-tag
+// with the tool name. Crate rotates ~1°/s. Single warm overhead spot.
 //
-// meshStandardMaterial / clearcoat only — zero transmission passes.
+// meshStandardMaterial / meshPhysicalMaterial only — zero transmission passes.
 
-const COKE_RED = '#F40009';
-const CREAM = '#F1E9DA';
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
-const FEATURED_POS: [number, number, number] = [1.6, 0, 0.2];
-const FEATURED_SCALE = 1.4;
-const QUEUE_SCALE = 0.55;
+const WOOD_BROWN = '#7A4F2C';
+const IRON_DARK = '#2A2018';
+const NAIL_COPPER = '#9C6E3A';
+const TWINE_COLOR = '#A88B5C';
+const TAG_CREAM = '#F0E8D0';
+const TAG_INK = '#2A1A08';
 
-const CYCLE_INTERVAL = 3.5;  // seconds between auto-advances
-const SWAP_DURATION = 0.35;  // seconds for swap animation
-const HOVER_PAUSE = 5.0;     // seconds to pause auto-cycle after hover
+// Crate outer dimensions (width × height × depth)
+const CRATE_W = 1.8;
+const CRATE_H = 0.55;
+const CRATE_D = 1.2;
+const WALL_T = 0.04; // wall thickness
 
-const TOTAL = tools.length; // 6
+// Divider grid: 6 cols × 4 rows = 24 slots
+const COLS = 6;
+const ROWS = 4;
 
-// -------------------------------------------------------------------
-// Arc positions for the 5 queued bottles
-// Shallow arc behind the featured slot, spread ±75°
-// -------------------------------------------------------------------
-const ARC_ANGLES_DEG = [-75, -37.5, 0, 37.5, 75];
+// Slot dimensions (inner)
+const SLOT_W = (CRATE_W - WALL_T * 2) / COLS; // ~0.287
+const SLOT_D = (CRATE_D - WALL_T * 2) / ROWS; // ~0.280
 
-function buildArcPositions(): [number, number, number][] {
-  const [fx, , fz] = FEATURED_POS;
-  return ARC_ANGLES_DEG.map((deg) => {
-    const rad = (deg * Math.PI) / 180;
-    // Arc sits behind (+Z) and fanned around the featured slot
-    return [
-      fx + Math.sin(rad) * 2.4,
-      0,
-      fz + 1.4 + Math.cos(rad) * 0.6,
-    ] as [number, number, number];
-  });
+// The 6 slots where bottles live — front two rows, spread across cols
+// Row 0 = frontmost (smallest z), Row 1 = next row
+const BOTTLE_SLOTS: [col: number, row: number][] = [
+  [0, 0],
+  [1, 0],
+  [3, 0],
+  [5, 0],
+  [2, 1],
+  [4, 1],
+];
+
+// Slot center in crate-local XZ (origin at crate center)
+function slotCenter(col: number, row: number): [number, number] {
+  const startX = -(CRATE_W / 2 - WALL_T) + SLOT_W / 2;
+  const startZ = -(CRATE_D / 2 - WALL_T) + SLOT_D / 2;
+  return [startX + col * SLOT_W, startZ + row * SLOT_D];
 }
 
-const ARC_POSITIONS = buildArcPositions();
+// Deterministic seeded pseudo-random for per-bottle Y rotation jitter
+function seededRng(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
 
-// Returns the 5 tool indices occupying the queue when featuredIdx is the hero
-function queueIndicesFor(featuredIdx: number): number[] {
-  const result: number[] = [];
-  for (let i = 1; i < TOTAL; i++) {
-    result.push((featuredIdx + i) % TOTAL);
+const BOTTLE_Y_ROT_JITTER: number[] = (() => {
+  const rng = seededRng(77);
+  return BOTTLE_SLOTS.map(() => (rng() - 0.5) * ((15 * Math.PI) / 90));
+})();
+
+// ---------------------------------------------------------------------------
+// CanvasTexture builders (baked in useMemo)
+// ---------------------------------------------------------------------------
+
+function buildCrateStencilTexture(): THREE.CanvasTexture {
+  const W = 512;
+  const H = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Aged wood base
+  ctx.fillStyle = WOOD_BROWN;
+  ctx.fillRect(0, 0, W, H);
+
+  // Add subtle horizontal grain lines
+  for (let i = 0; i < 12; i++) {
+    const y = (i / 12) * H;
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1 + Math.random() * 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, y + Math.random() * 4);
+    ctx.lineTo(W, y + Math.random() * 4);
+    ctx.stroke();
   }
-  return result;
+
+  // Stencil text — "Drink Coca-Cola"
+  ctx.font = 'bold 48px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Distressed cream paint — draw with noise alpha
+  const text = 'Drink Coca-Cola';
+  ctx.globalAlpha = 0.62;
+  ctx.fillStyle = '#F0E0C0';
+  ctx.fillText(text, W / 2, H / 2 + 2);
+
+  // Second pass slightly offset for worn paint look
+  ctx.globalAlpha = 0.28;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText(text, W / 2 - 1, H / 2 - 1);
+
+  ctx.globalAlpha = 1;
+
+  // Scratch marks for distress
+  for (let i = 0; i < 8; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.5) * 20);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  return tex;
 }
 
-// -------------------------------------------------------------------
-// QueueBottle — one of the 5 arc slots
-// -------------------------------------------------------------------
-interface QueueBottleProps {
-  toolIndex: number;
-  slotIndex: number;
-  activeRef: React.RefObject<boolean>;
-  envelopeRef: React.RefObject<number>;
-  hoverSlotRef: React.RefObject<number>;
-  onHover: (slot: number) => void;
-  onHoverEnd: () => void;
-  reduced: boolean;
+function buildNeckTagTexture(toolName: string): THREE.CanvasTexture {
+  const W = 128;
+  const H = 80;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Aged cream paper base
+  ctx.fillStyle = TAG_CREAM;
+  ctx.fillRect(0, 0, W, H);
+
+  // Slight paper toning
+  ctx.fillStyle = 'rgba(180,140,80,0.12)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Small hole at top (punched for twine)
+  ctx.strokeStyle = 'rgba(100,70,30,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(W / 2, 10, 5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(160,120,60,0.5)';
+  ctx.fill();
+
+  // Tool name text — typewriter / stamp style
+  const fontSize = toolName.length > 8 ? 13 : 16;
+  ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Ink stamp — slightly uneven for realism
+  ctx.fillStyle = TAG_INK;
+  ctx.globalAlpha = 0.88;
+  ctx.fillText(toolName, W / 2 + 0.5, H / 2 + 8);
+  ctx.globalAlpha = 0.7;
+  ctx.fillText(toolName, W / 2, H / 2 + 7);
+  ctx.globalAlpha = 1;
+
+  // Border lines like a printed tag
+  ctx.strokeStyle = 'rgba(80,50,20,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  return tex;
 }
 
-function QueueBottle({
-  toolIndex,
-  slotIndex,
-  activeRef,
-  envelopeRef,
-  hoverSlotRef,
-  onHover,
-  onHoverEnd,
-  reduced,
-}: QueueBottleProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const scaleRef = useRef(QUEUE_SCALE);
+function buildPlankTexture(): THREE.CanvasTexture {
+  const W = 512;
+  const H = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
 
-  useFrame((_, dt) => {
-    const group = groupRef.current;
-    if (!group || !activeRef.current) return;
+  // Plank colors (varying shades of aged brown)
+  const plankColors = [
+    '#6B3D1E', '#7A4A28', '#5E3518', '#704222',
+    '#6A3C1C', '#7E4F2E',
+  ];
 
-    const hovered = hoverSlotRef.current === slotIndex;
-    const targetScale = hovered ? QUEUE_SCALE * 1.15 : QUEUE_SCALE;
-    scaleRef.current += (targetScale - scaleRef.current) * Math.min(1, dt * 7);
-    group.scale.setScalar(scaleRef.current * envelopeRef.current);
+  const plankH = H / plankColors.length;
 
-    const targetY = hovered ? 0.14 : 0;
-    group.position.y += (targetY - group.position.y) * Math.min(1, dt * 7);
+  plankColors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, i * plankH, W, plankH);
+
+    // Grain lines within each plank
+    for (let g = 0; g < 5; g++) {
+      const y = i * plankH + (g / 5) * plankH;
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y + (Math.random() - 0.5) * 6);
+      ctx.stroke();
+    }
+
+    // Grout line between planks
+    if (i < plankColors.length - 1) {
+      ctx.fillStyle = '#2A1A0A';
+      ctx.fillRect(0, (i + 1) * plankH - 1.5, W, 3);
+    }
   });
 
-  const tool = tools[toolIndex];
+  // Dark edge vignette
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(0,0,0,0.25)');
+  grad.addColorStop(0.3, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.7, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.2)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  return tex;
+}
+
+// ---------------------------------------------------------------------------
+// CrateWalls — outer box + stencil texture on long wall
+// ---------------------------------------------------------------------------
+
+function CrateWalls({ stencilTex }: { stencilTex: THREE.CanvasTexture }) {
+  const woodMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: WOOD_BROWN,
+        roughness: 0.85,
+        metalness: 0,
+      }),
+    [],
+  );
+  const stencilMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: stencilTex,
+        roughness: 0.85,
+        metalness: 0,
+      }),
+    [stencilTex],
+  );
+  const ironMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: IRON_DARK,
+        roughness: 0.6,
+        metalness: 0.4,
+      }),
+    [],
+  );
+  const nailMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: NAIL_COPPER,
+        roughness: 0.55,
+        metalness: 0.5,
+      }),
+    [],
+  );
 
   return (
-    <group
-      ref={groupRef}
-      position={ARC_POSITIONS[slotIndex]}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        document.body.style.cursor = 'pointer';
-        onHover(slotIndex);
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = '';
-        onHoverEnd();
-      }}
-    >
-      <CokeBottle
-        customLabel={tool.name}
-        showLogo={false}
-        highlight={0.15}
-        reducedMotion={reduced}
-      />
+    <group>
+      {/* Base plate */}
+      <mesh position={[0, -CRATE_H / 2 + WALL_T / 2, 0]} receiveShadow>
+        <boxGeometry args={[CRATE_W, WALL_T, CRATE_D]} />
+        <primitive object={woodMat} attach="material" />
+      </mesh>
+
+      {/* Front wall (−Z, faces camera) — plain wood */}
+      <mesh position={[0, 0, -(CRATE_D / 2 - WALL_T / 2)]} castShadow>
+        <boxGeometry args={[CRATE_W, CRATE_H, WALL_T]} />
+        <primitive object={woodMat} attach="material" />
+      </mesh>
+
+      {/* Back wall (+Z) — plain wood */}
+      <mesh position={[0, 0, CRATE_D / 2 - WALL_T / 2]} castShadow>
+        <boxGeometry args={[CRATE_W, CRATE_H, WALL_T]} />
+        <primitive object={woodMat} attach="material" />
+      </mesh>
+
+      {/* Left long wall (−X) — stencil "Drink Coca-Cola" */}
+      <mesh position={[-(CRATE_W / 2 - WALL_T / 2), 0, 0]} castShadow>
+        <boxGeometry args={[WALL_T, CRATE_H, CRATE_D]} />
+        <primitive object={stencilMat} attach="material" />
+      </mesh>
+
+      {/* Right long wall (+X) — plain wood */}
+      <mesh position={[CRATE_W / 2 - WALL_T / 2, 0, 0]} castShadow>
+        <boxGeometry args={[WALL_T, CRATE_H, CRATE_D]} />
+        <primitive object={woodMat} attach="material" />
+      </mesh>
+
+      {/* Iron strap top — front long wall */}
+      <mesh position={[0, CRATE_H / 2 - 0.018, -(CRATE_D / 2 - 0.005)]}>
+        <boxGeometry args={[CRATE_W + 0.01, 0.018, 0.006]} />
+        <primitive object={ironMat} attach="material" />
+      </mesh>
+      {/* Iron strap bottom — front long wall */}
+      <mesh position={[0, -CRATE_H / 2 + 0.018, -(CRATE_D / 2 - 0.005)]}>
+        <boxGeometry args={[CRATE_W + 0.01, 0.018, 0.006]} />
+        <primitive object={ironMat} attach="material" />
+      </mesh>
+      {/* Iron strap top — back long wall */}
+      <mesh position={[0, CRATE_H / 2 - 0.018, CRATE_D / 2 - 0.005]}>
+        <boxGeometry args={[CRATE_W + 0.01, 0.018, 0.006]} />
+        <primitive object={ironMat} attach="material" />
+      </mesh>
+      {/* Iron strap bottom — back long wall */}
+      <mesh position={[0, -CRATE_H / 2 + 0.018, CRATE_D / 2 - 0.005]}>
+        <boxGeometry args={[CRATE_W + 0.01, 0.018, 0.006]} />
+        <primitive object={ironMat} attach="material" />
+      </mesh>
+
+      {/* Corner nail accents — 4 top corners */}
+      {(
+        [
+          [-CRATE_W / 2 + 0.03, CRATE_H / 2 - 0.04, -CRATE_D / 2 + 0.03],
+          [CRATE_W / 2 - 0.03, CRATE_H / 2 - 0.04, -CRATE_D / 2 + 0.03],
+          [-CRATE_W / 2 + 0.03, CRATE_H / 2 - 0.04, CRATE_D / 2 - 0.03],
+          [CRATE_W / 2 - 0.03, CRATE_H / 2 - 0.04, CRATE_D / 2 - 0.03],
+        ] as [number, number, number][]
+      ).map((pos, i) => (
+        <mesh key={i} position={pos}>
+          <cylinderGeometry args={[0.01, 0.01, 0.012, 8]} />
+          <primitive object={nailMat} attach="material" />
+        </mesh>
+      ))}
     </group>
   );
 }
 
-// -------------------------------------------------------------------
-// FeaturedBottle — the hero slot at FEATURED_POS
-// -------------------------------------------------------------------
-interface FeaturedBottleProps {
-  toolIndex: number;
-  swapProgressRef: React.RefObject<number>;
-  fromArcPos: [number, number, number] | null;
-  activeRef: React.RefObject<boolean>;
-  envelopeRef: React.RefObject<number>;
-  reduced: boolean;
-}
+// ---------------------------------------------------------------------------
+// CrateDividers — internal 6×4 slot grid
+// ---------------------------------------------------------------------------
 
-function FeaturedBottle({
-  toolIndex,
-  swapProgressRef,
-  fromArcPos,
-  activeRef,
-  envelopeRef,
-  reduced,
-}: FeaturedBottleProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  // Track the world-space start of a swap so position lerp works correctly
-  const swapStartPos = useRef<THREE.Vector3>(
-    fromArcPos ? new THREE.Vector3(...fromArcPos) : new THREE.Vector3(...FEATURED_POS),
+function CrateDividers() {
+  const divMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#6B3F1F',
+        roughness: 0.88,
+        metalness: 0,
+      }),
+    [],
   );
-  const targetPos = useMemo(() => new THREE.Vector3(...FEATURED_POS), []);
 
-  useFrame(({ clock }, dt) => {
-    const group = groupRef.current;
-    if (!group || !activeRef.current) return;
+  const divH = CRATE_H - WALL_T - 0.02; // slightly shorter than outer walls
+  const divY = -0.01; // sit on base
 
-    const envelope = envelopeRef.current;
-    const t = swapProgressRef.current;
+  // Vertical dividers (run along Z, divide X into 6 cols)
+  // 5 internal dividers = 6 columns
+  const verticalDividers: [number, number, number][] = [];
+  for (let i = 1; i < COLS; i++) {
+    const x = -(CRATE_W / 2 - WALL_T) + i * SLOT_W;
+    verticalDividers.push([x, divY, 0]);
+  }
 
-    // Slide in from arc start position → featured position during swap
-    if (fromArcPos && t < 1) {
-      group.position.lerpVectors(swapStartPos.current, targetPos, t);
-    } else {
-      // Gentle float bob once settled
-      const bob = reduced ? 0 : 0.05 * Math.sin(clock.elapsedTime * 0.9);
-      group.position.set(FEATURED_POS[0], FEATURED_POS[1] + bob, FEATURED_POS[2]);
-    }
-
-    // Scale up from queue scale → featured scale during swap
-    const sc = fromArcPos
-      ? (QUEUE_SCALE + (FEATURED_SCALE - QUEUE_SCALE) * Math.min(t, 1)) * envelope
-      : FEATURED_SCALE * envelope;
-    group.scale.setScalar(sc);
-
-    // Fade in during swap
-    if (fromArcPos && t < 1) {
-      const opacity = Math.min(1, t * 2.5);
-      group.traverse((obj) => {
-        const mesh = obj as THREE.Mesh;
-        if (mesh.isMesh && mesh.material) {
-          const mat = mesh.material as THREE.Material & { opacity?: number };
-          if (mat.transparent && mat.opacity !== undefined) {
-            mat.opacity = opacity * (mat.opacity > 0.5 ? 1 : 0.85);
-          }
-        }
-      });
-    }
-  });
-
-  const tool = tools[toolIndex];
+  // Horizontal dividers (run along X, divide Z into 4 rows)
+  // 3 internal dividers = 4 rows
+  const horizontalDividers: [number, number, number][] = [];
+  for (let i = 1; i < ROWS; i++) {
+    const z = -(CRATE_D / 2 - WALL_T) + i * SLOT_D;
+    horizontalDividers.push([0, divY, z]);
+  }
 
   return (
-    <group ref={groupRef} position={FEATURED_POS}>
-      <CokeBottle
-        customLabel={tool.name}
-        showLogo={false}
-        highlight={0.9}
-        interior={{ fill: 0.7, bubbles: true, condensation: true }}
-        reducedMotion={reduced}
-      />
+    <group>
+      {verticalDividers.map((pos, i) => (
+        <mesh key={`vd-${i}`} position={pos}>
+          <boxGeometry args={[WALL_T * 0.8, divH, CRATE_D - WALL_T * 2]} />
+          <primitive object={divMat} attach="material" />
+        </mesh>
+      ))}
+      {horizontalDividers.map((pos, i) => (
+        <mesh key={`hd-${i}`} position={pos}>
+          <boxGeometry args={[CRATE_W - WALL_T * 2, divH, WALL_T * 0.8]} />
+          <primitive object={divMat} attach="material" />
+        </mesh>
+      ))}
     </group>
   );
 }
 
-// -------------------------------------------------------------------
-// ActTools — orchestrates carousel, cycle timer, swap state
-// -------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// BottleInCrate — one bottle with twine + neck-tag
+// ---------------------------------------------------------------------------
+
+interface BottleInCrateProps {
+  toolName: string;
+  col: number;
+  row: number;
+  rotJitter: number;
+  tagTex: THREE.CanvasTexture;
+}
+
+function BottleInCrate({ toolName, col, row, rotJitter, tagTex }: BottleInCrateProps) {
+  const [cx, cz] = slotCenter(col, row);
+  // Bottles sit on the crate base: y = -CRATE_H/2 + WALL_T
+  const baseY = -CRATE_H / 2 + WALL_T;
+
+  const tagMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: tagTex,
+        roughness: 0.8,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    [tagTex],
+  );
+  const twineMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: TWINE_COLOR,
+        roughness: 0.9,
+        metalness: 0,
+      }),
+    [],
+  );
+
+  return (
+    <group position={[cx, baseY, cz]} rotation={[0, rotJitter, 0]}>
+      {/* The Coke bottle — scale 0.7, trademark wordmark on label */}
+      <CokeBottle scale={0.7} showLogo={true} highlight={0.1} />
+
+      {/* Twine ring around neck — at y ≈ 0.7 * 1.31 = 0.917 in local space */}
+      <mesh position={[0, 0.917, 0]}>
+        <torusGeometry args={[0.108, 0.004, 6, 16]} />
+        <primitive object={twineMat} attach="material" />
+      </mesh>
+
+      {/* Paper neck-tag — hangs just below the neck ring */}
+      {/* Tag is a thin plane rotated slightly for natural hang */}
+      <mesh position={[0.12, 0.88, 0.02]} rotation={[0.05, -0.3, 0.08]}>
+        <planeGeometry args={[0.18, 0.11]} />
+        <primitive object={tagMat} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WoodPlanks — aged floor planks under the crate
+// ---------------------------------------------------------------------------
+
+function WoodPlanks({ plankTex }: { plankTex: THREE.CanvasTexture }) {
+  const mat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: plankTex,
+        roughness: 0.95,
+        metalness: 0,
+      }),
+    [plankTex],
+  );
+
+  return (
+    <mesh position={[0, -CRATE_H / 2 - 0.02, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[5, 4]} />
+      <primitive object={mat} attach="material" />
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ActTools — orchestrates the crate still-life
+// ---------------------------------------------------------------------------
+
 export function ActTools() {
   const groupRef = useRef<THREE.Group>(null);
+  const crateGroupRef = useRef<THREE.Group>(null);
+  const spotLightRef = useRef<THREE.SpotLight>(null);
   const mixesRef = useSceneMixes();
   const reduced = useReducedMotion();
 
-  // Refs for hot-loop state (no React re-renders in useFrame)
-  const activeRef = useRef(false);
-  const envelopeRef = useRef(0);
-  const hoverSlotRef = useRef(-1);     // arc slot index currently hovered
-  const cycleTimerRef = useRef(0);
-  const hoverPauseRef = useRef(0);     // countdown: pause auto-cycle after hover
-  const swapProgressRef = useRef(1);   // 0→1 during swap; starts at 1 (settled)
+  // Hover state — ref-only; the spotlight intensity reads it inside useFrame.
+  const hoveredRef = useRef(false);
+  const spotIntensityRef = useRef(3.5);
 
-  // React state: featuredIdx drives re-render of child components
-  const [featuredIdx, setFeaturedIdx] = useState(0);
-  const [swapFromArcPos, setSwapFromArcPos] = useState<[number, number, number] | null>(null);
+  // Bake all canvas textures once
+  const stencilTex = useMemo(() => buildCrateStencilTexture(), []);
+  const plankTex = useMemo(() => buildPlankTexture(), []);
+  const tagTextures = useMemo(
+    () => tools.map((t) => buildNeckTagTexture(t.name)),
+    [],
+  );
 
-  // Stable ref mirrors for callbacks that need current values without stale closure
-  const featuredIdxRef = useRef(featuredIdx);
-  featuredIdxRef.current = featuredIdx;
+  // Dispose all canvas-allocated textures on unmount to avoid GPU/CPU leaks
+  useEffect(
+    () => () => {
+      stencilTex.dispose();
+      plankTex.dispose();
+      tagTextures.forEach((t) => t.dispose());
+    },
+    [stencilTex, plankTex, tagTextures],
+  );
 
-  // Advance the featured bottle to a given arc slot's tool
-  const advanceFeatured = useCallback((slotIndex: number) => {
-    const currentFeatured = featuredIdxRef.current;
-    const queueIndices = queueIndicesFor(currentFeatured);
-    const newFeaturedIdx = queueIndices[slotIndex];
-    const arcPos = ARC_POSITIONS[slotIndex];
-
-    swapProgressRef.current = 0;
-    setSwapFromArcPos([...arcPos] as [number, number, number]);
-    setFeaturedIdx(newFeaturedIdx);
-  }, []);
-
-  const handleQueueHover = useCallback((slot: number) => {
-    hoverSlotRef.current = slot;
-    hoverPauseRef.current = HOVER_PAUSE;
-    advanceFeatured(slot);
-  }, [advanceFeatured]);
-
-  const handleQueueHoverEnd = useCallback(() => {
-    hoverSlotRef.current = -1;
-  }, []);
-
-  useFrame((_, dt) => {
+  useFrame(({ clock }, dt) => {
     const group = groupRef.current;
+    const crateGroup = crateGroupRef.current;
     if (!group) return;
 
     const envelope = mixesRef.current.tools;
     const active = envelope > 0.002;
 
     group.visible = active;
-    activeRef.current = active;
-    envelopeRef.current = envelope;
 
-    if (!active) return;
-
-    // Envelope-driven entrance animation
-    group.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
-    // Note: individual child groups handle their own scale via envelopeRef;
-    // we do NOT set group.scale here to avoid double-scaling the children.
-
-    // Advance swap progress
-    if (swapProgressRef.current < 1) {
-      swapProgressRef.current = Math.min(1, swapProgressRef.current + dt / SWAP_DURATION);
-    }
-
-    // Hover-pause countdown
-    if (hoverPauseRef.current > 0) {
-      hoverPauseRef.current -= dt;
-    }
-
-    // Auto-cycle (disabled under reduced motion or during hover pause)
-    if (!reduced && hoverPauseRef.current <= 0) {
-      cycleTimerRef.current += dt;
-      if (cycleTimerRef.current >= CYCLE_INTERVAL) {
-        cycleTimerRef.current = 0;
-        // Always advance from slot 0 to keep the order cycling naturally
-        advanceFeatured(0);
+    if (!active) {
+      // Clear latched cursor when navigating away mid-hover
+      if (hoveredRef.current) {
+        hoveredRef.current = false;
+        document.body.style.cursor = '';
       }
+      return;
+    }
+
+    // Envelope-driven entrance
+    group.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
+    group.scale.setScalar(0.6 + 0.4 * envelope);
+
+    if (!crateGroup) return;
+
+    const elapsed = clock.elapsedTime;
+
+    if (!reduced) {
+      // Slow continuous Y rotation ~1°/s = 0.01745 rad/s ≈ 0.018 rad/s
+      crateGroup.rotation.y += dt * 0.018;
+      // Subtle vertical bob
+      crateGroup.position.y = -0.02 + 0.02 * Math.sin(elapsed * 0.55);
+    }
+
+    // Lerp spotlight intensity toward target
+    const spot = spotLightRef.current;
+    if (spot) {
+      const targetIntensity = hoveredRef.current ? 4.2 : 3.5;
+      spotIntensityRef.current = THREE.MathUtils.lerp(
+        spotIntensityRef.current,
+        targetIntensity,
+        Math.min(1, dt * 5),
+      );
+      spot.intensity = spotIntensityRef.current;
     }
   });
 
-  // 5 queue tool indices for current featured
-  const queueToolIndices = useMemo(
-    () => queueIndicesFor(featuredIdx),
-    [featuredIdx],
-  );
-
   return (
-    <group ref={groupRef} visible={false}>
-      {/* Lighting rig: cream fill top, caramel rim, coke-red back fill, spot on featured */}
-      <pointLight position={[0, 3, 0]} intensity={2.2} color={CREAM} />
-      <pointLight position={[0, -2, 0]} intensity={1.0} color="#A06A00" />
-      <pointLight position={[0, 0, 3]} intensity={1.4} color={COKE_RED} />
+    <group ref={groupRef} position={[0.6, 0, 0]} visible={false}>
+      {/* Overhead warm spotlight — single source for still-life feel */}
       <spotLight
-        position={[1.6, 4.5, 0.8]}
-        intensity={4.0}
-        angle={0.32}
-        penumbra={0.55}
-        color={CREAM}
+        ref={spotLightRef}
+        position={[1.5, 5, 2]}
+        angle={0.6}
+        penumbra={0.7}
+        intensity={3.5}
+        color="#FFE4B5"
+        distance={10}
         castShadow={false}
-        target-position={FEATURED_POS}
       />
 
-      {/* Featured hero bottle */}
-      <FeaturedBottle
-        key={`featured-${featuredIdx}`}
-        toolIndex={featuredIdx}
-        swapProgressRef={swapProgressRef}
-        fromArcPos={swapFromArcPos}
-        activeRef={activeRef}
-        envelopeRef={envelopeRef}
-        reduced={reduced}
-      />
+      {/* Subtle ambient fill */}
+      <ambientLight intensity={0.25} color="#FFF0D0" />
 
-      {/* Queue arc bottles — 5 slots */}
-      {queueToolIndices.map((toolIdx, slotIdx) => (
-        <QueueBottle
-          key={`queue-${slotIdx}-${toolIdx}`}
-          toolIndex={toolIdx}
-          slotIndex={slotIdx}
-          activeRef={activeRef}
-          envelopeRef={envelopeRef}
-          hoverSlotRef={hoverSlotRef}
-          onHover={handleQueueHover}
-          onHoverEnd={handleQueueHoverEnd}
-          reduced={reduced}
-        />
-      ))}
+      {/* Crate group — rotates and bobs */}
+      <group
+        ref={crateGroupRef}
+        rotation={[0, -0.35, 0]}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          document.body.style.cursor = 'pointer';
+          hoveredRef.current = true;
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = '';
+          hoveredRef.current = false;
+        }}
+      >
+        {/* Aged wood plank floor */}
+        <WoodPlanks plankTex={plankTex} />
+
+        {/* Crate outer walls */}
+        <CrateWalls stencilTex={stencilTex} />
+
+        {/* Internal divider grid — 6×4 slots */}
+        <CrateDividers />
+
+        {/* 6 bottles in selected slots */}
+        {BOTTLE_SLOTS.map(([col, row], i) => (
+          <BottleInCrate
+            key={tools[i].id}
+            toolName={tools[i].name}
+            col={col}
+            row={row}
+            rotJitter={BOTTLE_Y_ROT_JITTER[i]}
+            tagTex={tagTextures[i]}
+          />
+        ))}
+      </group>
     </group>
   );
 }
