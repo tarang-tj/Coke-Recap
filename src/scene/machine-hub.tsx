@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { VendingMachine, type MachineItem } from './brand/vending-machine';
@@ -21,21 +21,27 @@ export function MachineHub() {
   const viewRef = useRef(view);
   viewRef.current = view;
 
+  // Drives the VendingMachine's hover-cleanup; only setState on change.
+  const [active, setActive] = useState(true);
+  const activeRef = useRef(true);
+
   useFrame((_, dt) => {
     const g = groupRef.current;
     if (!g) return;
     const target = viewRef.current === 'machine' ? 1 : 0;
     envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const active = envRef.current > 0.002;
-    g.visible = active;
-    if (!active) return;
-    // Subtle settle-in scale as the hub focuses.
-    g.scale.setScalar(0.9 + 0.1 * envRef.current);
+    const a = envRef.current > 0.002;
+    g.visible = a;
+    if (a !== activeRef.current) {
+      activeRef.current = a;
+      setActive(a);
+    }
+    if (a) g.scale.setScalar(0.9 + 0.1 * envRef.current);
   });
 
   return (
     <group ref={groupRef} visible={false}>
-      <VendingMachine items={ITEMS} onSelect={(id) => setView(id)} />
+      <VendingMachine items={ITEMS} active={active} onSelect={(id) => setView(id)} />
     </group>
   );
 }

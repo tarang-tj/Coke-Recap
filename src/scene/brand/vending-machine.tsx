@@ -8,7 +8,7 @@
  * Machine is centred at [0,0,0]; apply `position`/`rotation` props to place it.
  * Camera is assumed near [0, 0.6, 7] looking at [0, 0.3, 0].
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -30,6 +30,8 @@ export interface VendingMachineProps {
   onSelect: (id: MachineItemId) => void;
   /** Optional external hover — combined with internal pointer state. */
   hoveredId?: MachineItemId | null;
+  /** When false (hub off-screen), clears latched hover + cursor. Default true. */
+  active?: boolean;
   position?: [number, number, number];
   rotation?: [number, number, number];
 }
@@ -230,6 +232,7 @@ export function VendingMachine({
   items,
   onSelect,
   hoveredId,
+  active = true,
   position,
   rotation,
 }: VendingMachineProps) {
@@ -239,6 +242,15 @@ export function VendingMachine({
 
   const [internalHoveredId, setInternalHoveredId] =
     useState<MachineItemId | null>(null);
+
+  // When the hub leaves view without the pointer moving, R3F won't fire
+  // onPointerOut — so clear any latched hover + cursor here.
+  useEffect(() => {
+    if (!active) {
+      setInternalHoveredId(null);
+      document.body.style.cursor = '';
+    }
+  }, [active]);
 
   // Bottle geometry created once, shared across all four BottleUnit instances
   const bottleGeometry = useMemo(() => buildBottleGeometry(), []);

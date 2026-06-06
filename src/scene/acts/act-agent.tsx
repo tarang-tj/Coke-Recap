@@ -68,6 +68,8 @@ function OrbitalRing({
     const g = groupRef.current;
     const m = matRef.current;
     if (!g || !m) return;
+    // Skip all work when the agent view is faded out (avoids per-frame cost on other views).
+    if (envelopeRef.current <= 0.003) return;
 
     if (!reduced) g.rotation.z += dt * 0.35 * dir;
 
@@ -136,6 +138,7 @@ function DataDot({ seed, reduced, elapsedRef, envelopeRef }: DataDotProps) {
     const mesh = meshRef.current;
     const mat = matRef.current;
     if (!mesh || !mat) return;
+    if (envelopeRef.current <= 0.003) return; // skip when agent view is faded out
 
     const elapsed = reduced ? seed.phase * 10 : elapsedRef.current;
     const envelope = envelopeRef.current;
