@@ -1,4 +1,6 @@
+import { useCallback, useState } from 'react';
 import { ScrollContext } from './scene/scroll-context';
+import { ExperienceContext } from './scene/experience-context';
 import { useScrollProgressRef } from './hooks/use-scroll-progress';
 import { useLenisScroll } from './hooks/use-lenis-scroll';
 import { SceneRoot } from './scene/scene-root';
@@ -19,6 +21,7 @@ import { SceneLoader } from './ui/scene-loader';
 import { SkipIntroButton } from './ui/skip-intro-button';
 import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
 import { Hud } from './ui/hud';
+import { StartGate } from './ui/start-gate';
 
 // Root app shell. Layout:
 //   - <Canvas> fixed full-viewport behind everything (z-0)
@@ -35,7 +38,12 @@ export function App() {
   useLenisScroll();
   const scrollRef = useScrollProgressRef();
 
+  // Gate state — idempotent setter so listeners can call start() safely.
+  const [started, setStarted] = useState(false);
+  const start = useCallback(() => setStarted(true), []);
+
   return (
+    <ExperienceContext.Provider value={{ started, start }}>
     <ScrollContext.Provider value={scrollRef}>
       <div className="relative w-full bg-coke-black text-cream font-body">
         <div className="fixed inset-0 z-0">
@@ -73,8 +81,10 @@ export function App() {
         <ReducedMotionToggle />
         <SkipIntroButton />
         <SceneLoader />
+        <StartGate />
         {import.meta.env.DEV && <ScrollDebug />}
       </div>
     </ScrollContext.Provider>
+    </ExperienceContext.Provider>
   );
 }
