@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { PresentationControls } from '@react-three/drei';
 import { useScrollRef } from '../scroll-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { getActWindow } from '../../hooks/use-act-window';
@@ -77,24 +78,34 @@ export function ActBottle() {
 
   return (
     <group ref={groupRef} visible={false}>
-      {/* Liquid-light glow from inside the bottle */}
+      {/* Liquid-light glow — kept outside PresentationControls so it doesn't orbit with drag */}
       <pointLight color="#F40009" intensity={1.8} distance={4} />
 
-      <mesh geometry={geometry} castShadow={false} receiveShadow={false}>
-        {/* Deep Coke-red glass look via clearcoat — no transmission render pass */}
-        <meshPhysicalMaterial
-          color="#C8000A"
-          clearcoat={1}
-          clearcoatRoughness={0.15}
-          roughness={0.15}
-          metalness={0.1}
-          transparent
-          opacity={0.9}
-          emissive="#5A0000"
-          emissiveIntensity={0.4}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/* Drag-to-orbit; outer group handles scale reveal + y-rotation; controls manage drag offset only */}
+      <PresentationControls
+        global={false}
+        cursor
+        snap
+        speed={1.4}
+        polar={[-0.4, 0.4]}
+        azimuth={[-0.6, 0.6]}
+      >
+        <mesh geometry={geometry} castShadow={false} receiveShadow={false}>
+          {/* Deep Coke-red glass look via clearcoat — no transmission render pass */}
+          <meshPhysicalMaterial
+            color="#C8000A"
+            clearcoat={1}
+            clearcoatRoughness={0.15}
+            roughness={0.15}
+            metalness={0.1}
+            transparent
+            opacity={0.9}
+            emissive="#5A0000"
+            emissiveIntensity={0.4}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </PresentationControls>
     </group>
   );
 }

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ContactShadows } from '@react-three/drei';
+import { ContactShadows, PresentationControls } from '@react-three/drei';
 import { useScrollRef } from '../scroll-context';
 import { getActWindow, smoothstep } from '../../hooks/use-act-window';
 import { Logo3D } from '../brand/logo-3d';
@@ -59,17 +59,27 @@ export function ActColdOpen() {
       <pointLight position={[2, 2, 3]} intensity={1.5} color="#FFFEF6" />
       <pointLight position={[-2, -1, 1]} intensity={0.8} color="#F40009" />
 
-      {/* 3-D logo hero — parent group handles idle float/rotation */}
-      <group ref={logoGroupRef}>
-        <Logo3D
-          color="#FFFEF6"
-          scale={1}
-          position={[0, 0.1, 0]}
-          materialRef={matRef}
-        />
-      </group>
+      {/* Drag-to-orbit via PresentationControls; idle float/rotation lives on the inner
+          logoGroupRef and composes additively with the drag spring rotation above it */}
+      <PresentationControls
+        global={false}
+        cursor
+        snap
+        speed={1.4}
+        polar={[-0.4, 0.4]}
+        azimuth={[-0.8, 0.8]}
+      >
+        <group ref={logoGroupRef}>
+          <Logo3D
+            color="#FFFEF6"
+            scale={1}
+            position={[0, 0.1, 0]}
+            materialRef={matRef}
+          />
+        </group>
+      </PresentationControls>
 
-      {/* Ground shadow — rendered once (frames=1) for zero ongoing cost */}
+      {/* Ground shadow — rendered once (frames=1); outside PresentationControls so it stays grounded */}
       <ContactShadows
         position={[0, -1.6, 0]}
         opacity={0.5}

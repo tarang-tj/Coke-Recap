@@ -4,6 +4,7 @@ import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/dr
 import { CameraRig } from './camera-rig';
 import { SceneLighting } from './scene-lighting';
 import { SceneBackdrop } from './scene-backdrop';
+import { FloatingProps } from './brand/floating-props';
 import { PostprocessingStack } from './postprocessing-stack';
 
 // Persistent <Canvas> — mounted once, never unmounted.
@@ -35,6 +36,7 @@ export function SceneRoot({ children }: Props) {
       <Suspense fallback={null}>
         <CameraRig />
         <SceneBackdrop />
+        <FloatingProps />
         <SceneLighting />
         {children}
         <PostprocessingStack performanceFactor={perfFactor} />
