@@ -2,22 +2,19 @@ import { useRef, useMemo, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
-import nebulaVert from '../../shaders/nebula.vert.glsl?raw';
-import nebulaFrag from '../../shaders/nebula.frag.glsl?raw';
 import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { agent } from '../../data/portfolio-content';
-import { DynamicRibbon } from '../brand/dynamic-ribbon';
 
 // Act 3 — Agent (centerpiece)
-// Trimmed: 3 orbital rings, 16 data dots, detail-2 icosahedron core.
-// Two brand ribbons weave through for Coca-Cola flavor.
+// Clean brand-red glowing icosahedron core + 3 orbital rings + 8 data dots.
+// No ribbons, no shader passes — meshStandardMaterial only.
 
 const CREAM = '#F1E9DA';
 const CARAMEL = '#A06A00';
 const COKE_RED = '#E8000B';
 
-// ─── 3 orbital ring configs (trimmed from 5) ──────────────────────────────────
+// ─── 3 orbital ring configs ────────────────────────────────────────────────────
 const RING_CONFIGS = [
   { torusR: 1.20, rotation: new THREE.Euler(Math.PI * 0.25, 0,              Math.PI * 0.10), color: CREAM,   dir:  1, pillarIdx: 0 },
   { torusR: 1.55, rotation: new THREE.Euler(Math.PI * 0.50, Math.PI * 0.35, 0             ), color: CARAMEL, dir: -1, pillarIdx: 1 },
@@ -113,8 +110,8 @@ function OrbitalRing({
   );
 }
 
-// ─── 16 spiraling data dots (trimmed from 30) ─────────────────────────────────
-const DOT_COUNT = 16;
+// ─── 8 spiraling data dots (trimmed from 16) ──────────────────────────────────
+const DOT_COUNT = 8;
 
 const DOT_SEEDS = Array.from({ length: DOT_COUNT }, (_, i) => ({
   angleOffset: (i / DOT_COUNT) * Math.PI * 6,
@@ -181,7 +178,7 @@ export function ActAgent() {
   const reduced = useReducedMotion();
 
   const groupRef = useRef<THREE.Group>(null);
-  const nebulaMat = useRef<THREE.ShaderMaterial>(null);
+  const coreMatRef = useRef<THREE.MeshStandardMaterial>(null);
 
   const elapsedRef = useRef<number>(0);
   const envelopeRef = useRef<number>(1);
@@ -190,15 +187,6 @@ export function ActAgent() {
   const ringMatRefs = useMemo<RefObject<THREE.MeshStandardMaterial | null>[]>(
     () => RING_CONFIGS.map(() => ({ current: null })),
     [],
-  );
-
-  const uniforms = useMemo(
-    () => ({
-      uTime:          { value: 0 },
-      uReducedMotion: { value: reduced ? 1.0 : 0.0 },
-      uLocalT:        { value: 0 },
-    }),
-    [reduced],
   );
 
   useFrame(({ clock }, dt) => {
@@ -219,12 +207,13 @@ export function ActAgent() {
     envelopeRef.current = envelope;
     peakRef.current = peak;
 
-    // Nebula shader uniforms
-    const mat = nebulaMat.current;
-    if (mat) {
-      if (!reduced) mat.uniforms.uTime.value += dt;
-      mat.uniforms.uReducedMotion.value = reduced ? 1.0 : 0.0;
-      mat.uniforms.uLocalT.value = envelope;
+    // Core emissive pulses with envelope
+    const core = coreMatRef.current;
+    if (core) {
+      const targetIntensity = reduced
+        ? 1.5 * envelope
+        : (1.5 + 0.4 * Math.sin(clock.elapsedTime * 1.8)) * envelope;
+      core.emissiveIntensity += (targetIntensity - core.emissiveIntensity) * Math.min(1, dt * 5);
     }
 
     if (!reduced) g.rotation.y += dt * 0.18;
@@ -240,18 +229,17 @@ export function ActAgent() {
       <pointLight color={CREAM} intensity={1.8} distance={6} />
       <pointLight color={COKE_RED} intensity={2.2} distance={3.5} />
 
-      {/* Nebula core — icosahedron detail lowered to 2 for performance */}
+      {/* Clean brand-red glowing icosahedron core */}
       <mesh>
         <icosahedronGeometry args={[0.7, 2]} />
-        <shaderMaterial
-          ref={nebulaMat}
-          vertexShader={nebulaVert}
-          fragmentShader={nebulaFrag}
-          uniforms={uniforms}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          transparent
-          side={THREE.FrontSide}
+        <meshStandardMaterial
+          ref={coreMatRef}
+          color={COKE_RED}
+          emissive={COKE_RED}
+          emissiveIntensity={1.5}
+          roughness={0.35}
+          metalness={0.1}
+          transparent={false}
         />
       </mesh>
 
@@ -272,7 +260,7 @@ export function ActAgent() {
         />
       ))}
 
-      {/* 16 data dots spiraling inward (trimmed from 30) */}
+      {/* 8 data dots spiraling inward */}
       {DOT_SEEDS.map((seed, i) => (
         <DataDot
           key={i}
@@ -282,26 +270,6 @@ export function ActAgent() {
           envelopeRef={envelopeRef}
         />
       ))}
-
-      {/* Brand ribbons — Coca-Cola swoosh weaves through the centerpiece.
-          Scaled down so the full ribbon arc fits within the ring orbits.
-          Both instances inherit the parent group's y-rotation for free orbiting. */}
-      <DynamicRibbon
-        scale={0.46}
-        color={COKE_RED}
-        speed={0.65}
-        opacity={0.72}
-        position={[0, 0.18, 0]}
-        rotation={[Math.PI * 0.12, Math.PI * 0.28, 0]}
-      />
-      <DynamicRibbon
-        scale={0.38}
-        color={CREAM}
-        speed={0.45}
-        opacity={0.50}
-        position={[0, -0.14, 0]}
-        rotation={[Math.PI * 0.58, Math.PI * 0.72, Math.PI * 0.22]}
-      />
     </group>
   );
 }

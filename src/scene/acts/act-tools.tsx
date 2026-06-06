@@ -1,160 +1,255 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text, RoundedBox } from '@react-three/drei';
 import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { tools } from '../../data/portfolio-content';
+import { CokeBottle } from '../brand/coke-bottle';
 
-// Act 2 — Tools
-// 6 glossy Coca-Cola red "can-label" chips on a ring (radius 2.4).
-// meshStandardMaterial only — zero transmission passes.
+// Act 2 — Tools: featured bottle carousel
+//
+// Layout: one large featured bottle at [1.6, 0, 0.2], five queued bottles in a
+// shallow arc behind it. Featured cycles every 3.5s (auto). Hovering a queued
+// bottle pulls it forward immediately. Featured bottle renders with animated
+// liquid, bubbles, and condensation.
+//
+// meshStandardMaterial / clearcoat only — zero transmission passes.
 
-const CIRCLE_RADIUS = 2.4;
 const COKE_RED = '#F40009';
 const CREAM = '#F1E9DA';
 
-function circlePosition(i: number, total: number): [number, number, number] {
-  const angle = (i / total) * Math.PI * 2;
-  return [Math.cos(angle) * CIRCLE_RADIUS, 0, Math.sin(angle) * CIRCLE_RADIUS];
+const FEATURED_POS: [number, number, number] = [1.6, 0, 0.2];
+const FEATURED_SCALE = 1.4;
+const QUEUE_SCALE = 0.55;
+
+const CYCLE_INTERVAL = 3.5;  // seconds between auto-advances
+const SWAP_DURATION = 0.35;  // seconds for swap animation
+const HOVER_PAUSE = 5.0;     // seconds to pause auto-cycle after hover
+
+const TOTAL = tools.length; // 6
+
+// -------------------------------------------------------------------
+// Arc positions for the 5 queued bottles
+// Shallow arc behind the featured slot, spread ±75°
+// -------------------------------------------------------------------
+const ARC_ANGLES_DEG = [-75, -37.5, 0, 37.5, 75];
+
+function buildArcPositions(): [number, number, number][] {
+  const [fx, , fz] = FEATURED_POS;
+  return ARC_ANGLES_DEG.map((deg) => {
+    const rad = (deg * Math.PI) / 180;
+    // Arc sits behind (+Z) and fanned around the featured slot
+    return [
+      fx + Math.sin(rad) * 2.4,
+      0,
+      fz + 1.4 + Math.cos(rad) * 0.6,
+    ] as [number, number, number];
+  });
 }
 
-function circleAngle(i: number, total: number): number {
-  return (i / total) * Math.PI * 2;
+const ARC_POSITIONS = buildArcPositions();
+
+// Returns the 5 tool indices occupying the queue when featuredIdx is the hero
+function queueIndicesFor(featuredIdx: number): number[] {
+  const result: number[] = [];
+  for (let i = 1; i < TOTAL; i++) {
+    result.push((featuredIdx + i) % TOTAL);
+  }
+  return result;
 }
 
-interface ChipProps {
-  index: number;
-  position: [number, number, number];
-  /** Radial angle of this chip around Y; used to orient it outward */
-  angle: number;
-  label: string;
+// -------------------------------------------------------------------
+// QueueBottle — one of the 5 arc slots
+// -------------------------------------------------------------------
+interface QueueBottleProps {
+  toolIndex: number;
+  slotIndex: number;
+  activeRef: React.RefObject<boolean>;
+  envelopeRef: React.RefObject<number>;
+  hoverSlotRef: React.RefObject<number>;
+  onHover: (slot: number) => void;
+  onHoverEnd: () => void;
   reduced: boolean;
-  activeRef: { readonly current: boolean };
-  elapsedRef: { readonly current: number };
-  highlightedRef: { readonly current: number };
-  envelopeRef: { readonly current: number };
 }
 
-function CanLabelChip({
-  index,
-  position,
-  angle,
-  label,
-  reduced,
+function QueueBottle({
+  toolIndex,
+  slotIndex,
   activeRef,
-  elapsedRef,
-  highlightedRef,
   envelopeRef,
-}: ChipProps) {
+  hoverSlotRef,
+  onHover,
+  onHoverEnd,
+  reduced,
+}: QueueBottleProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  const hoveredRef = useRef<boolean>(false);
-  // Cache initial z so hover lift can lerp without allocating a new vector each frame
-  const baseZ = position[2];
+  const scaleRef = useRef(QUEUE_SCALE);
 
-  useFrame(() => {
-    if (!activeRef.current) {
-      // Act scrolled away while hovered: R3F won't fire onPointerOut without
-      // mouse movement, so clear the latched hover + cursor here.
-      if (hoveredRef.current) {
-        hoveredRef.current = false;
-        document.body.style.cursor = '';
-      }
-      return;
-    }
+  useFrame((_, dt) => {
     const group = groupRef.current;
-    const mat = matRef.current;
-    if (!group) return;
+    if (!group || !activeRef.current) return;
 
-    const isHighlighted = highlightedRef.current === index;
-    const elapsed = elapsedRef.current;
-    const envelope = envelopeRef.current;
-    const hovered = hoveredRef.current;
+    const hovered = hoverSlotRef.current === slotIndex;
+    const targetScale = hovered ? QUEUE_SCALE * 1.15 : QUEUE_SCALE;
+    scaleRef.current += (targetScale - scaleRef.current) * Math.min(1, dt * 7);
+    group.scale.setScalar(scaleRef.current * envelopeRef.current);
 
-    if (isHighlighted || hovered) {
-      // Static scale under reduced motion; gentle pulse otherwise.
-      group.scale.setScalar(reduced ? 1.12 : 1.12 + 0.05 * Math.sin(elapsed * 3.5));
-      // Hover brightens emissive beyond the scroll highlight
-      if (mat) mat.emissiveIntensity = (hovered ? 0.75 : 0.55) * envelope;
-    } else {
-      group.scale.setScalar(1.0);
-      if (mat) mat.emissiveIntensity = 0.12 * envelope;
-    }
-
-    // Smooth z-lift on hover — interpolates in the ring plane, no per-frame allocation
-    const targetZ = hovered ? baseZ + 0.15 : baseZ;
-    group.position.z += (targetZ - group.position.z) * 0.12;
+    const targetY = hovered ? 0.14 : 0;
+    group.position.y += (targetY - group.position.y) * Math.min(1, dt * 7);
   });
 
-  // Rotate so the chip front (+Z local) points radially outward: Y = π/2 − angle
-  const facingY = Math.PI / 2 - angle;
+  const tool = tools[toolIndex];
 
   return (
     <group
       ref={groupRef}
-      position={position}
-      rotation={[0, facingY, 0]}
+      position={ARC_POSITIONS[slotIndex]}
       onPointerOver={(e) => {
         e.stopPropagation();
-        hoveredRef.current = true;
         document.body.style.cursor = 'pointer';
+        onHover(slotIndex);
       }}
       onPointerOut={() => {
-        hoveredRef.current = false;
         document.body.style.cursor = '';
+        onHoverEnd();
       }}
     >
-      {/* Can-label proportioned chip — Coca-Cola red, glossy, no transmission */}
-      <RoundedBox args={[1.5, 0.95, 0.12]} radius={0.12} smoothness={4}>
-        <meshStandardMaterial
-          ref={matRef}
-          color={COKE_RED}
-          roughness={0.3}
-          metalness={0.15}
-          emissive={COKE_RED}
-          emissiveIntensity={0.12}
-        />
-      </RoundedBox>
-
-      {/* Tool name on the front face — cream with dark outline */}
-      <Text
-        position={[0, 0, 0.07]}
-        fontSize={0.22}
-        color={CREAM}
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.012}
-        outlineColor="#0A0203"
-      >
-        {label}
-      </Text>
+      <CokeBottle
+        customLabel={tool.name}
+        showLogo={false}
+        highlight={0.15}
+        reducedMotion={reduced}
+      />
     </group>
   );
 }
 
+// -------------------------------------------------------------------
+// FeaturedBottle — the hero slot at FEATURED_POS
+// -------------------------------------------------------------------
+interface FeaturedBottleProps {
+  toolIndex: number;
+  swapProgressRef: React.RefObject<number>;
+  fromArcPos: [number, number, number] | null;
+  activeRef: React.RefObject<boolean>;
+  envelopeRef: React.RefObject<number>;
+  reduced: boolean;
+}
+
+function FeaturedBottle({
+  toolIndex,
+  swapProgressRef,
+  fromArcPos,
+  activeRef,
+  envelopeRef,
+  reduced,
+}: FeaturedBottleProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  // Track the world-space start of a swap so position lerp works correctly
+  const swapStartPos = useRef<THREE.Vector3>(
+    fromArcPos ? new THREE.Vector3(...fromArcPos) : new THREE.Vector3(...FEATURED_POS),
+  );
+  const targetPos = useMemo(() => new THREE.Vector3(...FEATURED_POS), []);
+
+  useFrame(({ clock }, dt) => {
+    const group = groupRef.current;
+    if (!group || !activeRef.current) return;
+
+    const envelope = envelopeRef.current;
+    const t = swapProgressRef.current;
+
+    // Slide in from arc start position → featured position during swap
+    if (fromArcPos && t < 1) {
+      group.position.lerpVectors(swapStartPos.current, targetPos, t);
+    } else {
+      // Gentle float bob once settled
+      const bob = reduced ? 0 : 0.05 * Math.sin(clock.elapsedTime * 0.9);
+      group.position.set(FEATURED_POS[0], FEATURED_POS[1] + bob, FEATURED_POS[2]);
+    }
+
+    // Scale up from queue scale → featured scale during swap
+    const sc = fromArcPos
+      ? (QUEUE_SCALE + (FEATURED_SCALE - QUEUE_SCALE) * Math.min(t, 1)) * envelope
+      : FEATURED_SCALE * envelope;
+    group.scale.setScalar(sc);
+
+    // Fade in during swap
+    if (fromArcPos && t < 1) {
+      const opacity = Math.min(1, t * 2.5);
+      group.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.isMesh && mesh.material) {
+          const mat = mesh.material as THREE.Material & { opacity?: number };
+          if (mat.transparent && mat.opacity !== undefined) {
+            mat.opacity = opacity * (mat.opacity > 0.5 ? 1 : 0.85);
+          }
+        }
+      });
+    }
+  });
+
+  const tool = tools[toolIndex];
+
+  return (
+    <group ref={groupRef} position={FEATURED_POS}>
+      <CokeBottle
+        customLabel={tool.name}
+        showLogo={false}
+        highlight={0.9}
+        interior={{ fill: 0.7, bubbles: true, condensation: true }}
+        reducedMotion={reduced}
+      />
+    </group>
+  );
+}
+
+// -------------------------------------------------------------------
+// ActTools — orchestrates carousel, cycle timer, swap state
+// -------------------------------------------------------------------
 export function ActTools() {
   const groupRef = useRef<THREE.Group>(null);
   const mixesRef = useSceneMixes();
   const reduced = useReducedMotion();
 
-  const activeRef = useRef<boolean>(false);
-  const elapsedRef = useRef<number>(0);
-  const highlightedRef = useRef<number>(0);
-  const envelopeRef = useRef<number>(0);
+  // Refs for hot-loop state (no React re-renders in useFrame)
+  const activeRef = useRef(false);
+  const envelopeRef = useRef(0);
+  const hoverSlotRef = useRef(-1);     // arc slot index currently hovered
+  const cycleTimerRef = useRef(0);
+  const hoverPauseRef = useRef(0);     // countdown: pause auto-cycle after hover
+  const swapProgressRef = useRef(1);   // 0→1 during swap; starts at 1 (settled)
 
-  const chipData = useMemo(
-    () =>
-      tools.map((tool, i) => ({
-        position: circlePosition(i, tools.length) as [number, number, number],
-        angle: circleAngle(i, tools.length),
-        id: tool.id,
-        name: tool.name,
-      })),
-    [],
-  );
+  // React state: featuredIdx drives re-render of child components
+  const [featuredIdx, setFeaturedIdx] = useState(0);
+  const [swapFromArcPos, setSwapFromArcPos] = useState<[number, number, number] | null>(null);
 
-  useFrame(({ clock }, dt) => {
+  // Stable ref mirrors for callbacks that need current values without stale closure
+  const featuredIdxRef = useRef(featuredIdx);
+  featuredIdxRef.current = featuredIdx;
+
+  // Advance the featured bottle to a given arc slot's tool
+  const advanceFeatured = useCallback((slotIndex: number) => {
+    const currentFeatured = featuredIdxRef.current;
+    const queueIndices = queueIndicesFor(currentFeatured);
+    const newFeaturedIdx = queueIndices[slotIndex];
+    const arcPos = ARC_POSITIONS[slotIndex];
+
+    swapProgressRef.current = 0;
+    setSwapFromArcPos([...arcPos] as [number, number, number]);
+    setFeaturedIdx(newFeaturedIdx);
+  }, []);
+
+  const handleQueueHover = useCallback((slot: number) => {
+    hoverSlotRef.current = slot;
+    hoverPauseRef.current = HOVER_PAUSE;
+    advanceFeatured(slot);
+  }, [advanceFeatured]);
+
+  const handleQueueHoverEnd = useCallback(() => {
+    hoverSlotRef.current = -1;
+  }, []);
+
+  useFrame((_, dt) => {
     const group = groupRef.current;
     if (!group) return;
 
@@ -163,41 +258,81 @@ export function ActTools() {
 
     group.visible = active;
     activeRef.current = active;
+    envelopeRef.current = envelope;
 
     if (!active) return;
 
+    // Envelope-driven entrance animation
     group.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
-    group.scale.setScalar(0.6 + 0.4 * envelope);
+    // Note: individual child groups handle their own scale via envelopeRef;
+    // we do NOT set group.scale here to avoid double-scaling the children.
 
-    elapsedRef.current = clock.elapsedTime;
-    envelopeRef.current = envelope;
-    // Cycle highlighted chip by time so tools light up in sequence while focused
-    highlightedRef.current = Math.floor((elapsedRef.current / 1.4)) % tools.length;
+    // Advance swap progress
+    if (swapProgressRef.current < 1) {
+      swapProgressRef.current = Math.min(1, swapProgressRef.current + dt / SWAP_DURATION);
+    }
 
-    // Slowly rotate the whole ring; freeze when reduced motion
-    if (!reduced) {
-      group.rotation.y += 0.0012;
+    // Hover-pause countdown
+    if (hoverPauseRef.current > 0) {
+      hoverPauseRef.current -= dt;
+    }
+
+    // Auto-cycle (disabled under reduced motion or during hover pause)
+    if (!reduced && hoverPauseRef.current <= 0) {
+      cycleTimerRef.current += dt;
+      if (cycleTimerRef.current >= CYCLE_INTERVAL) {
+        cycleTimerRef.current = 0;
+        // Always advance from slot 0 to keep the order cycling naturally
+        advanceFeatured(0);
+      }
     }
   });
 
+  // 5 queue tool indices for current featured
+  const queueToolIndices = useMemo(
+    () => queueIndicesFor(featuredIdx),
+    [featuredIdx],
+  );
+
   return (
     <group ref={groupRef} visible={false}>
+      {/* Lighting rig: cream fill top, caramel rim, coke-red back fill, spot on featured */}
       <pointLight position={[0, 3, 0]} intensity={2.2} color={CREAM} />
       <pointLight position={[0, -2, 0]} intensity={1.0} color="#A06A00" />
       <pointLight position={[0, 0, 3]} intensity={1.4} color={COKE_RED} />
+      <spotLight
+        position={[1.6, 4.5, 0.8]}
+        intensity={4.0}
+        angle={0.32}
+        penumbra={0.55}
+        color={CREAM}
+        castShadow={false}
+        target-position={FEATURED_POS}
+      />
 
-      {chipData.map((chip, i) => (
-        <CanLabelChip
-          key={chip.id}
-          index={i}
-          position={chip.position}
-          angle={chip.angle}
-          label={chip.name}
-          reduced={reduced}
+      {/* Featured hero bottle */}
+      <FeaturedBottle
+        key={`featured-${featuredIdx}`}
+        toolIndex={featuredIdx}
+        swapProgressRef={swapProgressRef}
+        fromArcPos={swapFromArcPos}
+        activeRef={activeRef}
+        envelopeRef={envelopeRef}
+        reduced={reduced}
+      />
+
+      {/* Queue arc bottles — 5 slots */}
+      {queueToolIndices.map((toolIdx, slotIdx) => (
+        <QueueBottle
+          key={`queue-${slotIdx}-${toolIdx}`}
+          toolIndex={toolIdx}
+          slotIndex={slotIdx}
           activeRef={activeRef}
-          elapsedRef={elapsedRef}
-          highlightedRef={highlightedRef}
           envelopeRef={envelopeRef}
+          hoverSlotRef={hoverSlotRef}
+          onHover={handleQueueHover}
+          onHoverEnd={handleQueueHoverEnd}
+          reduced={reduced}
         />
       ))}
     </group>
