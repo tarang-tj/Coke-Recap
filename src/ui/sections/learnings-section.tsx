@@ -1,11 +1,17 @@
 import { learnings, contact } from '../../data/portfolio-content';
+import { Wordmark } from '../brand/wordmark';
 
-// Closing chapter — large italic quotes separated by full-width hairlines,
-// small-caps contact row at bottom.
+// Closing chapter — brand sign-off wordmark, large italic quotes, contact row.
 
 export function LearningsSection() {
   return (
     <footer className="flex flex-col items-center justify-center min-h-screen px-6 py-24 text-center">
+      {/* Brand sign-off — closing identity stamp */}
+      <Wordmark as="h2" className="text-6xl md:text-8xl mb-4" />
+      <p className="font-body text-base md:text-lg text-cream/80 tracking-widest mb-16">
+        Taste the insight.
+      </p>
+
       {/* Eyebrow */}
       <p className="font-body text-[0.65rem] tracking-[0.35em] uppercase text-caramel mb-12">
         04 / Takeaways
