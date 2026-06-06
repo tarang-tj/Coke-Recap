@@ -22,6 +22,8 @@ const BUBBLE_VERTEX = /* glsl */ `
 
   uniform float uTime;
   uniform float uReducedMotion;
+  uniform vec2  uPointer;        // cursor NDC position, x/y ∈ [-1,1]
+  uniform float uPointerStrength; // 1.0 normal, 0.0 reduced-motion
 
   varying float vAlpha;
 
@@ -35,6 +37,15 @@ const BUBBLE_VERTEX = /* glsl */ `
     vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
     gl_Position = projectionMatrix * mvPos;
     gl_PointSize = aSize * (250.0 / -mvPos.z);
+
+    // Cursor repulsion: push bubbles outward from the pointer in clip space.
+    vec2 ndc = gl_Position.xy / gl_Position.w;
+    vec2 toBubble = ndc - uPointer;
+    float dist = length(toBubble);
+    // Gaussian falloff — strong within ~0.3 NDC units, fades quickly beyond.
+    float push = uPointerStrength * 0.12 * exp(-dist * dist * 6.0);
+    // Multiply by w to keep push magnitude consistent in clip space.
+    gl_Position.xy += normalize(toBubble + 1e-5) * push * gl_Position.w;
 
     float yFade = smoothstep(-6.0, -4.0, y) * (1.0 - smoothstep(4.0, 6.0, y));
     vAlpha = yFade * 0.65;
@@ -82,15 +93,22 @@ export function Bubbles() {
     () => ({
       uTime: { value: 0 },
       uReducedMotion: { value: reduced ? 1 : 0 },
+      uPointer: { value: new THREE.Vector2(0, 0) },
+      uPointerStrength: { value: reduced ? 0 : 1 },
     }),
-    [reduced],
+    // uniforms object is stable; reduced-motion is driven per-frame below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const m = matRef.current;
     if (!m) return;
     m.uniforms.uTime.value += dt;
     m.uniforms.uReducedMotion.value = reduced ? 1 : 0;
+    // Copy NDC pointer coords in-place (no allocation).
+    m.uniforms.uPointer.value.set(state.pointer.x, state.pointer.y);
+    m.uniforms.uPointerStrength.value = reduced ? 0 : 1;
   });
 
   return (
