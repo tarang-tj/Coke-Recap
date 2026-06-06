@@ -58,7 +58,7 @@ export function CameraRig() {
   // Smoothed look-at target — damp3 it separately so lookAt tracks butter-smooth.
   const smoothLook = useRef(new THREE.Vector3(0, 0, 0));
 
-  useFrame(({ clock }, dt) => {
+  useFrame(({ clock, pointer }, dt) => {
     const t = Math.min(1, Math.max(0, scrollRef.current ?? 0));
     const elapsed = clock.elapsedTime;
 
@@ -69,6 +69,13 @@ export function CameraRig() {
     // Subtle continuous wobble — never fully static.
     _targetPos.y += Math.sin(elapsed * 0.3) * 0.05;
     _targetPos.x += Math.sin(elapsed * 0.17) * 0.02;
+
+    // Mouse parallax: nudge target toward pointer for a game-world depth feel.
+    // Skipped for reduced motion to avoid vestibular discomfort.
+    if (!reduced) {
+      _targetPos.x += pointer.x * 0.35;
+      _targetPos.y += pointer.y * 0.22;
+    }
 
     // Spring-physics damping. Reduced motion: near-instant snap (lambda=1000).
     const lambda = reduced ? 1000 : 3.5;
