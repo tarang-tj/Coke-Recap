@@ -68,7 +68,6 @@ export function ActColdOpen() {
         speed={1.4}
         polar={[-0.4, 0.4]}
         azimuth={[-0.8, 0.8]}
-        config={{ mass: 1, tension: 180, friction: 22 }}
       >
         <group ref={logoGroupRef}>
           <Logo3D

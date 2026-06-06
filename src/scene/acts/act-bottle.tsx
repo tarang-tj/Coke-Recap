@@ -89,7 +89,6 @@ export function ActBottle() {
         speed={1.4}
         polar={[-0.4, 0.4]}
         azimuth={[-0.6, 0.6]}
-        config={{ mass: 1, tension: 180, friction: 22 }}
       >
         <mesh geometry={geometry} castShadow={false} receiveShadow={false}>
           {/* Deep Coke-red glass look via clearcoat — no transmission render pass */}
