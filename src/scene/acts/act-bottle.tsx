@@ -13,6 +13,7 @@ function buildBottlePoints(): THREE.Vector2[] {
   // Hobble-skirt profile: fluted base → wide belly → pinched waist → shoulder → neck → crown.
   // Total height 2.90; caller translates by -1.45 to center vertically.
   const raw: [number, number][] = [
+    [0.00, 0.00], // center of base — closes the bottom so it isn't a hollow tube
     [0.50, 0.00], // base disc
     [0.52, 0.04], // base rim flare
     [0.49, 0.12], // base wall

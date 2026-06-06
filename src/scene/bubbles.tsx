@@ -94,7 +94,7 @@ export function Bubbles() {
   });
 
   return (
-    <points>
+    <points frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
         <bufferAttribute attach="attributes-aSpeed" args={[speeds, 1]} count={count} />

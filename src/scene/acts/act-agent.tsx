@@ -79,7 +79,8 @@ function OrbitalRing({
 
     const envelope = envelopeRef.current;
     const peak = peakRef.current;
-    const basePulse = 0.6 + 0.4 * Math.sin(elapsedRef.current * 1.2);
+    // Static base brightness under reduced motion (no flicker).
+    const basePulse = reduced ? 0.6 : 0.6 + 0.4 * Math.sin(elapsedRef.current * 1.2);
     m.emissiveIntensity = (basePulse * 0.6 + peak * 2.0) * envelope;
     m.opacity = 0.4 + 0.55 * envelope;
   });

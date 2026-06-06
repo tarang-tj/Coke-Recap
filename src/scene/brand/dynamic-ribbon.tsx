@@ -58,13 +58,18 @@ export function DynamicRibbon({
 
   const colorObj = useMemo(() => new THREE.Color(color), [color]);
 
+  // Base offsets from props so the per-frame oscillation adds to, rather than
+  // clobbers, the caller's intended position/rotation.
+  const baseY = position?.[1] ?? 0;
+  const baseRotZ = rotation?.[2] ?? 0;
+
   useFrame(({ clock }) => {
     const g = groupRef.current;
     if (!g || reduced) return;
     const t = clock.elapsedTime * speed;
     // Gentle breathing: subtle vertical float + roll so Bloom edge shifts
-    g.position.y = (position?.[1] ?? 0) + 0.07 * Math.sin(t * 0.55);
-    g.rotation.z = 0.025 * Math.sin(t * 0.35);
+    g.position.y = baseY + 0.07 * Math.sin(t * 0.55);
+    g.rotation.z = baseRotZ + 0.025 * Math.sin(t * 0.35);
   });
 
   return (
@@ -74,7 +79,7 @@ export function DynamicRibbon({
       position={position}
       rotation={rotation}
     >
-      <mesh geometry={geometry}>
+      <mesh geometry={geometry} frustumCulled={false}>
         <meshStandardMaterial
           color={colorObj}
           emissive={colorObj}

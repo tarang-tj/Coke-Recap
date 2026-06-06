@@ -23,6 +23,7 @@ export function ActRole() {
   const reduced = useReducedMotion();
 
   const groupRef = useRef<THREE.Group>(null);
+  const spinRef = useRef<THREE.Group>(null);
   const capMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const fluteRef = useRef<THREE.InstancedMesh>(null);
 
@@ -62,11 +63,12 @@ export function ActRole() {
 
     const envelope = actEnvelope(localT);
 
-    // Spin around Z (the axis pointing toward the camera) + gentle tilt wobble
-    if (!reduced) {
-      g.rotation.z += dt * 0.35;
-      g.rotation.x = 0.08 * Math.sin(clock.elapsedTime * 0.7);
-      g.rotation.y = 0.06 * Math.sin(clock.elapsedTime * 0.5 + 1.2);
+    // Spin only the cap/flutes (spinRef) so the upright wordmark stays legible.
+    const spin = spinRef.current;
+    if (spin && !reduced) {
+      spin.rotation.z += dt * 0.35;
+      spin.rotation.x = 0.08 * Math.sin(clock.elapsedTime * 0.7);
+      spin.rotation.y = 0.06 * Math.sin(clock.elapsedTime * 0.5 + 1.2);
     }
 
     const s = 0.5 + 0.5 * envelope;
@@ -84,26 +86,30 @@ export function ActRole() {
       <pointLight position={[2, 3, 2]} intensity={3.5} color={CREAM} />
       <pointLight position={[-2, -1, 2]} intensity={1.5} color={COKE_RED} />
 
-      {/* Cap body — cylinder rotated so its circular face points toward camera (+Z) */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[CAP_RADIUS, CAP_RADIUS, CAP_HEIGHT, 48]} />
-        <meshPhysicalMaterial
-          ref={capMatRef}
-          color={COKE_RED}
-          emissive={COKE_RED}
-          emissiveIntensity={0.3}
-          roughness={0.35}
-          metalness={0.1}
-          clearcoat={1}
-          clearcoatRoughness={0.2}
-        />
-      </mesh>
+      {/* Spinning cap assembly — only this group rotates so the label stays upright */}
+      <group ref={spinRef}>
+        {/* Cap body — cylinder rotated so its circular face points toward camera (+Z) */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[CAP_RADIUS, CAP_RADIUS, CAP_HEIGHT, 48]} />
+          <meshPhysicalMaterial
+            ref={capMatRef}
+            color={COKE_RED}
+            emissive={COKE_RED}
+            emissiveIntensity={0.3}
+            roughness={0.35}
+            metalness={0.1}
+            clearcoat={1}
+            clearcoatRoughness={0.2}
+          />
+        </mesh>
 
-      {/* Crimped rim — 21 flutes as instanced metallic boxes */}
-      <instancedMesh ref={fluteRef} args={[undefined, undefined, FLUTE_COUNT]}>
-        <boxGeometry args={[0.20, 0.13, 0.10]} />
-        <meshStandardMaterial color={COKE_RED_DARK} metalness={0.6} roughness={0.3} />
-      </instancedMesh>
+        {/* Crimped rim — 21 flutes as instanced metallic boxes. frustumCulled off
+            because instance matrices place boxes far from the mesh's local bounds. */}
+        <instancedMesh ref={fluteRef} args={[undefined, undefined, FLUTE_COUNT]} frustumCulled={false}>
+          <boxGeometry args={[0.20, 0.13, 0.10]} />
+          <meshStandardMaterial color={COKE_RED_DARK} metalness={0.6} roughness={0.3} />
+        </instancedMesh>
+      </group>
 
       {/* Coca-Cola wordmark on the cap face — white, dark outline for legibility */}
       <Text

@@ -30,6 +30,7 @@ interface ChipProps {
   /** Radial angle of this chip around Y; used to orient it outward */
   angle: number;
   label: string;
+  reduced: boolean;
   activeRef: { readonly current: boolean };
   elapsedRef: { readonly current: number };
   highlightedRef: { readonly current: number };
@@ -41,6 +42,7 @@ function CanLabelChip({
   position,
   angle,
   label,
+  reduced,
   activeRef,
   elapsedRef,
   highlightedRef,
@@ -60,7 +62,8 @@ function CanLabelChip({
     const envelope = envelopeRef.current;
 
     if (isHighlighted) {
-      group.scale.setScalar(1.12 + 0.05 * Math.sin(elapsed * 3.5));
+      // Static scale under reduced motion; gentle pulse otherwise.
+      group.scale.setScalar(reduced ? 1.12 : 1.12 + 0.05 * Math.sin(elapsed * 3.5));
       if (mat) mat.emissiveIntensity = 0.55 * envelope;
     } else {
       group.scale.setScalar(1.0);
@@ -158,6 +161,7 @@ export function ActTools() {
           position={chip.position}
           angle={chip.angle}
           label={chip.name}
+          reduced={reduced}
           activeRef={activeRef}
           elapsedRef={elapsedRef}
           highlightedRef={highlightedRef}
