@@ -26,6 +26,7 @@ export function ActRole() {
   const spinRef = useRef<THREE.Group>(null);
   const capMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const fluteRef = useRef<THREE.InstancedMesh>(null);
+  const hoveredRef = useRef<boolean>(false);
 
   // Per-flute instance matrices — 21 boxes arranged tangentially around the cap rim
   const fluteMatrices = useMemo(() => {
@@ -64,9 +65,11 @@ export function ActRole() {
     const envelope = actEnvelope(localT);
 
     // Spin only the cap/flutes (spinRef) so the upright wordmark stays legible.
+    // Hover accelerates the spin for a tactile response.
     const spin = spinRef.current;
     if (spin && !reduced) {
-      spin.rotation.z += dt * 0.35;
+      const spinSpeed = hoveredRef.current ? 0.9 : 0.35;
+      spin.rotation.z += dt * spinSpeed;
       spin.rotation.x = 0.08 * Math.sin(clock.elapsedTime * 0.7);
       spin.rotation.y = 0.06 * Math.sin(clock.elapsedTime * 0.5 + 1.2);
     }
@@ -76,7 +79,9 @@ export function ActRole() {
 
     const mat = capMatRef.current;
     if (mat) {
-      mat.emissiveIntensity = 0.3 * envelope;
+      // Hover brightens emissive; lerp avoids a hard jump
+      const targetEmissive = hoveredRef.current ? 0.65 * envelope : 0.3 * envelope;
+      mat.emissiveIntensity += (targetEmissive - mat.emissiveIntensity) * 0.1;
     }
   });
 
@@ -87,7 +92,18 @@ export function ActRole() {
       <pointLight position={[-2, -1, 2]} intensity={1.5} color={COKE_RED} />
 
       {/* Spinning cap assembly — only this group rotates so the label stays upright */}
-      <group ref={spinRef}>
+      <group
+        ref={spinRef}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          hoveredRef.current = true;
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          hoveredRef.current = false;
+          document.body.style.cursor = '';
+        }}
+      >
         {/* Cap body — cylinder rotated so its circular face points toward camera (+Z) */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[CAP_RADIUS, CAP_RADIUS, CAP_HEIGHT, 48]} />

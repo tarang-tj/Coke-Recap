@@ -50,6 +50,9 @@ function CanLabelChip({
 }: ChipProps) {
   const groupRef = useRef<THREE.Group>(null);
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
+  const hoveredRef = useRef<boolean>(false);
+  // Cache initial z so hover lift can lerp without allocating a new vector each frame
+  const baseZ = position[2];
 
   useFrame(() => {
     if (!activeRef.current) return;
@@ -60,22 +63,41 @@ function CanLabelChip({
     const isHighlighted = highlightedRef.current === index;
     const elapsed = elapsedRef.current;
     const envelope = envelopeRef.current;
+    const hovered = hoveredRef.current;
 
-    if (isHighlighted) {
+    if (isHighlighted || hovered) {
       // Static scale under reduced motion; gentle pulse otherwise.
       group.scale.setScalar(reduced ? 1.12 : 1.12 + 0.05 * Math.sin(elapsed * 3.5));
-      if (mat) mat.emissiveIntensity = 0.55 * envelope;
+      // Hover brightens emissive beyond the scroll highlight
+      if (mat) mat.emissiveIntensity = (hovered ? 0.75 : 0.55) * envelope;
     } else {
       group.scale.setScalar(1.0);
       if (mat) mat.emissiveIntensity = 0.12 * envelope;
     }
+
+    // Smooth z-lift on hover — interpolates in the ring plane, no per-frame allocation
+    const targetZ = hovered ? baseZ + 0.15 : baseZ;
+    group.position.z += (targetZ - group.position.z) * 0.12;
   });
 
   // Rotate so the chip front (+Z local) points radially outward: Y = π/2 − angle
   const facingY = Math.PI / 2 - angle;
 
   return (
-    <group ref={groupRef} position={position} rotation={[0, facingY, 0]}>
+    <group
+      ref={groupRef}
+      position={position}
+      rotation={[0, facingY, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        hoveredRef.current = true;
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        hoveredRef.current = false;
+        document.body.style.cursor = '';
+      }}
+    >
       {/* Can-label proportioned chip — Coca-Cola red, glossy, no transmission */}
       <RoundedBox args={[1.5, 0.95, 0.12]} radius={0.12} smoothness={4}>
         <meshStandardMaterial
