@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ExperienceContext } from './scene/experience-context';
 import { NavigationProvider } from './scene/navigation-context';
 import { SceneRoot } from './scene/scene-root';
+import { SceneTransitionProvider } from './scene/scene-transition-context';
 import { FluidEnvironment } from './scene/fluid-environment';
 import { MachineHub } from './scene/machine-hub';
 import { ActRole } from './scene/acts/act-role';
@@ -29,12 +30,14 @@ export function App() {
         <div className="relative h-screen w-screen overflow-hidden bg-coke-black text-cream font-body">
           <div className="fixed inset-0 z-0">
             <SceneRoot>
-              <FluidEnvironment />
-              <MachineHub />
-              <ActRole />
-              <ActTools />
-              <ActAgent />
-              <ActBottle />
+              <SceneTransitionProvider>
+                <FluidEnvironment />
+                <MachineHub />
+                <ActRole />
+                <ActTools />
+                <ActAgent />
+                <ActBottle />
+              </SceneTransitionProvider>
             </SceneRoot>
           </div>
 

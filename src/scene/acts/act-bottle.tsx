@@ -1,121 +1,44 @@
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PresentationControls } from '@react-three/drei';
-import { useNavigation } from '../navigation-context';
-import { useReducedMotion } from '../../hooks/use-reduced-motion';
-import { useLogoTexture } from '../../hooks/use-logo-texture';
+import { useSceneMixes } from '../scene-transition-context';
+import { CokeBottle } from '../brand/coke-bottle';
 
-// Act 4 — Bottle (closing reveal)
-// LatheGeometry traces the classic Coca-Cola contour / hobble-skirt silhouette.
-// clearcoat glass look without any transmission render pass; internal point light for liquid glow.
-
-function buildBottlePoints(): THREE.Vector2[] {
-  // Hobble-skirt profile: fluted base → wide belly → pinched waist → shoulder → neck → crown.
-  // Total height 2.90; caller translates by -1.45 to center vertically.
-  const raw: [number, number][] = [
-    [0.00, 0.00], // center of base — closes the bottom so it isn't a hollow tube
-    [0.50, 0.00], // base disc
-    [0.52, 0.04], // base rim flare
-    [0.49, 0.12], // base wall
-    [0.47, 0.22], // lower body
-    [0.50, 0.38], // body swell start
-    [0.55, 0.55], // body widening
-    [0.60, 0.78], // belly peak — widest point
-    [0.58, 0.95], // upper belly
-    [0.52, 1.12], // upper body taper
-    [0.46, 1.28], // waist approach
-    [0.38, 1.45], // waist pinch — tightest
-    [0.40, 1.56], // above waist
-    [0.46, 1.68], // shoulder flare above waist
-    [0.44, 1.80], // shoulder peak
-    [0.36, 1.95], // neck base
-    [0.26, 2.10], // neck lower
-    [0.22, 2.25], // neck
-    [0.21, 2.42], // neck mid
-    [0.20, 2.58], // neck upper
-    [0.20, 2.66], // neck near-top
-    [0.21, 2.72], // collar start
-    [0.24, 2.78], // crown flare
-    [0.23, 2.85], // crown
-    [0.20, 2.90], // top edge
-  ];
-  return raw.map(([r, y]) => new THREE.Vector2(r, y));
-}
+// Act 4 — Takeaways: hero contour bottle with drag-to-orbit.
 
 export function ActBottle() {
   const groupRef = useRef<THREE.Group>(null);
-  const { view } = useNavigation();
-  const reduced = useReducedMotion();
-  const logoTex = useLogoTexture('#FFFEF6');
+  const mixesRef = useSceneMixes();
 
-  // View-state envelope: damped 0→1 when 'takeaways' is active, 1→0 otherwise
-  const viewRef = useRef(view); viewRef.current = view;
-  const envRef = useRef(0);
-
-  const geometry = useMemo(() => {
-    const points = buildBottlePoints();
-    // 64 segments for smooth round silhouette
-    const geo = new THREE.LatheGeometry(points, 64);
-    // Center vertically: total height 2.90, offset -1.45
-    geo.translate(0, -1.45, 0);
-    return geo;
-  }, []);
-
-  useFrame((_, dt) => {
+  useFrame(() => {
     const group = groupRef.current;
     if (!group) return;
 
-    // Critically damped fade in/out (~0.4 s time constant)
-    const target = viewRef.current === 'takeaways' ? 1 : 0;
-    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const active = envRef.current > 0.002;
+    const mix = mixesRef.current.takeaways;
+    const visible = mix > 0.002;
+    group.visible = visible;
+    if (!visible) return;
 
-    group.visible = active;
-    if (!active) return;
-
-    // Scale lerp 0.001 → 3.0 driven by envelope — dramatic reveal.
-    const scale = THREE.MathUtils.lerp(0.001, 3.0, envRef.current);
+    const scale = THREE.MathUtils.lerp(0.001, 2.2, mix);
     group.scale.setScalar(scale);
-    // No auto-spin: the bottle stays front-facing so the Coca-Cola wordmark is
-    // always legible (drag-to-orbit still works and springs back to front).
+    group.position.z = THREE.MathUtils.lerp(2, 0, mix);
   });
 
   return (
     <group ref={groupRef} visible={false}>
-      {/* Liquid-light glow — kept outside PresentationControls so it doesn't orbit with drag */}
-      <pointLight color="#F40009" intensity={1.8} distance={4} />
+      <pointLight color="#F40009" intensity={2.2} distance={6} />
+      <pointLight color="#FFD8A0" intensity={1.0} distance={4} position={[2, 2, 2]} />
 
-      {/* Drag-to-orbit; outer group handles scale reveal + y-rotation; controls manage drag offset only */}
       <PresentationControls
         global={false}
         cursor
         snap
         speed={1.4}
-        polar={[-0.4, 0.4]}
-        azimuth={[-0.6, 0.6]}
+        polar={[-0.35, 0.35]}
+        azimuth={[-0.5, 0.5]}
       >
-        <mesh geometry={geometry} castShadow={false} receiveShadow={false}>
-          {/* Deep Coke-red glass look via clearcoat — no transmission render pass */}
-          <meshPhysicalMaterial
-            color="#C8000A"
-            clearcoat={1}
-            clearcoatRoughness={0.15}
-            roughness={0.15}
-            metalness={0.1}
-            transparent
-            opacity={0.9}
-            emissive="#5A0000"
-            emissiveIntensity={0.4}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-
-        {/* Real Coca-Cola wordmark across the bottle belly (white script) */}
-        <mesh position={[0, -0.5, 0.6]}>
-          <planeGeometry args={[0.85, 0.27]} />
-          <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
-        </mesh>
+        <CokeBottle scale={1} highlight={0.6} showLogo />
       </PresentationControls>
     </group>
   );

@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text, RoundedBox } from '@react-three/drei';
-import { useNavigation } from '../navigation-context';
+import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { tools } from '../../data/portfolio-content';
 
@@ -135,12 +135,8 @@ function CanLabelChip({
 
 export function ActTools() {
   const groupRef = useRef<THREE.Group>(null);
-  const { view } = useNavigation();
+  const mixesRef = useSceneMixes();
   const reduced = useReducedMotion();
-
-  // View-state envelope: damped 0→1 when 'tools' is active, 1→0 otherwise
-  const viewRef = useRef(view); viewRef.current = view;
-  const envRef = useRef(0);
 
   const activeRef = useRef<boolean>(false);
   const elapsedRef = useRef<number>(0);
@@ -162,18 +158,19 @@ export function ActTools() {
     const group = groupRef.current;
     if (!group) return;
 
-    // Critically damped fade in/out (~0.4 s time constant)
-    const target = viewRef.current === 'tools' ? 1 : 0;
-    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const active = envRef.current > 0.002;
+    const envelope = mixesRef.current.tools;
+    const active = envelope > 0.002;
 
     group.visible = active;
     activeRef.current = active;
 
     if (!active) return;
 
+    group.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
+    group.scale.setScalar(0.6 + 0.4 * envelope);
+
     elapsedRef.current = clock.elapsedTime;
-    envelopeRef.current = envRef.current;
+    envelopeRef.current = envelope;
     // Cycle highlighted chip by time so tools light up in sequence while focused
     highlightedRef.current = Math.floor((elapsedRef.current / 1.4)) % tools.length;
 

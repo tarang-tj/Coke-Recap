@@ -2,7 +2,7 @@ import { useRef, useMemo, useLayoutEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
-import { useNavigation } from '../navigation-context';
+import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
 // Act 1 — Role: iconic Coca-Cola crimped bottle cap. clearcoat only — no render pass overhead.
@@ -18,7 +18,7 @@ const FLUTE_COUNT = 21;
 const FLUTE_RING_R = CAP_RADIUS * 0.97;
 
 export function ActRole() {
-  const { view } = useNavigation();
+  const mixesRef = useSceneMixes();
   const reduced = useReducedMotion();
 
   const groupRef = useRef<THREE.Group>(null);
@@ -26,10 +26,6 @@ export function ActRole() {
   const capMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const fluteRef = useRef<THREE.InstancedMesh>(null);
   const hoveredRef = useRef<boolean>(false);
-
-  // View-state envelope: damped 0→1 when 'role' is active, 1→0 otherwise
-  const viewRef = useRef(view); viewRef.current = view;
-  const envRef = useRef(0);
 
   // Per-flute instance matrices — 21 boxes arranged tangentially around the cap rim
   const fluteMatrices = useMemo(() => {
@@ -59,10 +55,8 @@ export function ActRole() {
     const g = groupRef.current;
     if (!g) return;
 
-    // Critically damped fade in/out (~0.4 s time constant)
-    const target = viewRef.current === 'role' ? 1 : 0;
-    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const active = envRef.current > 0.002;
+    const envelope = mixesRef.current.role;
+    const active = envelope > 0.002;
 
     g.visible = active;
     if (!active) {
@@ -73,8 +67,6 @@ export function ActRole() {
       }
       return;
     }
-
-    const envelope = envRef.current;
 
     // Spin only the cap/flutes (spinRef) so the upright wordmark stays legible.
     // Hover accelerates the spin for a tactile response.
@@ -88,6 +80,7 @@ export function ActRole() {
 
     const s = 0.5 + 0.5 * envelope;
     g.scale.setScalar(s);
+    g.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
 
     const mat = capMatRef.current;
     if (mat) {

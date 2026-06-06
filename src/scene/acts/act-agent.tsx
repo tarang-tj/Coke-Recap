@@ -4,7 +4,7 @@ import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
 import nebulaVert from '../../shaders/nebula.vert.glsl?raw';
 import nebulaFrag from '../../shaders/nebula.frag.glsl?raw';
-import { useNavigation } from '../navigation-context';
+import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { agent } from '../../data/portfolio-content';
 import { DynamicRibbon } from '../brand/dynamic-ribbon';
@@ -177,12 +177,9 @@ function DataDot({ seed, reduced, elapsedRef, envelopeRef }: DataDotProps) {
 // ─── main act ─────────────────────────────────────────────────────────────────
 
 export function ActAgent() {
-  const { view } = useNavigation();
+  const mixesRef = useSceneMixes();
   const reduced = useReducedMotion();
 
-  // View-state envelope: damped 0→1 when 'agent' is active, 1→0 otherwise
-  const viewRef = useRef(view); viewRef.current = view;
-  const envRef = useRef(0);
   const groupRef = useRef<THREE.Group>(null);
   const nebulaMat = useRef<THREE.ShaderMaterial>(null);
 
@@ -208,15 +205,13 @@ export function ActAgent() {
     const g = groupRef.current;
     if (!g) return;
 
-    // Critically damped fade in/out (~0.4 s time constant)
-    const target = viewRef.current === 'agent' ? 1 : 0;
-    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const active = envRef.current > 0.002;
+    const envelope = mixesRef.current.agent;
+    const active = envelope > 0.002;
 
     g.visible = active;
     if (!active) return;
 
-    const envelope = envRef.current;
+    g.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
     // Envelope doubles as the ignition peak (bright as view focuses)
     const peak = envelope;
 

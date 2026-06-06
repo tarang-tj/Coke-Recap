@@ -79,7 +79,7 @@ export function ChapterOverlay() {
             Select a chapter
           </p>
           <p className="font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45">
-            click a bottle · keys 1&ndash;4 · arrows
+            click a bottle or button · keys 1&ndash;4 · arrows
           </p>
         </div>
       )}

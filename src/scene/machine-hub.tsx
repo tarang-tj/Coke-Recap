@@ -3,40 +3,41 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { VendingMachine, type MachineItem } from './brand/vending-machine';
 import { useNavigation } from './navigation-context';
-
-// The vending-machine hub — visible only in the 'machine' view. Selecting a
-// bottle routes to that chapter. The white 3-D logo sits on the machine header.
+import { useSceneMixes } from './scene-transition-context';
 
 const ITEMS: MachineItem[] = [
-  { id: 'role', label: 'THE ROLE', color: '#F40009' },
-  { id: 'tools', label: 'THE STACK', color: '#F40009' },
-  { id: 'agent', label: 'THE AGENT', color: '#F40009' },
-  { id: 'takeaways', label: 'TAKEAWAYS', color: '#F40009' },
+  { id: 'role', label: 'THE ROLE' },
+  { id: 'tools', label: 'THE STACK' },
+  { id: 'agent', label: 'THE AGENT' },
+  { id: 'takeaways', label: 'TAKEAWAYS' },
 ];
 
 export function MachineHub() {
-  const { view, setView } = useNavigation();
+  const { setView } = useNavigation();
+  const mixesRef = useSceneMixes();
   const groupRef = useRef<THREE.Group>(null);
-  const envRef = useRef(0);
-  const viewRef = useRef(view);
-  viewRef.current = view;
-
-  // Drives the VendingMachine's hover-cleanup; only setState on change.
   const [active, setActive] = useState(true);
   const activeRef = useRef(true);
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     const g = groupRef.current;
     if (!g) return;
-    const target = viewRef.current === 'machine' ? 1 : 0;
-    envRef.current += (target - envRef.current) * Math.min(1, dt * 4);
-    const a = envRef.current > 0.002;
-    g.visible = a;
-    if (a !== activeRef.current) {
-      activeRef.current = a;
-      setActive(a);
+
+    const mix = mixesRef.current.machine;
+    const visible = mix > 0.002;
+    g.visible = visible;
+
+    if (visible) {
+      const s = 0.85 + 0.15 * mix;
+      g.scale.setScalar(s);
+      g.position.z = THREE.MathUtils.lerp(-4.5, 0, mix);
+      g.position.y = THREE.MathUtils.lerp(-0.8, 0, mix);
     }
-    if (a) g.scale.setScalar(0.9 + 0.1 * envRef.current);
+
+    if (visible !== activeRef.current) {
+      activeRef.current = visible;
+      setActive(visible);
+    }
   });
 
   return (

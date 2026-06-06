@@ -1,199 +1,110 @@
 /**
- * VendingMachine — stylised 3-D Coca-Cola vending-machine hub.
- *
- * Self-contained R3F component. Only imports:
- *   @react-three/fiber, @react-three/drei, three, and
- *   ../../hooks/use-reduced-motion.
- *
- * Machine is centred at [0,0,0]; apply `position`/`rotation` props to place it.
- * Camera is assumed near [0, 0.6, 7] looking at [0, 0.3, 0].
+ * VendingMachine — nostalgic 1960s-style Coca-Cola vending machine hub.
+ * Cream body, chrome trim, illuminated header, lit selection buttons, glass bay.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { useLogoTexture } from '../../hooks/use-logo-texture';
-
-// ─── Public API ───────────────────────────────────────────────────────────────
+import { CokeBottle } from './coke-bottle';
 
 export type MachineItemId = 'role' | 'tools' | 'agent' | 'takeaways';
 
 export interface MachineItem {
   id: MachineItemId;
   label: string;
-  color: string;
 }
 
 export interface VendingMachineProps {
-  /** Exactly 4 items displayed in shelf order left-to-right. */
   items: MachineItem[];
   onSelect: (id: MachineItemId) => void;
-  /** Optional external hover — combined with internal pointer state. */
   hoveredId?: MachineItemId | null;
-  /** When false (hub off-screen), clears latched hover + cursor. Default true. */
   active?: boolean;
   position?: [number, number, number];
   rotation?: [number, number, number];
 }
 
-// ─── Layout constants ─────────────────────────────────────────────────────────
+const BOTTLE_X = [-0.95, -0.32, 0.32, 0.95];
+const BOTTLE_Y = 0.35;
+const BOTTLE_Z = 0.55;
+const LIFT_HOVER = 0.14;
+const LERP = 9;
 
-/** Bottle x-positions within machine (even spread, no overlap at max belly ≈0.32 wide). */
-const BOTTLE_X: number[] = [-1.05, -0.35, 0.35, 1.05];
+const CHROME = '#C8C4BC';
+const CREAM = '#E8E0D0';
+const COKE_RED = '#F40009';
+const DARK = '#1A0004';
 
-/** Y of bottle group's base when at rest. */
-const BOTTLE_Y_BASE = 0.0;
-
-// The cabinet is a SOLID RoundedBox whose front face is at z = 0.70, so the
-// display case must sit IN FRONT of that face (otherwise the bottles are
-// occluded inside the box). Bottles + glass protrude slightly like a real
-// machine's display window.
-/** Z of bottle group — in front of the cabinet face. */
-const BOTTLE_Z = 0.92;
-
-/** Z of the glass front panel (in front of the bottles). */
-const GLASS_Z = 1.12;
-
-const LIFT_HOVER  = 0.12; // vertical lift (world units) on hover
-const SCALE_HOVER = 1.08; // uniform scale on hover
-const LERP_SPEED  = 8;    // lerp coefficient (per-second)
-
-/**
- * Raycast no-op for the glass panel — typed to match THREE.Mesh.raycast.
- * Lets pointer events pass through to the bottles behind the glass.
- */
 const noopRaycast = (
   _r: THREE.Raycaster,
   _i: THREE.Intersection<THREE.Object3D>[],
 ): void => {};
 
-// ─── Bottle geometry (built once, shared by all four meshes) ──────────────────
-
-/**
- * Coca-Cola "hobble-skirt" / contour-bottle LatheGeometry.
- * Vector2(radius, height) — y goes from 0 (base) to 1.0 (lip).
- */
-function buildBottleGeometry(): THREE.LatheGeometry {
-  const pts: THREE.Vector2[] = [
-    new THREE.Vector2(0.055, 0.00), // base centre
-    new THREE.Vector2(0.120, 0.04), // base rim
-    new THREE.Vector2(0.148, 0.10), // lower body
-    new THREE.Vector2(0.158, 0.20), // lower belly
-    new THREE.Vector2(0.162, 0.30), // widest belly
-    new THREE.Vector2(0.154, 0.38), // upper belly
-    new THREE.Vector2(0.118, 0.44), // waist start (hobble notch)
-    new THREE.Vector2(0.100, 0.47), // hobble minimum
-    new THREE.Vector2(0.126, 0.53), // above waist
-    new THREE.Vector2(0.154, 0.59), // shoulder
-    new THREE.Vector2(0.132, 0.67), // shoulder taper
-    new THREE.Vector2(0.080, 0.76), // neck lower
-    new THREE.Vector2(0.065, 0.86), // neck upper
-    new THREE.Vector2(0.058, 0.93), // mouth
-    new THREE.Vector2(0.058, 1.00), // lip
-  ];
-  return new THREE.LatheGeometry(pts, 24);
-}
-
-// ─── Internal: BottleUnit ─────────────────────────────────────────────────────
-
-interface BottleUnitProps {
+interface BottleSlotProps {
   item: MachineItem;
   bx: number;
-  geometry: THREE.LatheGeometry;
-  logoTex: THREE.Texture;
   isHovered: boolean;
+  isPressed: boolean;
   reduced: boolean;
   onSelect: (id: MachineItemId) => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
 }
 
-function BottleUnit({
+function BottleSlot({
   item,
   bx,
-  geometry,
-  logoTex,
   isHovered,
+  isPressed,
   reduced,
   onSelect,
   onHoverStart,
   onHoverEnd,
-}: BottleUnitProps) {
-  const groupRef    = useRef<THREE.Group>(null);
-  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-
-  // Per-frame scalars — never re-allocated
-  const liftY  = useRef(0);
-  const scaleV = useRef(1);
-
-  // Stable refs so useFrame closure always reads the latest prop values
+}: BottleSlotProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const liftRef = useRef(0);
   const hovRef = useRef(isHovered);
   hovRef.current = isHovered;
+  const pressRef = useRef(isPressed);
+  pressRef.current = isPressed;
   const redRef = useRef(reduced);
   redRef.current = reduced;
 
-  // Color object built once per item color
-  const colorObj = useMemo(() => new THREE.Color(item.color), [item.color]);
-
-  useFrame((_s, dt) => {
+  useFrame((_, dt) => {
     const g = groupRef.current;
-    const m = materialRef.current;
     if (!g) return;
-
-    const hov = hovRef.current;
-    // Snap instantly for reduced motion, otherwise lerp
-    const t   = redRef.current ? 1.0 : Math.min(1.0, LERP_SPEED * dt);
-
-    liftY.current  += ((hov ? LIFT_HOVER  : 0.0 ) - liftY.current)  * t;
-    scaleV.current += ((hov ? SCALE_HOVER : 1.0 ) - scaleV.current) * t;
-
-    // Mutate the Three.js object directly — no React state, no re-renders
-    g.position.y = BOTTLE_Y_BASE + liftY.current;
-    g.scale.setScalar(scaleV.current);
-
-    // Animate emissive intensity for glow brightening on hover
-    if (m) {
-      m.emissiveIntensity += ((hov ? 0.65 : 0.22) - m.emissiveIntensity) * t;
-    }
+    const t = redRef.current ? 1 : Math.min(1, LERP * dt);
+    const targetLift = pressRef.current ? -0.35 : hovRef.current ? LIFT_HOVER : 0;
+    liftRef.current += (targetLift - liftRef.current) * t;
+    g.position.y = BOTTLE_Y + liftRef.current;
+    const s = hovRef.current ? 1.06 : 1;
+    g.scale.setScalar(s);
   });
 
   return (
     <group
       ref={groupRef}
-      position={[bx, BOTTLE_Y_BASE, BOTTLE_Z]}
+      position={[bx, BOTTLE_Y, BOTTLE_Z]}
       onPointerOver={(e) => { e.stopPropagation(); onHoverStart(); }}
-      onPointerOut={(e)  => { e.stopPropagation(); onHoverEnd();   }}
-      onClick={(e)       => { e.stopPropagation(); onSelect(item.id); }}
+      onPointerOut={(e) => { e.stopPropagation(); onHoverEnd(); }}
+      onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
     >
-      {/* Contour bottle mesh — geometry is shared (LatheGeometry) */}
-      <mesh geometry={geometry}>
-        <meshStandardMaterial
-          ref={materialRef}
-          color={colorObj}
-          roughness={0.28}
-          metalness={0.12}
-          emissive={colorObj}
-          emissiveIntensity={0.22}
-        />
-      </mesh>
-
-      {/* Real Coca-Cola wordmark on the bottle belly (white script) */}
-      <mesh position={[0, 0.48, 0.165]}>
-        <planeGeometry args={[0.27, 0.085]} />
-        <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
-      </mesh>
-
-      {/* Chapter label centred below the bottle base */}
+      <CokeBottle
+        scale={0.58}
+        highlight={isHovered ? 1 : 0.2}
+        showLogo
+      />
       <Text
-        position={[0, -0.18, 0.18]}
-        fontSize={0.14}
-        color="#F1E9DA"
+        position={[0, -0.22, 0.15]}
+        fontSize={0.11}
+        color={CREAM}
         anchorX="center"
         anchorY="top"
-        outlineColor="#1A0004"
-        outlineWidth={0.006}
-        maxWidth={0.6}
+        outlineColor={DARK}
+        outlineWidth={0.005}
+        maxWidth={0.55}
       >
         {item.label}
       </Text>
@@ -201,31 +112,55 @@ function BottleUnit({
   );
 }
 
-// ─── Internal: ButtonUnit (decorative selection button) ───────────────────────
-
-interface ButtonUnitProps {
+interface SelectButtonProps {
   index: number;
+  item: MachineItem;
   isHovered: boolean;
+  isPressed: boolean;
+  onSelect: (id: MachineItemId) => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
 }
 
-function ButtonUnit({ index, isHovered }: ButtonUnitProps) {
-  // Stacked vertically on the right side of the front panel
-  const by = 0.42 - index * 0.32;
+function SelectButton({
+  index,
+  item,
+  isHovered,
+  isPressed,
+  onSelect,
+  onHoverStart,
+  onHoverEnd,
+}: SelectButtonProps) {
+  const by = 0.55 - index * 0.38;
+  const lit = isHovered || isPressed;
+
   return (
-    <group position={[1.26, by, 0.72]}>
-      <RoundedBox args={[0.18, 0.12, 0.05]} radius={0.025} smoothness={3}>
+    <group
+      position={[1.35, by, 0.62]}
+      onPointerOver={(e) => { e.stopPropagation(); onHoverStart(); }}
+      onPointerOut={(e) => { e.stopPropagation(); onHoverEnd(); }}
+      onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
+    >
+      {/* Chrome bezel */}
+      <mesh position={[0, 0, -0.02]}>
+        <cylinderGeometry args={[0.13, 0.13, 0.04, 24]} />
+        <meshStandardMaterial color={CHROME} roughness={0.25} metalness={0.85} />
+      </mesh>
+      {/* Illuminated pill button */}
+      <mesh scale={isPressed ? 0.92 : 1}>
+        <cylinderGeometry args={[0.1, 0.1, 0.06, 24]} />
         <meshStandardMaterial
-          color={isHovered ? '#FFD740' : '#B31010'}
-          emissive={isHovered ? '#FFD740' : '#880000'}
-          emissiveIntensity={isHovered ? 0.9 : 0.25}
-          roughness={0.3}
-          metalness={0.25}
+          color={lit ? '#FFD740' : COKE_RED}
+          emissive={lit ? '#FFD740' : '#660000'}
+          emissiveIntensity={lit ? 1.2 : 0.3}
+          roughness={0.35}
+          metalness={0.2}
         />
-      </RoundedBox>
+      </mesh>
       <Text
         position={[0, 0, 0.04]}
-        fontSize={0.07}
-        color="#F1E9DA"
+        fontSize={0.09}
+        color={lit ? DARK : CREAM}
         anchorX="center"
         anchorY="middle"
       >
@@ -235,8 +170,6 @@ function ButtonUnit({ index, isHovered }: ButtonUnitProps) {
   );
 }
 
-// ─── Main export: VendingMachine ──────────────────────────────────────────────
-
 export function VendingMachine({
   items,
   onSelect,
@@ -245,234 +178,279 @@ export function VendingMachine({
   position,
   rotation,
 }: VendingMachineProps) {
-  const reduced    = useReducedMotion();
+  const reduced = useReducedMotion();
+  const logoTex = useLogoTexture('#FFFEF6');
   const machineRef = useRef<THREE.Group>(null);
-  const clock      = useRef(0);
-  const logoTex    = useLogoTexture('#FFFEF6');
+  const dispenseGlowRef = useRef<THREE.MeshStandardMaterial>(null);
+  const headerGlowRef = useRef<THREE.MeshStandardMaterial>(null);
+  const clockRef = useRef(0);
 
-  const [internalHoveredId, setInternalHoveredId] =
-    useState<MachineItemId | null>(null);
+  const [internalHoveredId, setInternalHoveredId] = useState<MachineItemId | null>(null);
+  const [pressedId, setPressedId] = useState<MachineItemId | null>(null);
+  const [dispenseFlash, setDispenseFlash] = useState(0);
 
-  // When the hub leaves view without the pointer moving, R3F won't fire
-  // onPointerOut — so clear any latched hover + cursor here.
   useEffect(() => {
     if (!active) {
       setInternalHoveredId(null);
+      setPressedId(null);
       document.body.style.cursor = '';
     }
   }, [active]);
 
-  // Bottle geometry created once, shared across all four BottleUnit instances
-  const bottleGeometry = useMemo(() => buildBottleGeometry(), []);
+  const handleSelect = (id: MachineItemId) => {
+    setPressedId(id);
+    setDispenseFlash(1);
+    document.body.style.cursor = '';
+    // Brief vend animation before navigation
+    window.setTimeout(() => {
+      onSelect(id);
+      setPressedId(null);
+    }, 420);
+  };
 
-  // Stable ref so the idle-bob useFrame always reads the latest `reduced` value
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
 
-  // Tiny idle "hum" — the inner group oscillates ±0.0035 units on Y.
-  // Frozen when reduced motion is preferred.
-  useFrame((_s, dt) => {
+  useFrame((_, dt) => {
     const g = machineRef.current;
     if (!g) return;
-    if (reducedRef.current) {
-      g.position.y = 0;
-      return;
+
+    if (!reducedRef.current) {
+      clockRef.current += dt;
+      g.position.y = Math.sin(clockRef.current * 0.6) * 0.002;
     }
-    clock.current += dt * 0.5;
-    g.position.y = Math.sin(clock.current) * 0.0035;
+
+    if (dispenseFlash > 0) {
+      setDispenseFlash((f) => Math.max(0, f - dt * 2.5));
+    }
+
+    const dg = dispenseGlowRef.current;
+    if (dg) {
+      const target = dispenseFlash > 0 ? 0.9 * dispenseFlash : 0.15;
+      dg.emissiveIntensity += (target - dg.emissiveIntensity) * Math.min(1, dt * 10);
+    }
+
+    const hg = headerGlowRef.current;
+    if (hg) {
+      const pulse = reducedRef.current ? 0.5 : 0.45 + 0.12 * Math.sin(clockRef.current * 1.8);
+      hg.emissiveIntensity += (pulse - hg.emissiveIntensity) * 0.08;
+    }
   });
 
-  const isHov = (id: MachineItemId): boolean =>
+  const isHov = (id: MachineItemId) =>
     id === internalHoveredId || id === hoveredId;
 
-  return (
-    // Outer group: carries the position / rotation props from the caller
-    <group position={position} rotation={rotation}>
+  const setHover = (id: MachineItemId | null) => {
+    setInternalHoveredId(id);
+    document.body.style.cursor = id ? 'pointer' : '';
+  };
 
-      {/* Inner group: carries the idle-bob animation via ref */}
+  return (
+    <group position={position} rotation={rotation}>
       <group ref={machineRef}>
 
-        {/* ── CABINET BODY ──────────────────────────────────────── */}
-        {/* Glossy Coca-Cola red shell, clearcoat gives high-gloss sheen */}
-        <RoundedBox args={[3.2, 5.0, 1.4]} radius={0.08} smoothness={4}>
-          <meshPhysicalMaterial
-            color="#F40009"
-            clearcoat={1}
-            clearcoatRoughness={0.2}
-            roughness={0.35}
-            metalness={0.1}
-            emissive="#8B0003"
-            emissiveIntensity={0.18}
-          />
+        {/* ── MAIN CABINET — cream body, nostalgic upright proportions ── */}
+        <RoundedBox args={[2.8, 5.6, 1.1]} radius={0.04} smoothness={3}>
+          <meshStandardMaterial color={CREAM} roughness={0.65} metalness={0.05} />
         </RoundedBox>
 
-        {/* ── HEADER PANEL (dark inset at top-front) ────────────── */}
+        {/* Red side panels (classic Coke stripe) */}
+        {([-1.42, 1.42] as const).map((x) => (
+          <RoundedBox
+            key={x}
+            args={[0.12, 5.2, 0.9]}
+            radius={0.02}
+            smoothness={2}
+            position={[x, 0, 0.05]}
+          >
+            <meshStandardMaterial color={COKE_RED} roughness={0.45} metalness={0.1} />
+          </RoundedBox>
+        ))}
+
+        {/* Chrome corner strips */}
+        {([-1.35, 1.35] as const).map((x) => (
+          <mesh key={`chrome-${x}`} position={[x, 0, 0.58]}>
+            <boxGeometry args={[0.06, 5.4, 0.04]} />
+            <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+          </mesh>
+        ))}
+
+        {/* ── ILLUMINATED HEADER SIGN ── */}
         <RoundedBox
-          args={[2.9, 0.72, 0.06]}
-          radius={0.04}
-          smoothness={4}
-          position={[0, 2.12, 0.71]}
-        >
-          <meshStandardMaterial color="#160004" roughness={0.55} metalness={0.15} />
-        </RoundedBox>
-
-        {/* Cream pinstripe trim — upper edge of header */}
-        <RoundedBox
-          args={[2.9, 0.035, 0.04]}
-          radius={0.01}
-          smoothness={2}
-          position={[0, 1.76, 0.71]}
-        >
-          <meshStandardMaterial
-            color="#F1E9DA"
-            roughness={0.7}
-            emissive="#F1E9DA"
-            emissiveIntensity={0.08}
-          />
-        </RoundedBox>
-
-        {/* Cream pinstripe trim — lower edge of header */}
-        <RoundedBox
-          args={[2.9, 0.035, 0.04]}
-          radius={0.01}
-          smoothness={2}
-          position={[0, 2.49, 0.71]}
-        >
-          <meshStandardMaterial
-            color="#F1E9DA"
-            roughness={0.7}
-            emissive="#F1E9DA"
-            emissiveIntensity={0.08}
-          />
-        </RoundedBox>
-
-        {/* Real Coca-Cola wordmark on the header (white script) */}
-        <mesh position={[0, 2.16, 0.755]}>
-          <planeGeometry args={[2.3, 0.72]} />
-          <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
-        </mesh>
-
-        {/* ── SHELF AREA ────────────────────────────────────────── */}
-
-        {/* Dark backing panel visible behind the bottles through the glass */}
-        <RoundedBox
-          args={[2.75, 1.62, 0.05]}
+          args={[2.5, 0.85, 0.08]}
           radius={0.03}
           smoothness={3}
-          position={[0, 0.3, 0.74]}
+          position={[0, 2.35, 0.58]}
         >
-          <meshStandardMaterial color="#220006" roughness={0.85} />
+          <meshStandardMaterial
+            ref={headerGlowRef}
+            color={DARK}
+            emissive={COKE_RED}
+            emissiveIntensity={0.5}
+            roughness={0.5}
+          />
         </RoundedBox>
 
-        {/* Horizontal shelf ledge the bottles sit on */}
+        {/* Logo on header */}
+        <mesh position={[0, 2.42, 0.63]}>
+          <planeGeometry args={[1.8, 0.55]} />
+          <meshBasicMaterial map={logoTex} transparent toneMapped={false} />
+        </mesh>
+
+        {/* "ICE COLD" vintage subline */}
+        <Text
+          position={[0, 2.05, 0.63]}
+          fontSize={0.13}
+          color={CREAM}
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.08}
+        >
+          ICE COLD
+        </Text>
+
+        {/* Chrome header trim bands */}
+        <mesh position={[0, 1.88, 0.6]}>
+          <boxGeometry args={[2.5, 0.04, 0.03]} />
+          <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+        </mesh>
+        <mesh position={[0, 2.78, 0.6]}>
+          <boxGeometry args={[2.5, 0.04, 0.03]} />
+          <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+        </mesh>
+
+        {/* ── GLASS DISPLAY BAY (recessed, chrome frame) ── */}
+        {/* Dark interior backing — lit from inside */}
         <RoundedBox
-          args={[2.75, 0.06, 0.36]}
+          args={[2.2, 1.75, 0.12]}
           radius={0.02}
           smoothness={2}
-          position={[0, -0.06, 0.92]}
+          position={[0, 0.55, 0.42]}
         >
-          <meshStandardMaterial color="#1A0004" roughness={0.7} metalness={0.25} />
+          <meshStandardMaterial
+            color="#0D0002"
+            emissive={COKE_RED}
+            emissiveIntensity={0.25}
+            roughness={0.9}
+          />
         </RoundedBox>
 
-        {/* ── BOTTLES (4 interactive contour silhouettes) ────────── */}
+        {/* Interior warm light */}
+        <pointLight position={[0, 0.55, 0.3]} intensity={1.2} color="#FFD8A0" distance={3} />
+
+        {/* Chrome window frame — top */}
+        <mesh position={[0, 1.48, 0.58]}>
+          <boxGeometry args={[2.3, 0.06, 0.05]} />
+          <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+        </mesh>
+        {/* frame — bottom */}
+        <mesh position={[0, -0.38, 0.58]}>
+          <boxGeometry args={[2.3, 0.06, 0.05]} />
+          <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+        </mesh>
+        {/* frame — sides */}
+        {([-1.12, 1.12] as const).map((x) => (
+          <mesh key={`frame-${x}`} position={[x, 0.55, 0.58]}>
+            <boxGeometry args={[0.06, 1.9, 0.05]} />
+            <meshStandardMaterial color={CHROME} roughness={0.2} metalness={0.9} />
+          </mesh>
+        ))}
+
+        {/* Shelf ledge */}
+        <mesh position={[0, 0.05, 0.55]}>
+          <boxGeometry args={[2.2, 0.05, 0.25]} />
+          <meshStandardMaterial color={CHROME} roughness={0.3} metalness={0.7} />
+        </mesh>
+
+        {/* ── BOTTLES ── */}
         {items.map((item, i) => (
-          <BottleUnit
+          <BottleSlot
             key={item.id}
             item={item}
             bx={BOTTLE_X[i] ?? 0}
-            geometry={bottleGeometry}
-            logoTex={logoTex}
             isHovered={isHov(item.id)}
+            isPressed={pressedId === item.id}
             reduced={reduced}
-            onSelect={onSelect}
-            onHoverStart={() => {
-              setInternalHoveredId(item.id);
-              document.body.style.cursor = 'pointer';
-            }}
-            onHoverEnd={() => {
-              setInternalHoveredId(null);
-              document.body.style.cursor = '';
-            }}
+            onSelect={handleSelect}
+            onHoverStart={() => setHover(item.id)}
+            onHoverEnd={() => setHover(null)}
           />
         ))}
 
-        {/* ── GLASS FRONT PANEL ─────────────────────────────────── */}
-        {/*
-          renderOrder=1  → draws after all opaque bottles
-          depthWrite=false → doesn't occlude bottles in the depth buffer
-          noopRaycast    → pointer events pass through to bottles behind it
-        */}
-        <mesh
-          position={[0, 0.3, GLASS_Z]}
-          renderOrder={1}
-          raycast={noopRaycast}
-        >
-          <planeGeometry args={[2.75, 1.65]} />
-          <meshStandardMaterial
-            color="#0A0203"
+        {/* Glass panel — pointer passes through to bottles */}
+        <mesh position={[0, 0.55, 0.72]} renderOrder={1} raycast={noopRaycast}>
+          <planeGeometry args={[2.15, 1.7]} />
+          <meshPhysicalMaterial
+            color="#88CCFF"
             transparent
-            opacity={0.18}
-            roughness={0.1}
+            opacity={0.12}
+            roughness={0.05}
+            metalness={0.1}
+            clearcoat={1}
             depthWrite={false}
           />
         </mesh>
 
-        {/* ── BUTTON STRIP (decorative, right side) ─────────────── */}
+        {/* ── SELECTION BUTTONS (interactive) ── */}
         {items.map((item, i) => (
-          <ButtonUnit
+          <SelectButton
             key={`btn-${item.id}`}
             index={i}
+            item={item}
             isHovered={isHov(item.id)}
+            isPressed={pressedId === item.id}
+            onSelect={handleSelect}
+            onHoverStart={() => setHover(item.id)}
+            onHoverEnd={() => setHover(null)}
           />
         ))}
 
-        {/* ── DISPENSE SLOT (cosmetic, lower front) ─────────────── */}
+        {/* ── COIN SLOT (left) ── */}
+        <group position={[-1.05, -0.6, 0.6]}>
+          <RoundedBox args={[0.5, 0.7, 0.06]} radius={0.02} smoothness={2}>
+            <meshStandardMaterial color="#2A1010" roughness={0.5} metalness={0.2} />
+          </RoundedBox>
+          <mesh position={[0, 0.15, 0.04]}>
+            <boxGeometry args={[0.28, 0.04, 0.02]} />
+            <meshStandardMaterial color="#080002" roughness={0.95} />
+          </mesh>
+          <Text position={[0, -0.2, 0.04]} fontSize={0.07} color={CREAM} anchorX="center">
+            INSERT COIN
+          </Text>
+        </group>
+
+        {/* ── DISPENSE CHUTE (glows on selection) ── */}
         <RoundedBox
-          args={[1.75, 0.17, 0.10]}
-          radius={0.04}
-          smoothness={3}
-          position={[0, -2.05, 0.71]}
-        >
-          <meshStandardMaterial color="#0D0002" roughness={0.9} />
-        </RoundedBox>
-        {/* Recessed inner slot face */}
-        <RoundedBox
-          args={[1.55, 0.10, 0.07]}
+          args={[1.5, 0.2, 0.12]}
           radius={0.03}
           smoothness={2}
-          position={[0, -2.05, 0.76]}
+          position={[0, -1.85, 0.58]}
         >
-          <meshStandardMaterial color="#060001" roughness={0.95} />
+          <meshStandardMaterial color="#080002" roughness={0.9} />
         </RoundedBox>
+        <mesh position={[0, -1.85, 0.66]}>
+          <boxGeometry args={[1.3, 0.1, 0.04]} />
+          <meshStandardMaterial
+            ref={dispenseGlowRef}
+            color="#1A0004"
+            emissive={COKE_RED}
+            emissiveIntensity={0.15}
+            roughness={0.8}
+          />
+        </mesh>
 
-        {/* ── COIN / CARD PANEL (cosmetic, left side) ───────────── */}
-        <RoundedBox
-          args={[0.55, 0.75, 0.05]}
-          radius={0.03}
-          smoothness={3}
-          position={[-1.1, -0.85, 0.72]}
-        >
-          <meshStandardMaterial color="#1A0005" roughness={0.5} metalness={0.1} />
-        </RoundedBox>
-        {/* Card-slot illusion — thin dark strip */}
-        <RoundedBox
-          args={[0.32, 0.035, 0.03]}
-          radius={0.01}
-          smoothness={2}
-          position={[-1.1, -0.65, 0.755]}
-        >
-          <meshStandardMaterial color="#050001" roughness={0.95} />
-        </RoundedBox>
-
-        {/* ── BASE / FOOT ───────────────────────────────────────── */}
-        <RoundedBox
-          args={[3.1, 0.10, 1.3]}
-          radius={0.03}
-          smoothness={3}
-          position={[0, -2.55, 0]}
-        >
-          <meshStandardMaterial color="#1A0003" roughness={0.7} metalness={0.2} />
-        </RoundedBox>
+        {/* ── BASE / FEET ── */}
+        <mesh position={[0, -2.85, 0.1]}>
+          <boxGeometry args={[2.6, 0.12, 1.0]} />
+          <meshStandardMaterial color="#3A3530" roughness={0.7} metalness={0.3} />
+        </mesh>
+        {/* Rubber feet */}
+        {([-1.0, 1.0] as const).map((x) => (
+          <mesh key={`foot-${x}`} position={[x, -2.92, 0.45]}>
+            <cylinderGeometry args={[0.08, 0.1, 0.06, 12]} />
+            <meshStandardMaterial color="#1A1816" roughness={0.95} />
+          </mesh>
+        ))}
 
       </group>
     </group>

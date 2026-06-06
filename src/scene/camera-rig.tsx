@@ -13,11 +13,11 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<ViewId, Pose> = {
-  machine:   { pos: [0, 0.8, 8.5], look: [0, 0.3, 0] }, // hub: frame the whole machine
-  role:      { pos: [0, 0.1, 3.4], look: [0, 0, 0] },   // bottle cap, face-on
-  tools:     { pos: [0, 1.0, 5.6], look: [0, 0, 0] },   // chip ring
-  agent:     { pos: [0, 0.4, 4.6], look: [0, 0, 0] },   // energy core
-  takeaways: { pos: [0, 0.4, 9.0], look: [0, 0, 0] },   // contour bottle
+  machine:   { pos: [0, 0.2, 7.8], look: [0, 0.1, 0] },  // nostalgic upright machine
+  role:      { pos: [0, 0.1, 3.2], look: [0, 0, 0] },    // bottle cap, face-on
+  tools:     { pos: [0, 0.8, 5.2], look: [0, 0, 0] },    // chip ring
+  agent:     { pos: [0, 0.3, 4.4], look: [0, 0, 0] },    // energy core
+  takeaways: { pos: [0, 0.2, 5.5], look: [0, -0.1, 0] }, // hero contour bottle
 };
 
 const INTRO: Pose = { pos: [0, 1.6, 13], look: [0, 0.3, 0] };
