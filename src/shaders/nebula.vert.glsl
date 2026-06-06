@@ -1,7 +1,7 @@
 // nebula.vert.glsl
 // Pass-through vertex shader for the nebula icosahedron.
 // Outputs world-space position, view-space position, and normal
-// to the fragment shader for rim/edge softening.
+// to the fragment shader for rim/edge softening and neural noise.
 
 varying vec3 vWorldPos;
 varying vec3 vViewPos;

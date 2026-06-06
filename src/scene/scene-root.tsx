@@ -1,25 +1,41 @@
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import { CameraRig } from './camera-rig';
+import { SceneLighting } from './scene-lighting';
+import { PostprocessingStack } from './postprocessing-stack';
 
-// Persistent <Canvas>. Mounted once at the top of the tree and never
-// unmounted. All 3D content lives inside <Suspense> for async asset loads.
+// Persistent <Canvas> — mounted once, never unmounted.
+// DPR capped at 1.5 to cut fill-rate on retina screens.
+// AdaptiveDpr drops DPR further if FPS sags.
+// PerformanceMonitor signals PostprocessingStack to disable Bloom on low-end GPUs.
+// alpha:true lets the CSS radial-gradient background show through the canvas.
 
 type Props = {
   children?: React.ReactNode;
 };
 
 export function SceneRoot({ children }: Props) {
+  const [perfFactor, setPerfFactor] = useState(1);
+
   return (
     <Canvas
-      camera={{ position: [0, 0, 4], fov: 55, near: 0.05, far: 80 }}
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+      camera={{ position: [0, 0.3, 6], fov: 55, near: 0.05, far: 80 }}
+      dpr={[1, 1.5]}
+      gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
     >
-      <color attach="background" args={['#0A0203']} />
+      <PerformanceMonitor
+        onChange={({ factor }) => setPerfFactor(factor)}
+      />
+
+      <AdaptiveDpr pixelated />
+      <AdaptiveEvents />
+
       <Suspense fallback={null}>
         <CameraRig />
+        <SceneLighting />
         {children}
+        <PostprocessingStack performanceFactor={perfFactor} />
       </Suspense>
     </Canvas>
   );

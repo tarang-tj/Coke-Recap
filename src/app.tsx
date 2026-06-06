@@ -1,5 +1,6 @@
 import { ScrollContext } from './scene/scroll-context';
 import { useScrollProgressRef } from './hooks/use-scroll-progress';
+import { useLenisScroll } from './hooks/use-lenis-scroll';
 import { SceneRoot } from './scene/scene-root';
 import { FluidEnvironment } from './scene/fluid-environment';
 import { ActColdOpen } from './scene/acts/act-cold-open';
@@ -27,6 +28,10 @@ import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
 // reads from the same RefObject inside useFrame, no React re-renders.
 
 export function App() {
+  // Smooth scroll wrapper. Lenis updates window.scrollY so the existing
+  // useScrollProgressRef hook continues to read the same value — no
+  // contract change to acts or section overlays.
+  useLenisScroll();
   const scrollRef = useScrollProgressRef();
 
   return (

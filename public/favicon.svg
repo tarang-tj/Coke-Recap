@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Red disc -->
+  <circle cx="16" cy="16" r="16" fill="#F40009"/>
+  <!-- White dynamic ribbon swoosh evocative of the Coca-Cola wave -->
+  <path
+    d="M5 20 C8 14, 12 11, 16 15 C20 19, 24 16, 27 12"
+    stroke="#FFFEF6"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

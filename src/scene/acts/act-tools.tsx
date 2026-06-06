@@ -1,110 +1,102 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MeshTransmissionMaterial, Text } from '@react-three/drei';
+import { Text, RoundedBox } from '@react-three/drei';
 import { useScrollRef } from '../scroll-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
 import { tools } from '../../data/portfolio-content';
 
-// S-curve: 6 cubes from (-3.5, 0.4, -1) → (3.5, -0.4, 1)
-// A sine bow in Y makes the path read as a gentle S rather than a diagonal.
-function sCurvePosition(i: number): [number, number, number] {
-  const t = i / 5;
-  const x = THREE.MathUtils.lerp(-3.5, 3.5, t);
-  const y = 0.4 - 0.8 * t + 0.25 * Math.sin(t * Math.PI);
-  const z = THREE.MathUtils.lerp(-1, 1, t);
-  return [x, y, z];
+// Act 2 — Tools
+// 6 glossy Coca-Cola red "can-label" chips on a ring (radius 2.4).
+// meshStandardMaterial only — zero transmission passes.
+
+const CIRCLE_RADIUS = 2.4;
+const COKE_RED = '#F40009';
+const CREAM = '#F1E9DA';
+
+function circlePosition(i: number, total: number): [number, number, number] {
+  const angle = (i / total) * Math.PI * 2;
+  return [Math.cos(angle) * CIRCLE_RADIUS, 0, Math.sin(angle) * CIRCLE_RADIUS];
 }
 
-// Per-cube independent rotation speeds and base offsets
-const ROT_SPEEDS: [number, number, number][] = [
-  [0.22, 0.14, 0.08],
-  [0.18, 0.26, 0.11],
-  [0.12, 0.19, 0.20],
-  [0.25, 0.10, 0.16],
-  [0.09, 0.23, 0.13],
-  [0.16, 0.12, 0.25],
-];
+function circleAngle(i: number, total: number): number {
+  return (i / total) * Math.PI * 2;
+}
 
-const ROT_OFFSETS: [number, number, number][] = [
-  [0.1, 0.3, 0.0],
-  [0.5, 0.0, 0.2],
-  [0.0, 0.7, 0.4],
-  [0.2, 0.1, 0.6],
-  [0.8, 0.4, 0.1],
-  [0.3, 0.6, 0.3],
-];
-
-// ─── Per-cube component ────────────────────────────────────────────────────
-
-interface CubeProps {
+interface ChipProps {
   index: number;
   position: [number, number, number];
+  /** Radial angle of this chip around Y; used to orient it outward */
+  angle: number;
   label: string;
   reduced: boolean;
-  activeRef: React.RefObject<boolean>;
-  envelopeRef: React.RefObject<number>;
-  highlightedRef: React.RefObject<number>;
-  elapsedRef: React.RefObject<number>;
+  activeRef: { readonly current: boolean };
+  elapsedRef: { readonly current: number };
+  highlightedRef: { readonly current: number };
+  envelopeRef: { readonly current: number };
 }
 
-function GlassCube({
+function CanLabelChip({
   index,
   position,
+  angle,
   label,
   reduced,
   activeRef,
-  envelopeRef,
-  highlightedRef,
   elapsedRef,
-}: CubeProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const speed = ROT_SPEEDS[index];
-  const rotBase = ROT_OFFSETS[index];
+  highlightedRef,
+  envelopeRef,
+}: ChipProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
 
-  useFrame((_, dt) => {
-    const mesh = meshRef.current;
-    if (!mesh || !activeRef.current) return;
+  useFrame(() => {
+    if (!activeRef.current) return;
+    const group = groupRef.current;
+    const mat = matRef.current;
+    if (!group) return;
 
-    // Individual idle rotation
-    if (!reduced) {
-      mesh.rotation.x += dt * speed[0];
-      mesh.rotation.y += dt * speed[1];
-      mesh.rotation.z += dt * speed[2];
-    }
+    const isHighlighted = highlightedRef.current === index;
+    const elapsed = elapsedRef.current;
+    const envelope = envelopeRef.current;
 
-    // Pulse scale for the highlighted (closest-to-camera) cube
-    const highlighted = highlightedRef.current === index;
-    if (highlighted) {
-      const elapsed = elapsedRef.current ?? 0;
-      mesh.scale.setScalar(1.05 + 0.03 * Math.sin(elapsed * 3.5));
+    if (isHighlighted) {
+      // Static scale under reduced motion; gentle pulse otherwise.
+      group.scale.setScalar(reduced ? 1.12 : 1.12 + 0.05 * Math.sin(elapsed * 3.5));
+      if (mat) mat.emissiveIntensity = 0.55 * envelope;
     } else {
-      mesh.scale.setScalar(1.0);
+      group.scale.setScalar(1.0);
+      if (mat) mat.emissiveIntensity = 0.12 * envelope;
     }
   });
 
-  return (
-    <group position={position}>
-      <mesh ref={meshRef} rotation={[rotBase[0], rotBase[1], rotBase[2]]}>
-        <boxGeometry args={[0.7, 0.7, 0.7]} />
-        <MeshTransmissionMaterial
-          thickness={0.5}
-          roughness={0.15}
-          transmission={1}
-          ior={1.4}
-          chromaticAberration={0.04}
-          backside={true}
-        />
-      </mesh>
+  // Rotate so the chip front (+Z local) points radially outward: Y = π/2 − angle
+  const facingY = Math.PI / 2 - angle;
 
-      {/* Tool name — slightly in front of the +Z face, always faces camera */}
+  return (
+    <group ref={groupRef} position={position} rotation={[0, facingY, 0]}>
+      {/* Can-label proportioned chip — Coca-Cola red, glossy, no transmission */}
+      <RoundedBox args={[1.5, 0.95, 0.12]} radius={0.12} smoothness={4}>
+        <meshStandardMaterial
+          ref={matRef}
+          color={COKE_RED}
+          roughness={0.3}
+          metalness={0.15}
+          emissive={COKE_RED}
+          emissiveIntensity={0.12}
+        />
+      </RoundedBox>
+
+      {/* Tool name on the front face — cream with dark outline */}
       <Text
-        position={[0, 0, 0.38]}
-        fontSize={0.18}
-        color="#F1E9DA"
+        position={[0, 0, 0.07]}
+        fontSize={0.22}
+        color={CREAM}
         anchorX="center"
         anchorY="middle"
+        outlineWidth={0.012}
+        outlineColor="#0A0203"
       >
         {label}
       </Text>
@@ -112,22 +104,24 @@ function GlassCube({
   );
 }
 
-// ─── Act root ──────────────────────────────────────────────────────────────
-
 export function ActTools() {
   const groupRef = useRef<THREE.Group>(null);
   const scrollRef = useScrollRef();
   const reduced = useReducedMotion();
 
-  // Refs shared downward so GlassCube children can read per-frame state
-  // without triggering React re-renders.
   const activeRef = useRef<boolean>(false);
-  const envelopeRef = useRef<number>(0);
-  const highlightedRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
+  const highlightedRef = useRef<number>(0);
+  const envelopeRef = useRef<number>(0);
 
-  const positions = useMemo<[number, number, number][]>(
-    () => tools.map((_, i) => sCurvePosition(i)),
+  const chipData = useMemo(
+    () =>
+      tools.map((tool, i) => ({
+        position: circlePosition(i, tools.length) as [number, number, number],
+        angle: circleAngle(i, tools.length),
+        id: tool.id,
+        name: tool.name,
+      })),
     [],
   );
 
@@ -145,27 +139,33 @@ export function ActTools() {
 
     elapsedRef.current = clock.elapsedTime;
     envelopeRef.current = actEnvelope(localT);
-    // Which cube is "current": 0–5 mapped across the act window
-    highlightedRef.current = Math.min(5, Math.floor(localT * 6));
+    // Advance highlighted index 0..5 across the act window
+    highlightedRef.current = Math.min(tools.length - 1, Math.floor(localT * tools.length));
+
+    // Slowly rotate the whole ring; freeze when reduced motion
+    if (!reduced) {
+      group.rotation.y += 0.0012;
+    }
   });
 
   return (
     <group ref={groupRef} visible={false}>
-      {/* Warm fill + caramel rim to catch the glass facets */}
-      <pointLight position={[0, 2, 3]} intensity={1.8} color="#F1E9DA" />
-      <pointLight position={[-4, -1, -2]} intensity={0.8} color="#A06A00" />
+      <pointLight position={[0, 3, 0]} intensity={2.2} color={CREAM} />
+      <pointLight position={[0, -2, 0]} intensity={1.0} color="#A06A00" />
+      <pointLight position={[0, 0, 3]} intensity={1.4} color={COKE_RED} />
 
-      {tools.map((tool, i) => (
-        <GlassCube
-          key={tool.id}
+      {chipData.map((chip, i) => (
+        <CanLabelChip
+          key={chip.id}
           index={i}
-          position={positions[i]}
-          label={tool.name}
+          position={chip.position}
+          angle={chip.angle}
+          label={chip.name}
           reduced={reduced}
           activeRef={activeRef}
-          envelopeRef={envelopeRef}
-          highlightedRef={highlightedRef}
           elapsedRef={elapsedRef}
+          highlightedRef={highlightedRef}
+          envelopeRef={envelopeRef}
         />
       ))}
     </group>

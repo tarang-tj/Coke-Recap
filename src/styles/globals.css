@@ -1,3 +1,10 @@
+@import '@fontsource/pacifico';
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/playfair-display/900.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
 @import './tokens.css';
 @tailwind base;
 @tailwind components;
@@ -7,12 +14,19 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--coke-black);
+  /* Rich Coca-Cola red radial gradient — shows through the transparent canvas */
+  background: radial-gradient(
+    circle at 50% 35%,
+    #F40009 0%,
+    #B00712 35%,
+    #5A0A0E 70%,
+    #2A0406 100%
+  );
+  background-attachment: fixed;
   color: var(--cream);
   overscroll-behavior: none;
 }
 
-/* Use Playfair Display + Inter via system fallback for now; webfonts in phase 5. */
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

@@ -3,18 +3,16 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 
-// Bubble particle field. Points-based with per-particle attributes for
-// rise speed and horizontal wobble. Recycled at the top of the frustum
-// back to the bottom.
-//
-// Counts: 400 on desktop, ~120 on low-DPR devices.
+// Bubble particle field — additive blending so bubbles bloom with postprocessing.
+// Counts slightly bumped (80/60/40 → 100/70/50) — still cheap on the red bg.
+// Fragment color is bright white/cream so carbonation reads clearly against red.
 
 function detectCount(): number {
-  if (typeof navigator === 'undefined') return 220;
+  if (typeof navigator === 'undefined') return 70;
   const hw = navigator.hardwareConcurrency ?? 4;
-  if (hw <= 4) return 140;
-  if (hw <= 6) return 240;
-  return 400;
+  if (hw <= 4) return 50;
+  if (hw <= 8) return 70;
+  return 100;
 }
 
 const BUBBLE_VERTEX = /* glsl */ `
@@ -30,9 +28,7 @@ const BUBBLE_VERTEX = /* glsl */ `
   void main() {
     vec3 p = position;
     float t = uTime * mix(1.0, 0.0, uReducedMotion);
-    // Wrap vertically: rise then loop back to the bottom.
     float y = mod(p.y + t * aSpeed, 12.0) - 6.0;
-    // Horizontal wobble.
     float x = p.x + 0.18 * sin(aPhase + t * 0.6);
     float z = p.z + 0.18 * cos(aPhase * 1.3 + t * 0.5);
 
@@ -40,25 +36,24 @@ const BUBBLE_VERTEX = /* glsl */ `
     gl_Position = projectionMatrix * mvPos;
     gl_PointSize = aSize * (250.0 / -mvPos.z);
 
-    // Fade in at the bottom, out at the top.
     float yFade = smoothstep(-6.0, -4.0, y) * (1.0 - smoothstep(4.0, 6.0, y));
-    vAlpha = yFade * 0.55;
+    vAlpha = yFade * 0.65;
   }
 `;
 
 const BUBBLE_FRAGMENT = /* glsl */ `
-  precision highp float;
+  precision mediump float;
   varying float vAlpha;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
     if (d > 0.5) discard;
-    // Soft disc with a slight rim highlight.
-    float rim = smoothstep(0.5, 0.35, d);
-    float core = smoothstep(0.5, 0.0, d) * 0.6;
-    float a = (rim * 0.7 + core) * vAlpha;
-    gl_FragColor = vec4(vec3(1.0, 0.95, 0.88), a);
+    float rim = smoothstep(0.5, 0.3, d);
+    float core = smoothstep(0.5, 0.0, d) * 0.7;
+    float a = (rim * 0.8 + core) * vAlpha;
+    // Bright white/cream so carbonation reads clearly against red background.
+    gl_FragColor = vec4(1.0, 0.97, 0.92, a);
   }
 `;
 
@@ -99,28 +94,12 @@ export function Bubbles() {
   });
 
   return (
-    <points>
+    <points frustumCulled={false}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-          count={count}
-        />
-        <bufferAttribute
-          attach="attributes-aSpeed"
-          args={[speeds, 1]}
-          count={count}
-        />
-        <bufferAttribute
-          attach="attributes-aPhase"
-          args={[phases, 1]}
-          count={count}
-        />
-        <bufferAttribute
-          attach="attributes-aSize"
-          args={[sizes, 1]}
-          count={count}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
+        <bufferAttribute attach="attributes-aSpeed" args={[speeds, 1]} count={count} />
+        <bufferAttribute attach="attributes-aPhase" args={[phases, 1]} count={count} />
+        <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} count={count} />
       </bufferGeometry>
       <shaderMaterial
         ref={matRef}

@@ -1,58 +1,58 @@
 import { learnings, contact } from '../../data/portfolio-content';
+import { Wordmark } from '../brand/wordmark';
 
-// Act 4 — Bottle: closing UI panel.
-// Displays three takeaway "quote" lines and a minimal contact row.
+// Closing chapter — brand sign-off wordmark, large italic quotes, contact row.
 
 export function LearningsSection() {
   return (
     <footer className="flex flex-col items-center justify-center min-h-screen px-6 py-24 text-center">
-      {/* Eyebrow */}
-      <p className="font-body text-xs tracking-[0.25em] uppercase text-caramel mb-12">
-        Takeaways
+      {/* Brand sign-off — closing identity stamp */}
+      <Wordmark as="h2" className="text-6xl md:text-8xl mb-4" />
+      <p className="font-body text-base md:text-lg text-cream/80 tracking-widest mb-16">
+        Taste the insight.
       </p>
 
-      {/* Learning quotes */}
-      <div className="max-w-2xl w-full space-y-0">
+      {/* Eyebrow */}
+      <p className="font-body text-[0.65rem] tracking-[0.35em] uppercase text-caramel mb-12">
+        04 / Takeaways
+      </p>
+
+      {/* Learning quotes — full-width hairlines between each */}
+      <div className="w-full max-w-3xl">
         {learnings.map((line, i) => (
           <div key={i}>
-            <p className="font-display text-2xl md:text-3xl lg:text-4xl text-cream leading-snug py-8">
+            {i > 0 && (
+              <hr className="border-0 border-t border-cream/20 w-full my-0" />
+            )}
+            <p className="font-display italic text-3xl md:text-5xl text-cream leading-snug py-10 md:py-12">
               &ldquo;{line}&rdquo;
             </p>
-            {i < learnings.length - 1 && (
-              <hr className="border-0 border-t border-cream/20 w-24 mx-auto" />
-            )}
           </div>
         ))}
+        <hr className="border-0 border-t border-cream/20 w-full" />
       </div>
 
-      {/* Contact row */}
-      <div className="mt-16 flex items-center gap-8 font-body text-sm text-cream/70">
-        <a
-          href={contact.github}
-          target="_blank"
-          rel="noreferrer"
-          className="hover:text-cream underline-offset-4 hover:underline transition-colors duration-200"
-        >
-          GitHub
-        </a>
-        <span className="text-cream/30" aria-hidden="true">·</span>
-        <a
-          href={contact.linkedin}
-          target="_blank"
-          rel="noreferrer"
-          className="hover:text-cream underline-offset-4 hover:underline transition-colors duration-200"
-        >
-          LinkedIn
-        </a>
-        <span className="text-cream/30" aria-hidden="true">·</span>
-        <a
-          href={`mailto:${contact.email}`}
-          target="_blank"
-          rel="noreferrer"
-          className="hover:text-cream underline-offset-4 hover:underline transition-colors duration-200"
-        >
-          Email
-        </a>
+      {/* Contact row — small caps, hover underline */}
+      <div className="mt-16 flex items-center gap-8">
+        {[
+          { label: 'GitHub', href: contact.github },
+          { label: 'LinkedIn', href: contact.linkedin },
+          { label: 'Email', href: `mailto:${contact.email}` },
+        ].map(({ label, href }, i, arr) => (
+          <span key={label} className="flex items-center gap-8">
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-cream/50 underline-offset-4 hover:underline hover:text-cream transition-colors duration-200"
+            >
+              {label}
+            </a>
+            {i < arr.length - 1 && (
+              <span className="text-cream/20 text-xs" aria-hidden="true">·</span>
+            )}
+          </span>
+        ))}
       </div>
     </footer>
   );

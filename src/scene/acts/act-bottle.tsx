@@ -3,55 +3,42 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useScrollRef } from '../scroll-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
-import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
+import { getActWindow } from '../../hooks/use-act-window';
 
-// Coca-Cola-inspired bottle silhouette via LatheGeometry.
-// Geometry is original art — pure contour approximation, no marks or logos.
-// The bottle scales up as the camera pulls back in Act 4, revealing
-// that the whole scene was always inside a glass bottle.
+// Act 4 — Bottle (closing reveal)
+// LatheGeometry traces the classic Coca-Cola contour / hobble-skirt silhouette.
+// clearcoat glass look without any transmission render pass; internal point light for liquid glow.
 
 function buildBottlePoints(): THREE.Vector2[] {
-  // Each entry: [radius, y]. Contour traced top-down then reversed for
-  // LatheGeometry which expects points from bottom to top.
+  // Hobble-skirt profile: fluted base → wide belly → pinched waist → shoulder → neck → crown.
+  // Total height 2.90; caller translates by -1.45 to center vertically.
   const raw: [number, number][] = [
-    // base
-    [0.40, 0.00],
-    [0.43, 0.05],
-    [0.45, 0.12],
-    [0.44, 0.20],
-    // taper toward waist
-    [0.43, 0.32],
-    [0.41, 0.46],
-    [0.39, 0.60],
-    [0.38, 0.74],
-    [0.38, 0.90], // waist
-    // curve back to mid-bulge
-    [0.39, 1.05],
-    [0.41, 1.18],
-    [0.44, 1.30],
-    [0.45, 1.42],
-    [0.45, 1.50], // mid-bulge peak (subtle)
-    [0.44, 1.60],
-    [0.42, 1.72],
-    // taper toward neck base
-    [0.38, 1.88],
-    [0.32, 2.00],
-    [0.26, 2.12],
-    [0.22, 2.22],
-    [0.19, 2.30],
-    [0.18, 2.40], // neck base
-    // straight neck
-    [0.16, 2.50],
-    [0.16, 2.58],
-    [0.16, 2.65],
-    [0.16, 2.70],
-    // slight lip flare
-    [0.17, 2.78],
-    [0.19, 2.85],
-    [0.19, 2.88],
-    [0.18, 2.90],
+    [0.00, 0.00], // center of base — closes the bottom so it isn't a hollow tube
+    [0.50, 0.00], // base disc
+    [0.52, 0.04], // base rim flare
+    [0.49, 0.12], // base wall
+    [0.47, 0.22], // lower body
+    [0.50, 0.38], // body swell start
+    [0.55, 0.55], // body widening
+    [0.60, 0.78], // belly peak — widest point
+    [0.58, 0.95], // upper belly
+    [0.52, 1.12], // upper body taper
+    [0.46, 1.28], // waist approach
+    [0.38, 1.45], // waist pinch — tightest
+    [0.40, 1.56], // above waist
+    [0.46, 1.68], // shoulder flare above waist
+    [0.44, 1.80], // shoulder peak
+    [0.36, 1.95], // neck base
+    [0.26, 2.10], // neck lower
+    [0.22, 2.25], // neck
+    [0.21, 2.42], // neck mid
+    [0.20, 2.58], // neck upper
+    [0.20, 2.66], // neck near-top
+    [0.21, 2.72], // collar start
+    [0.24, 2.78], // crown flare
+    [0.23, 2.85], // crown
+    [0.20, 2.90], // top edge
   ];
-
   return raw.map(([r, y]) => new THREE.Vector2(r, y));
 }
 
@@ -60,11 +47,11 @@ export function ActBottle() {
   const scrollRef = useScrollRef();
   const reduced = useReducedMotion();
 
-  // Build geometry once — 30 radial segments is plenty for a silhouette.
   const geometry = useMemo(() => {
     const points = buildBottlePoints();
-    const geo = new THREE.LatheGeometry(points, 48);
-    // Center vertically: total height ~2.90, so translate -1.45 on Y.
+    // 64 segments for smooth round silhouette
+    const geo = new THREE.LatheGeometry(points, 64);
+    // Center vertically: total height 2.90, offset -1.45
     geo.translate(0, -1.45, 0);
     return geo;
   }, []);
@@ -79,27 +66,32 @@ export function ActBottle() {
     group.visible = active;
     if (!active) return;
 
-    // Scale: starts near-zero, grows to 4.5 (camera is far back at act end).
-    const env = actEnvelope(localT);
-    const scale = THREE.MathUtils.lerp(0.001, 4.5, env);
+    // Scale lerp 0.001 → 6.0 across localT — dramatic reveal
+    const scale = THREE.MathUtils.lerp(0.001, 6.0, localT);
     group.scale.setScalar(scale);
 
-    // Slow idle rotation — skip if user prefers reduced motion.
     if (!reduced) {
-      group.rotation.y += dt * 0.15;
+      group.rotation.y += dt * 0.18;
     }
   });
 
   return (
     <group ref={groupRef} visible={false}>
+      {/* Liquid-light glow from inside the bottle */}
+      <pointLight color="#F40009" intensity={1.8} distance={4} />
+
       <mesh geometry={geometry} castShadow={false} receiveShadow={false}>
+        {/* Deep Coke-red glass look via clearcoat — no transmission render pass */}
         <meshPhysicalMaterial
-          color="#F40009"
-          transmission={0.9}
-          thickness={0.5}
-          roughness={0.08}
-          ior={1.5}
-          transparent={true}
+          color="#C8000A"
+          clearcoat={1}
+          clearcoatRoughness={0.15}
+          roughness={0.15}
+          metalness={0.1}
+          transparent
+          opacity={0.9}
+          emissive="#5A0000"
+          emissiveIntensity={0.4}
           side={THREE.DoubleSide}
         />
       </mesh>
