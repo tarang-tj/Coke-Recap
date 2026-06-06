@@ -1,41 +1,34 @@
 import { tools } from '../../data/portfolio-content';
 
-// Vertical numbered list — each tool gets a huge display number, name, blurb.
+// Chapter content — left column. Compact, readable list of the stack.
 
 export function ToolsSection() {
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-24 flex flex-col md:flex-row md:justify-end">
-      <div className="w-full md:w-3/5 flex flex-col gap-10">
-        {/* Eyebrow */}
-        <span className="font-body text-[0.65rem] uppercase tracking-[0.35em] text-off-white">
-          02 / Stack
-        </span>
+    <div className="flex flex-col gap-5">
+      <h2 className="font-display text-3xl md:text-[2.5rem] leading-[1.1] text-off-white">
+        The tools behind the insight.
+      </h2>
 
-        {/* Numbered tool list */}
-        <ul className="flex flex-col divide-y divide-off-white/25">
-          {tools.map((tool, i) => (
-            <li key={tool.id} className="flex items-start gap-6 py-8 first:pt-0 last:pb-0">
-              {/* Huge number */}
-              <span
-                className="font-display font-black text-5xl md:text-7xl text-off-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.6)] leading-none select-none flex-shrink-0 w-16 md:w-24 text-right"
-                aria-hidden="true"
-              >
-                {String(i + 1).padStart(2, '0')}
+      <ul className="flex flex-col divide-y divide-off-white/15">
+        {tools.map((tool, i) => (
+          <li key={tool.id} className="flex items-baseline gap-4 py-3 first:pt-0">
+            <span
+              className="font-display text-lg md:text-xl text-coke-red/90 leading-none w-7 flex-shrink-0 tabular-nums"
+              aria-hidden="true"
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-body font-semibold text-base md:text-lg text-off-white leading-tight">
+                {tool.name}
               </span>
-
-              {/* Name + blurb */}
-              <div className="flex flex-col gap-1 pt-1">
-                <span className="font-display text-2xl md:text-3xl text-cream leading-tight">
-                  {tool.name}
-                </span>
-                <span className="font-body text-sm md:text-base text-cream/85 leading-relaxed">
-                  {tool.blurb}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+              <span className="font-body text-sm text-cream/80 leading-snug">
+                {tool.blurb}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

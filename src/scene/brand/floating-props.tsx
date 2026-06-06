@@ -72,13 +72,11 @@ const _axis = new THREE.Vector3(0.3, 1, 0.1).normalize();
 
 export function FloatingProps() {
   const reduced = useReducedMotion();
-  const { caps: CAP_COUNT, ice: ICE_COUNT } = useMemo(detectCounts, []);
+  const { caps: CAP_COUNT } = useMemo(detectCounts, []);
 
   const capsRef = useRef<THREE.InstancedMesh>(null);
-  const iceRef = useRef<THREE.InstancedMesh>(null);
 
   const capData = useMemo(() => buildInstances(CAP_COUNT, 0xc0ca_c01a), [CAP_COUNT]);
-  const iceData = useMemo(() => buildInstances(ICE_COUNT, 0x1ce_c01d), [ICE_COUNT]);
 
   // Static colors / materials (created once)
   const capColor = useMemo(() => new THREE.Color('#F40009'), []);
@@ -101,8 +99,7 @@ export function FloatingProps() {
       mesh.instanceMatrix.needsUpdate = true;
     }
     applyStatic(capsRef.current, capData);
-    applyStatic(iceRef.current, iceData);
-  }, [capData, iceData]);
+  }, [capData]);
 
   useFrame(({ clock }) => {
     if (reduced) return;
@@ -132,7 +129,6 @@ export function FloatingProps() {
     }
 
     animate(capsRef.current, capData);
-    animate(iceRef.current, iceData);
   });
 
   return (
@@ -150,23 +146,6 @@ export function FloatingProps() {
           emissiveIntensity={0.18}
           roughness={0.35}
           metalness={0.2}
-        />
-      </instancedMesh>
-
-      {/* Ice cubes — translucent cool-white boxes for depth contrast */}
-      <instancedMesh
-        ref={iceRef}
-        args={[undefined, undefined, ICE_COUNT]}
-        frustumCulled={false}
-      >
-        <boxGeometry args={[0.5, 0.5, 0.5]} />
-        <meshStandardMaterial
-          color="#EAF2FF"
-          roughness={0.1}
-          metalness={0.0}
-          transparent
-          opacity={0.35}
-          depthWrite={false}
         />
       </instancedMesh>
 

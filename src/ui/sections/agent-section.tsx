@@ -1,51 +1,39 @@
 import { agent } from '../../data/portfolio-content';
 
-// Manifesto layout — massive tagline, body paragraphs, 3-pillar row.
-
-const PILLAR_NUMERALS = ['I', 'II', 'III'] as const;
+// Chapter content — left column. Agent tagline, body, and the 3 pillars.
 
 export function AgentSection() {
   return (
-    <section className="w-full max-w-5xl mx-auto px-6 py-24 flex flex-col items-center gap-10 text-center">
-      {/* Eyebrow */}
-      <span className="font-body text-[0.65rem] uppercase tracking-[0.35em] text-off-white">
-        03 / Agent
-      </span>
-
-      {/* Massive display tagline */}
-      <h2 className="font-display font-black text-6xl md:text-8xl text-cream leading-[0.95] tracking-tight max-w-4xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.55)]">
+    <div className="flex flex-col gap-6">
+      <h2 className="font-display text-3xl md:text-[2.75rem] leading-[1.08] text-off-white">
         {agent.tagline}
       </h2>
 
-      {/* Body paragraphs */}
-      <div className="flex flex-col gap-4 max-w-2xl">
+      <div className="flex flex-col gap-3">
         {agent.body.map((para, i) => (
-          <p key={i} className="font-body text-lg text-cream/85 leading-relaxed">
+          <p key={i} className="font-body text-base md:text-lg leading-relaxed text-cream/90 max-w-prose">
             {para}
           </p>
         ))}
       </div>
 
-      {/* Pillar row */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-0 mt-6 border-t border-off-white/25">
+      <div className="mt-1 flex flex-col gap-3">
         {agent.pillars.map((pillar, i) => (
-          <div
-            key={pillar.name}
-            className="flex flex-col items-center gap-2 px-6 py-8 border-b md:border-b-0 md:border-r border-off-white/25 last:border-0"
-          >
-            {/* Roman numeral prefix */}
-            <span className="font-body text-[0.6rem] uppercase tracking-[0.35em] text-off-white mb-1">
-              {PILLAR_NUMERALS[i]}
+          <div key={pillar.name} className="flex items-start gap-4">
+            <span className="font-display text-sm text-coke-red/90 leading-none pt-1 w-5 flex-shrink-0">
+              {['I', 'II', 'III'][i]}
             </span>
-            <span className="font-display text-xl md:text-2xl text-cream font-medium leading-snug">
-              {pillar.name}
-            </span>
-            <span className="font-body text-sm text-cream/80 leading-relaxed max-w-[16ch]">
-              {pillar.desc}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-body font-semibold text-base md:text-lg text-off-white leading-tight">
+                {pillar.name}
+              </span>
+              <span className="font-body text-sm text-cream/80 leading-snug">
+                {pillar.desc}
+              </span>
+            </div>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

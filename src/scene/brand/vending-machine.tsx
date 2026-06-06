@@ -13,6 +13,7 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
+import { useLogoTexture } from '../../hooks/use-logo-texture';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ interface BottleUnitProps {
   item: MachineItem;
   bx: number;
   geometry: THREE.LatheGeometry;
+  logoTex: THREE.Texture;
   isHovered: boolean;
   reduced: boolean;
   onSelect: (id: MachineItemId) => void;
@@ -111,6 +113,7 @@ function BottleUnit({
   item,
   bx,
   geometry,
+  logoTex,
   isHovered,
   reduced,
   onSelect,
@@ -173,6 +176,12 @@ function BottleUnit({
           emissive={colorObj}
           emissiveIntensity={0.22}
         />
+      </mesh>
+
+      {/* Real Coca-Cola wordmark on the bottle belly (white script) */}
+      <mesh position={[0, 0.48, 0.165]}>
+        <planeGeometry args={[0.27, 0.085]} />
+        <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
       </mesh>
 
       {/* Chapter label centred below the bottle base */}
@@ -239,6 +248,7 @@ export function VendingMachine({
   const reduced    = useReducedMotion();
   const machineRef = useRef<THREE.Group>(null);
   const clock      = useRef(0);
+  const logoTex    = useLogoTexture('#FFFEF6');
 
   const [internalHoveredId, setInternalHoveredId] =
     useState<MachineItemId | null>(null);
@@ -336,17 +346,11 @@ export function VendingMachine({
           />
         </RoundedBox>
 
-        {/* Tasteful header text — real logo is overlaid by the app */}
-        <Text
-          position={[0, 2.13, 0.755]}
-          fontSize={0.21}
-          color="#F1E9DA"
-          letterSpacing={0.2}
-          anchorX="center"
-          anchorY="middle"
-        >
-          ENJOY
-        </Text>
+        {/* Real Coca-Cola wordmark on the header (white script) */}
+        <mesh position={[0, 2.16, 0.755]}>
+          <planeGeometry args={[2.3, 0.72]} />
+          <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
+        </mesh>
 
         {/* ── SHELF AREA ────────────────────────────────────────── */}
 
@@ -377,6 +381,7 @@ export function VendingMachine({
             item={item}
             bx={BOTTLE_X[i] ?? 0}
             geometry={bottleGeometry}
+            logoTex={logoTex}
             isHovered={isHov(item.id)}
             reduced={reduced}
             onSelect={onSelect}

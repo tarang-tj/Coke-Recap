@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { PresentationControls } from '@react-three/drei';
 import { useNavigation } from '../navigation-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
+import { useLogoTexture } from '../../hooks/use-logo-texture';
 
 // Act 4 — Bottle (closing reveal)
 // LatheGeometry traces the classic Coca-Cola contour / hobble-skirt silhouette.
@@ -46,6 +47,7 @@ export function ActBottle() {
   const groupRef = useRef<THREE.Group>(null);
   const { view } = useNavigation();
   const reduced = useReducedMotion();
+  const logoTex = useLogoTexture('#FFFEF6');
 
   // View-state envelope: damped 0→1 when 'takeaways' is active, 1→0 otherwise
   const viewRef = useRef(view); viewRef.current = view;
@@ -72,13 +74,11 @@ export function ActBottle() {
     group.visible = active;
     if (!active) return;
 
-    // Scale lerp 0.001 → 3.0 driven by envelope — dramatic reveal
+    // Scale lerp 0.001 → 3.0 driven by envelope — dramatic reveal.
     const scale = THREE.MathUtils.lerp(0.001, 3.0, envRef.current);
     group.scale.setScalar(scale);
-
-    if (!reduced) {
-      group.rotation.y += dt * 0.18;
-    }
+    // No auto-spin: the bottle stays front-facing so the Coca-Cola wordmark is
+    // always legible (drag-to-orbit still works and springs back to front).
   });
 
   return (
@@ -109,6 +109,12 @@ export function ActBottle() {
             emissiveIntensity={0.4}
             side={THREE.DoubleSide}
           />
+        </mesh>
+
+        {/* Real Coca-Cola wordmark across the bottle belly (white script) */}
+        <mesh position={[0, -0.5, 0.6]}>
+          <planeGeometry args={[0.85, 0.27]} />
+          <meshBasicMaterial map={logoTex} transparent toneMapped={false} depthWrite={false} />
         </mesh>
       </PresentationControls>
     </group>
