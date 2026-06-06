@@ -1,5 +1,5 @@
 import { learnings, contact } from '../../data/portfolio-content';
-import { Wordmark } from '../brand/wordmark';
+import { Logo } from '../brand/logo';
 
 // Closing chapter — brand sign-off wordmark, large italic quotes, contact row.
 
@@ -7,7 +7,7 @@ export function LearningsSection() {
   return (
     <footer className="flex flex-col items-center justify-center min-h-screen px-6 py-24 text-center">
       {/* Brand sign-off — closing identity stamp */}
-      <Wordmark as="h2" className="text-6xl md:text-8xl mb-4" />
+      <Logo variant="white" className="w-[min(80vw,560px)] mx-auto mb-4" />
       <p className="font-body text-base md:text-lg text-cream/80 tracking-widest mb-16">
         Taste the insight.
       </p>
