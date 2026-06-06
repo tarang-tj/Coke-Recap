@@ -1,16 +1,18 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text, RoundedBox } from '@react-three/drei';
 import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { tools } from '../../data/portfolio-content';
+import { CokeBottle } from '../brand/coke-bottle';
 
 // Act 2 — Tools
-// 6 glossy Coca-Cola red "can-label" chips on a ring (radius 2.4).
-// meshStandardMaterial only — zero transmission passes.
+// 6 mini Coca-Cola contour bottles on a ring (radius 2.4).
+// Each bottle carries the tool name on its label band via customLabel prop.
+// meshStandardMaterial / clearcoat only — zero transmission passes.
 
 const CIRCLE_RADIUS = 2.4;
+const BOTTLE_SCALE = 0.55;
 const COKE_RED = '#F40009';
 const CREAM = '#F1E9DA';
 
@@ -23,10 +25,10 @@ function circleAngle(i: number, total: number): number {
   return (i / total) * Math.PI * 2;
 }
 
-interface ChipProps {
+interface ToolBottleProps {
   index: number;
   position: [number, number, number];
-  /** Radial angle of this chip around Y; used to orient it outward */
+  /** Radial angle of this bottle around Y; used to orient label face outward */
   angle: number;
   label: string;
   reduced: boolean;
@@ -36,7 +38,7 @@ interface ChipProps {
   envelopeRef: { readonly current: number };
 }
 
-function CanLabelChip({
+function ToolBottle({
   index,
   position,
   angle,
@@ -46,17 +48,23 @@ function CanLabelChip({
   elapsedRef,
   highlightedRef,
   envelopeRef,
-}: ChipProps) {
+}: ToolBottleProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const hoveredRef = useRef<boolean>(false);
-  // Cache initial z so hover lift can lerp without allocating a new vector each frame
-  const baseZ = position[2];
+  // highlight as state so CokeBottle.hRef stays in sync (updated only on meaningful change)
+  const [highlight, setHighlight] = useState(0);
+  const highlightValRef = useRef(0);
 
-  useFrame(() => {
+  // Radial outward direction for the hover lift in the XZ plane
+  const radialDir = useMemo(
+    () => new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)),
+    [angle],
+  );
+  // Store base position for lerping back
+  const basePos = useMemo(() => new THREE.Vector3(...position), [position]);
+
+  useFrame((_, dt) => {
     if (!activeRef.current) {
-      // Act scrolled away while hovered: R3F won't fire onPointerOut without
-      // mouse movement, so clear the latched hover + cursor here.
       if (hoveredRef.current) {
         hoveredRef.current = false;
         document.body.style.cursor = '';
@@ -64,30 +72,36 @@ function CanLabelChip({
       return;
     }
     const group = groupRef.current;
-    const mat = matRef.current;
     if (!group) return;
 
     const isHighlighted = highlightedRef.current === index;
-    const elapsed = elapsedRef.current;
     const envelope = envelopeRef.current;
     const hovered = hoveredRef.current;
 
+    // Scale pulse: highlighted or hovered = gentle swell; otherwise rest
     if (isHighlighted || hovered) {
-      // Static scale under reduced motion; gentle pulse otherwise.
-      group.scale.setScalar(reduced ? 1.12 : 1.12 + 0.05 * Math.sin(elapsed * 3.5));
-      // Hover brightens emissive beyond the scroll highlight
-      if (mat) mat.emissiveIntensity = (hovered ? 0.75 : 0.55) * envelope;
+      const pulse = reduced ? 1.1 : 1.1 + 0.04 * Math.sin(elapsedRef.current * 3.5);
+      group.scale.setScalar(pulse);
     } else {
       group.scale.setScalar(1.0);
-      if (mat) mat.emissiveIntensity = 0.12 * envelope;
     }
 
-    // Smooth z-lift on hover — interpolates in the ring plane, no per-frame allocation
-    const targetZ = hovered ? baseZ + 0.15 : baseZ;
-    group.position.z += (targetZ - group.position.z) * 0.12;
+    // Lerp highlight float and commit to React state only when it changes appreciably.
+    // This drives CokeBottle's internal emissive lerp without per-frame re-renders.
+    const targetHighlight = hovered ? 0.9 * envelope : isHighlighted ? 0.6 * envelope : 0;
+    highlightValRef.current += (targetHighlight - highlightValRef.current) * Math.min(1, dt * 8);
+    const snapped = Math.round(highlightValRef.current * 100) / 100;
+    if (Math.abs(snapped - highlight) > 0.01) {
+      setHighlight(snapped);
+    }
+
+    // Radial hover lift — move slightly outward along the ring radius, not world Z
+    const liftAmount = hovered ? 0.2 : 0;
+    const target = basePos.clone().addScaledVector(radialDir, liftAmount);
+    group.position.lerp(target, 0.12);
   });
 
-  // Rotate so the chip front (+Z local) points radially outward: Y = π/2 − angle
+  // Orient bottle so its label face (+Z local) points radially outward: Y = π/2 − angle
   const facingY = Math.PI / 2 - angle;
 
   return (
@@ -105,30 +119,12 @@ function CanLabelChip({
         document.body.style.cursor = '';
       }}
     >
-      {/* Can-label proportioned chip — Coca-Cola red, glossy, no transmission */}
-      <RoundedBox args={[1.5, 0.95, 0.12]} radius={0.12} smoothness={4}>
-        <meshStandardMaterial
-          ref={matRef}
-          color={COKE_RED}
-          roughness={0.3}
-          metalness={0.15}
-          emissive={COKE_RED}
-          emissiveIntensity={0.12}
-        />
-      </RoundedBox>
-
-      {/* Tool name on the front face — cream with dark outline */}
-      <Text
-        position={[0, 0, 0.07]}
-        fontSize={0.22}
-        color={CREAM}
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.012}
-        outlineColor="#0A0203"
-      >
-        {label}
-      </Text>
+      <CokeBottle
+        scale={BOTTLE_SCALE}
+        customLabel={label}
+        showLogo={false}
+        highlight={highlight}
+      />
     </group>
   );
 }
@@ -143,7 +139,7 @@ export function ActTools() {
   const highlightedRef = useRef<number>(0);
   const envelopeRef = useRef<number>(0);
 
-  const chipData = useMemo(
+  const bottleData = useMemo(
     () =>
       tools.map((tool, i) => ({
         position: circlePosition(i, tools.length) as [number, number, number],
@@ -167,32 +163,35 @@ export function ActTools() {
     if (!active) return;
 
     group.position.z = THREE.MathUtils.lerp(1.5, 0, envelope);
+    // Nudge ring right so bottles don't overlap the left chapter-copy scrim
+    group.position.x = 0.6;
     group.scale.setScalar(0.6 + 0.4 * envelope);
 
     elapsedRef.current = clock.elapsedTime;
     envelopeRef.current = envelope;
-    // Cycle highlighted chip by time so tools light up in sequence while focused
-    highlightedRef.current = Math.floor((elapsedRef.current / 1.4)) % tools.length;
+    // Cycle highlighted bottle every ~1.4 s so tools light up in sequence while focused
+    highlightedRef.current = Math.floor(elapsedRef.current / 1.4) % tools.length;
 
-    // Slowly rotate the whole ring; freeze when reduced motion
+    // Slowly rotate the whole ring; frame-rate-independent
     if (!reduced) {
-      group.rotation.y += 0.0012;
+      group.rotation.y += dt * 0.072; // ≈ 0.0012 × 60 fps
     }
   });
 
   return (
     <group ref={groupRef} visible={false}>
+      {/* Lighting flatters the glass bottles: cream top fill, caramel rim, red back */}
       <pointLight position={[0, 3, 0]} intensity={2.2} color={CREAM} />
       <pointLight position={[0, -2, 0]} intensity={1.0} color="#A06A00" />
       <pointLight position={[0, 0, 3]} intensity={1.4} color={COKE_RED} />
 
-      {chipData.map((chip, i) => (
-        <CanLabelChip
-          key={chip.id}
+      {bottleData.map((bottle, i) => (
+        <ToolBottle
+          key={bottle.id}
           index={i}
-          position={chip.position}
-          angle={chip.angle}
-          label={chip.name}
+          position={bottle.position}
+          angle={bottle.angle}
+          label={bottle.name}
           reduced={reduced}
           activeRef={activeRef}
           elapsedRef={elapsedRef}

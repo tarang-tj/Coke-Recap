@@ -85,7 +85,7 @@ export function ActRole() {
     const mat = capMatRef.current;
     if (mat) {
       // Hover brightens emissive; lerp avoids a hard jump
-      const targetEmissive = hoveredRef.current ? 0.65 * envelope : 0.3 * envelope;
+      const targetEmissive = hoveredRef.current ? 0.5 * envelope : 0.3 * envelope;
       mat.emissiveIntensity += (targetEmissive - mat.emissiveIntensity) * 0.1;
     }
   });
@@ -109,8 +109,9 @@ export function ActRole() {
           document.body.style.cursor = '';
         }}
       >
-        {/* Cap body — cylinder rotated so its circular face points toward camera (+Z) */}
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
+        {/* Cap body — cylinder rotated so its circular face points toward camera (+Z).
+            frustumCulled off: the envelope moves it to z=1.5 on enter, outside local bounds. */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} frustumCulled={false}>
           <cylinderGeometry args={[CAP_RADIUS, CAP_RADIUS, CAP_HEIGHT, 48]} />
           <meshPhysicalMaterial
             ref={capMatRef}
