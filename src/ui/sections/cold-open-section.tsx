@@ -1,63 +1,60 @@
 import { hero } from '../../data/portfolio-content';
-import { Wordmark } from '../brand/wordmark';
 
-// Hero section — Cold Open act.
-// Wordmark is the dominant headline; name + role are secondary identity.
+// Cold Open — game title-screen overlay.
+// The 3-D logo is rendered inside the Canvas (act-cold-open.tsx), so this DOM
+// layer provides the text identity and the START / scroll prompt only.
 
 export function ColdOpenSection() {
   return (
     <section className="flex h-full w-full flex-col items-center justify-center px-6 text-center">
-      {/* Coca-Cola wordmark — largest element on screen */}
-      <Wordmark as="h1" className="text-7xl md:text-9xl leading-none" />
-
-      {/* Thin rule separates brand from person */}
-      <div className="mt-6 mb-5 w-16 border-t border-off-white/40" aria-hidden="true" />
-
-      {/* Context label */}
-      <p className="font-body text-[0.6rem] uppercase tracking-[0.5em] text-off-white/60 mb-2">
+      {/* Eyebrow — small caption above the name */}
+      <p className="font-body text-[0.55rem] uppercase tracking-[0.6em] text-off-white/50 mb-4">
         Internship Recap
       </p>
 
-      {/* Person name — secondary identity */}
-      <h2
-        className="font-display font-black text-3xl md:text-5xl text-off-white leading-tight tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]"
+      {/* Person name — primary identity on this screen */}
+      <h1
+        className="font-display font-black text-4xl md:text-6xl text-off-white leading-tight tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]"
         style={{ wordBreak: 'break-word' }}
       >
         {hero.name}
-      </h2>
+      </h1>
 
-      {/* Role */}
-      <p className="mt-2 font-body text-[0.65rem] uppercase tracking-[0.35em] text-off-white/70">
-        {hero.role}
+      {/* Role + org — one compact line */}
+      <p className="mt-3 font-body text-[0.6rem] uppercase tracking-[0.4em] text-off-white/60">
+        {hero.role} &middot; {hero.org}
       </p>
 
-      {/* Org */}
-      <p className="mt-3 font-display italic text-lg md:text-xl text-off-white/60">
-        {hero.org}
-      </p>
-
-      {/* Tagline */}
-      <p className="mt-3 font-body text-sm md:text-base italic text-off-white/50 max-w-sm md:max-w-md leading-relaxed">
-        {hero.tagline}
-      </p>
-
-      {/* Scroll cue */}
-      <div className="absolute bottom-10 flex flex-col items-center gap-3 text-off-white/40">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6 animate-bounce"
-          aria-hidden="true"
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-        <span className="font-body text-[0.6rem] uppercase tracking-[0.4em]">Scroll</span>
+      {/* Game-style START / scroll prompt */}
+      <div className="mt-10 flex flex-col items-center gap-2">
+        <StartPrompt />
       </div>
     </section>
+  );
+}
+
+// Pill CTA that pulses like a "Press Start" arcade prompt.
+// Uses a CSS keyframe animation defined inline so no Tailwind config change is needed.
+function StartPrompt() {
+  return (
+    <>
+      <style>{`
+        @keyframes coke-pulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,254,246,0.0); }
+          50%       { opacity: 0.55; box-shadow: 0 0 18px 4px rgba(255,254,246,0.18); }
+        }
+        .coke-start-pill {
+          animation: coke-pulse 1.8s ease-in-out infinite;
+        }
+      `}</style>
+
+      <button
+        className="coke-start-pill rounded-full border border-off-white/60 px-9 py-3 font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white drop-shadow-[0_0_10px_rgba(255,254,246,0.25)] cursor-default select-none"
+        aria-label="Scroll to enter"
+        tabIndex={-1}
+      >
+        Scroll to Enter&ensp;▾
+      </button>
+    </>
   );
 }
