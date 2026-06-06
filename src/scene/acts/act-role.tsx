@@ -60,7 +60,14 @@ export function ActRole() {
     const { active, localT } = getActWindow('role', globalT);
 
     g.visible = active;
-    if (!active) return;
+    if (!active) {
+      // Clear latched hover cursor if we scrolled away mid-hover.
+      if (hoveredRef.current) {
+        hoveredRef.current = false;
+        document.body.style.cursor = '';
+      }
+      return;
+    }
 
     const envelope = actEnvelope(localT);
 

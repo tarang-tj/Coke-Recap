@@ -55,7 +55,15 @@ function CanLabelChip({
   const baseZ = position[2];
 
   useFrame(() => {
-    if (!activeRef.current) return;
+    if (!activeRef.current) {
+      // Act scrolled away while hovered: R3F won't fire onPointerOut without
+      // mouse movement, so clear the latched hover + cursor here.
+      if (hoveredRef.current) {
+        hoveredRef.current = false;
+        document.body.style.cursor = '';
+      }
+      return;
+    }
     const group = groupRef.current;
     const mat = matRef.current;
     if (!group) return;
