@@ -1,40 +1,39 @@
-import { Environment } from '@react-three/drei';
-
-// Scene lighting — tuned for the red Coca-Cola world.
-// Bright cream/white key so white ribbon and bottle cap pop against red bg.
-// Cool rim for depth separation; modest ambient to avoid washing out red.
+// Scene-wide 3-light hero setup for the Coca-Cola world.
+//
+// Key:  warm cream directional from upper-left — anchors shading, casts shadows
+// Fill: hemisphere light (sky-red / ground-burgundy) — envelops without flatness
+// Rim:  Coca-Cola red point from behind-right-below — brand-consistent glow accent
+// Lift: subtle ambient so deep shadows don't go pitch-black
+//
+// The per-act supplemental lights live inside each act file; this is the baseline.
 
 export function SceneLighting() {
   return (
     <>
-      {/* Free IBL reflections — lifts all PBR/metalness materials */}
-      <Environment preset="night" />
-
-      {/* Modest ambient — enough to read shapes without flattening the red */}
-      <ambientLight intensity={0.25} color="#FFF8F0" />
-
-      {/* Bright cream/white key — above-left, makes white ribbon/cap pop */}
+      {/* Hero key — warm cream from upper-left */}
       <directionalLight
-        position={[-4, 5, 3]}
-        intensity={2.2}
-        color="#FFFAF2"
+        position={[-5, 8, 4]}
+        intensity={1.4}
+        color="#FFF6E0"
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
       />
 
-      {/* Cool cyan rim — below-right, separation against warm red bg */}
-      <directionalLight
-        position={[4, -3, -2]}
-        intensity={0.7}
-        color="#A8C8E8"
-      />
+      {/* Soft fill — hemisphere wraps the world in brand palette */}
+      <hemisphereLight args={['#FF8A8A', '#3A0006', 0.35]} />
 
-      {/* Soft warm fill — keeps specular surfaces readable */}
+      {/* Brand accent rim — Coca-Cola red from behind-right-below */}
       <pointLight
-        position={[0, 0, 0]}
-        intensity={0.6}
-        color="#FFE8C8"
-        distance={12}
+        position={[4, -2, -3]}
+        intensity={1.8}
+        color="#F40009"
+        distance={9}
         decay={2}
       />
+
+      {/* Subtle ambient lift — prevents pitch-black shadow areas */}
+      <ambientLight intensity={0.12} color="#FFEFE0" />
     </>
   );
 }

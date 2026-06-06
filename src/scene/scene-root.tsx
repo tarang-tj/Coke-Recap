@@ -1,6 +1,6 @@
 import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
+import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Environment, ContactShadows } from '@react-three/drei';
 import { CameraRig } from './camera-rig';
 import { SceneLighting } from './scene-lighting';
 import { SceneBackdrop } from './scene-backdrop';
@@ -34,6 +34,22 @@ export function SceneRoot({ children }: Props) {
       <AdaptiveEvents />
 
       <Suspense fallback={null}>
+        {/* HDR environment — warehouse preset for chrome/glass reflections.
+            background={false} so our custom SceneBackdrop wins visually. */}
+        <Environment preset="warehouse" background={false} />
+
+        {/* Ground shadow plane — soft contact shadows for the Role frame
+            (which has no built-in floor). Tools and Agent have their own
+            procedural ground planes (planks + tile) at higher y, so the
+            shadow here lives below the visible frame for all three acts. */}
+        <ContactShadows
+          position={[0, -1.45, 0]}
+          opacity={0.5}
+          blur={2.8}
+          far={4}
+          resolution={512}
+        />
+
         <CameraRig />
         <SceneBackdrop />
         <FloatingProps />
