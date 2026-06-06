@@ -42,11 +42,15 @@ const BOTTLE_X: number[] = [-1.05, -0.35, 0.35, 1.05];
 /** Y of bottle group's base when at rest. */
 const BOTTLE_Y_BASE = 0.0;
 
-/** Z of bottle group — inside the machine, behind the glass. */
-const BOTTLE_Z = 0.42;
+// The cabinet is a SOLID RoundedBox whose front face is at z = 0.70, so the
+// display case must sit IN FRONT of that face (otherwise the bottles are
+// occluded inside the box). Bottles + glass protrude slightly like a real
+// machine's display window.
+/** Z of bottle group — in front of the cabinet face. */
+const BOTTLE_Z = 0.92;
 
-/** Z of the glass front panel (machine front face is at z = 0.70). */
-const GLASS_Z = 0.68;
+/** Z of the glass front panel (in front of the bottles). */
+const GLASS_Z = 1.12;
 
 const LIFT_HOVER  = 0.12; // vertical lift (world units) on hover
 const SCALE_HOVER = 1.08; // uniform scale on hover
@@ -228,7 +232,7 @@ export function VendingMachine({
   hoveredId,
   position,
   rotation,
-}: VendingMachineProps): JSX.Element {
+}: VendingMachineProps) {
   const reduced    = useReducedMotion();
   const machineRef = useRef<THREE.Group>(null);
   const clock      = useRef(0);
@@ -339,7 +343,7 @@ export function VendingMachine({
           args={[2.75, 1.62, 0.05]}
           radius={0.03}
           smoothness={3}
-          position={[0, 0.3, 0.28]}
+          position={[0, 0.3, 0.74]}
         >
           <meshStandardMaterial color="#220006" roughness={0.85} />
         </RoundedBox>
@@ -349,7 +353,7 @@ export function VendingMachine({
           args={[2.75, 0.06, 0.36]}
           radius={0.02}
           smoothness={2}
-          position={[0, -0.06, 0.44]}
+          position={[0, -0.06, 0.92]}
         >
           <meshStandardMaterial color="#1A0004" roughness={0.7} metalness={0.25} />
         </RoundedBox>

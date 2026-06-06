@@ -26,7 +26,16 @@ export function SceneLoader() {
       }
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // Failsafe: rAF is paused on backgrounded tabs, so guarantee the loader
+    // always clears after a fixed delay regardless of animation-frame timing.
+    const failsafe = setTimeout(() => {
+      setProgress(1);
+      setHidden(true);
+    }, 2600);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(failsafe);
+    };
   }, []);
 
   return (
