@@ -13,7 +13,15 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--coke-black);
+  /* Rich Coca-Cola red radial gradient — shows through the transparent canvas */
+  background: radial-gradient(
+    circle at 50% 35%,
+    #F40009 0%,
+    #B00712 35%,
+    #5A0A0E 70%,
+    #2A0406 100%
+  );
+  background-attachment: fixed;
   color: var(--cream);
   overscroll-behavior: none;
 }

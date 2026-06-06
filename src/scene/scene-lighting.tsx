@@ -1,10 +1,8 @@
 import { Environment } from '@react-three/drei';
 
-// Scene lighting — provides free PBR reflections via Environment preset
-// plus hand-placed lights for dramatic Coke-branded mood.
-//
-// Warm caramel key from above-left, cool blue-tinted rim from below-right,
-// soft warm fill at origin. Ambient is very low to keep the dark bg dark.
+// Scene lighting — tuned for the red Coca-Cola world.
+// Bright cream/white key so white ribbon and bottle cap pop against red bg.
+// Cool rim for depth separation; modest ambient to avoid washing out red.
 
 export function SceneLighting() {
   return (
@@ -12,27 +10,27 @@ export function SceneLighting() {
       {/* Free IBL reflections — lifts all PBR/transmission materials */}
       <Environment preset="night" />
 
-      {/* Very low ambient so the dark background stays dark */}
-      <ambientLight intensity={0.15} color="#F1E9DA" />
+      {/* Modest ambient — enough to read shapes without flattening the red */}
+      <ambientLight intensity={0.25} color="#FFF8F0" />
 
-      {/* Warm caramel key light — above-left, Coke-amber tint */}
+      {/* Bright cream/white key — above-left, makes white ribbon/cap pop */}
       <directionalLight
         position={[-4, 5, 3]}
-        intensity={1.2}
-        color="#C97B30"
+        intensity={2.2}
+        color="#FFFAF2"
       />
 
-      {/* Cool blue-tinted rim — below-right for separation */}
+      {/* Cool cyan rim — below-right, separation against warm red bg */}
       <directionalLight
         position={[4, -3, -2]}
-        intensity={0.6}
-        color="#1A2A4A"
+        intensity={0.7}
+        color="#A8C8E8"
       />
 
-      {/* Warm white center fill — keeps transmission glass readable */}
+      {/* Soft warm fill — keeps glass/transmission readable */}
       <pointLight
         position={[0, 0, 0]}
-        intensity={0.8}
+        intensity={0.6}
         color="#FFE8C8"
         distance={12}
         decay={2}

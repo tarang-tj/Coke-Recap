@@ -4,14 +4,15 @@ import * as THREE from 'three';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 
 // Bubble particle field — additive blending so bubbles bloom with postprocessing.
-// Counts halved from original (400/240/140 → 80/60/40).
+// Counts slightly bumped (80/60/40 → 100/70/50) — still cheap on the red bg.
+// Fragment color is bright white/cream so carbonation reads clearly against red.
 
 function detectCount(): number {
-  if (typeof navigator === 'undefined') return 60;
+  if (typeof navigator === 'undefined') return 70;
   const hw = navigator.hardwareConcurrency ?? 4;
-  if (hw <= 4) return 40;
-  if (hw <= 8) return 60;
-  return 80;
+  if (hw <= 4) return 50;
+  if (hw <= 8) return 70;
+  return 100;
 }
 
 const BUBBLE_VERTEX = /* glsl */ `
@@ -36,7 +37,7 @@ const BUBBLE_VERTEX = /* glsl */ `
     gl_PointSize = aSize * (250.0 / -mvPos.z);
 
     float yFade = smoothstep(-6.0, -4.0, y) * (1.0 - smoothstep(4.0, 6.0, y));
-    vAlpha = yFade * 0.55;
+    vAlpha = yFade * 0.65;
   }
 `;
 
@@ -48,11 +49,11 @@ const BUBBLE_FRAGMENT = /* glsl */ `
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
     if (d > 0.5) discard;
-    float rim = smoothstep(0.5, 0.35, d);
-    float core = smoothstep(0.5, 0.0, d) * 0.6;
-    float a = (rim * 0.7 + core) * vAlpha;
-    // Slightly warm white so bloom tints them amber-red in composite.
-    gl_FragColor = vec4(1.0, 0.88, 0.72, a);
+    float rim = smoothstep(0.5, 0.3, d);
+    float core = smoothstep(0.5, 0.0, d) * 0.7;
+    float a = (rim * 0.8 + core) * vAlpha;
+    // Bright white/cream so carbonation reads clearly against red background.
+    gl_FragColor = vec4(1.0, 0.97, 0.92, a);
   }
 `;
 

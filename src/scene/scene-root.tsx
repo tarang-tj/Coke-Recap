@@ -6,9 +6,10 @@ import { SceneLighting } from './scene-lighting';
 import { PostprocessingStack } from './postprocessing-stack';
 
 // Persistent <Canvas> — mounted once, never unmounted.
-// DPR capped at 1.75 (down from 2) to cut fill-rate on retina screens.
+// DPR capped at 1.5 to cut fill-rate on retina screens.
 // AdaptiveDpr drops DPR further if FPS sags.
 // PerformanceMonitor signals PostprocessingStack to disable Bloom on low-end GPUs.
+// alpha:true lets the CSS radial-gradient background show through the canvas.
 
 type Props = {
   children?: React.ReactNode;
@@ -20,11 +21,9 @@ export function SceneRoot({ children }: Props) {
   return (
     <Canvas
       camera={{ position: [0, 0.3, 6], fov: 55, near: 0.05, far: 80 }}
-      dpr={[1, 1.75]}
-      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
+      dpr={[1, 1.5]}
+      gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
     >
-      <color attach="background" args={['#0A0203']} />
-
       <PerformanceMonitor
         onChange={({ factor }) => setPerfFactor(factor)}
       />
