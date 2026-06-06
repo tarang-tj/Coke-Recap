@@ -38,7 +38,7 @@ export interface Logo3DProps {
    * opacity / emissiveIntensity imperatively (matches the pattern used in other acts).
    * If omitted, an internal ref is used.
    */
-  materialRef?: RefObject<THREE.MeshPhysicalMaterial | null>;
+  materialRef?: RefObject<THREE.MeshBasicMaterial | null>;
 }
 
 export function Logo3D({
@@ -49,7 +49,7 @@ export function Logo3D({
   materialRef,
 }: Logo3DProps) {
   // Fallback ref when caller does not supply one
-  const internalMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
+  const internalMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const matRef = materialRef ?? internalMatRef;
 
   // SVGLoader suspends; the ancestor <Suspense fallback={null}> in scene-root.tsx handles it
@@ -105,17 +105,13 @@ export function Logo3D({
   return (
     <group scale={finalScale} position={position} rotation={rotation}>
       <mesh geometry={geometry} frustumCulled={false}>
-        <meshPhysicalMaterial
+        <meshBasicMaterial
           ref={matRef}
           color={colorObj}
-          emissive={colorObj}
-          emissiveIntensity={0.12}
-          metalness={0.35}
-          roughness={0.18}
-          clearcoat={1}
-          clearcoatRoughness={0.15}
           transparent
           opacity={1}
+          side={THREE.DoubleSide}
+          toneMapped={false}
         />
       </mesh>
     </group>

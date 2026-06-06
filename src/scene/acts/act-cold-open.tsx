@@ -3,8 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ContactShadows } from '@react-three/drei';
 import { useScrollRef } from '../scroll-context';
-import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
-import { DynamicRibbon } from '../brand/dynamic-ribbon';
+import { getActWindow, smoothstep } from '../../hooks/use-act-window';
 import { Logo3D } from '../brand/logo-3d';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
@@ -16,9 +15,8 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 export function ActColdOpen() {
   const groupRef = useRef<THREE.Group>(null);
   const logoGroupRef = useRef<THREE.Group>(null);
-  const ribbonGroupRef = useRef<THREE.Group>(null);
-  // Shared material ref so we can drive opacity + emissive from the act envelope
-  const matRef = useRef<THREE.MeshPhysicalMaterial>(null);
+  // Shared material ref so we can drive opacity from the act envelope
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
   const scrollRef = useScrollRef();
   const reduced = useReducedMotion();
 
@@ -35,14 +33,16 @@ export function ActColdOpen() {
     }
     group.visible = true;
 
-    const envelope = actEnvelope(localT);
+    // Intro envelope: fully visible at the very top (localT=0) since this is the
+    // first act, then fades out as the cold-open exits (no fade-in from black).
+    const envelope = 1 - smoothstep((localT - 0.6) / 0.4);
     const elapsed = clock.elapsedTime;
 
     // Fade logo in/out with the act envelope
     const mat = matRef.current;
     if (mat) {
+      // Unlit white logo; fade opacity with the act envelope.
       mat.opacity = envelope;
-      mat.emissiveIntensity = 0.15 * envelope;
     }
 
     // Gentle idle float + Y-rotation — gives the title-screen a living feel
@@ -51,16 +51,6 @@ export function ActColdOpen() {
       logoGroup.rotation.y = Math.sin(elapsed * 0.4) * 0.08;
       logoGroup.position.y = Math.sin(elapsed * 0.6) * 0.06;
     }
-
-    // Atmospheric ribbon fades with envelope at reduced opacity
-    ribbonGroupRef.current?.traverse((obj) => {
-      if (!(obj instanceof THREE.Mesh)) return;
-      const ribbonMat = obj.material;
-      if (ribbonMat instanceof THREE.MeshStandardMaterial) {
-        ribbonMat.opacity = envelope * 0.4;
-        ribbonMat.emissiveIntensity = 0.25 * envelope;
-      }
-    });
   });
 
   return (
@@ -88,17 +78,6 @@ export function ActColdOpen() {
         far={4}
         frames={1}
       />
-
-      {/* One atmospheric ribbon behind the logo for brand warmth */}
-      <group ref={ribbonGroupRef}>
-        <DynamicRibbon
-          scale={1.0}
-          opacity={0.4}
-          speed={0.55}
-          position={[0, -0.3, -0.7]}
-          rotation={[0.1, 0, Math.PI * 0.04]}
-        />
-      </group>
     </group>
   );
 }

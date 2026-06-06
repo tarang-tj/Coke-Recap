@@ -6,27 +6,26 @@ import { hero } from '../../data/portfolio-content';
 
 export function ColdOpenSection() {
   return (
-    <section className="flex h-full w-full flex-col items-center justify-center px-6 text-center">
-      {/* Eyebrow — small caption above the name */}
-      <p className="font-body text-[0.55rem] uppercase tracking-[0.6em] text-off-white/50 mb-4">
-        Internship Recap
-      </p>
+    <section className="flex h-full w-full flex-col items-center justify-between px-6 py-[12vh] text-center">
+      {/* Top block — eyebrow + name. The 3-D Coca-Cola logo (in-canvas) is the
+          hero in the vertical center, so DOM identity sits above it. */}
+      <div className="flex flex-col items-center">
+        <p className="font-body text-[0.55rem] uppercase tracking-[0.6em] text-off-white/55 mb-3">
+          Internship Recap
+        </p>
+        <h1
+          className="font-display font-bold text-3xl md:text-5xl text-off-white leading-tight tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.7)]"
+          style={{ wordBreak: 'break-word' }}
+        >
+          {hero.name}
+        </h1>
+      </div>
 
-      {/* Person name — primary identity on this screen */}
-      <h1
-        className="font-display font-black text-4xl md:text-6xl text-off-white leading-tight tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]"
-        style={{ wordBreak: 'break-word' }}
-      >
-        {hero.name}
-      </h1>
-
-      {/* Role + org — one compact line */}
-      <p className="mt-3 font-body text-[0.6rem] uppercase tracking-[0.4em] text-off-white/60">
-        {hero.role} &middot; {hero.org}
-      </p>
-
-      {/* Game-style START / scroll prompt */}
-      <div className="mt-10 flex flex-col items-center gap-2">
+      {/* Bottom block — role/org + game-style START prompt */}
+      <div className="flex flex-col items-center gap-6">
+        <p className="font-body text-[0.6rem] uppercase tracking-[0.4em] text-off-white/65">
+          {hero.role} &middot; {hero.org}
+        </p>
         <StartPrompt />
       </div>
     </section>

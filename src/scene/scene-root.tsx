@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import { CameraRig } from './camera-rig';
 import { SceneLighting } from './scene-lighting';
+import { SceneBackdrop } from './scene-backdrop';
 import { PostprocessingStack } from './postprocessing-stack';
 
 // Persistent <Canvas> — mounted once, never unmounted.
@@ -33,6 +34,7 @@ export function SceneRoot({ children }: Props) {
 
       <Suspense fallback={null}>
         <CameraRig />
+        <SceneBackdrop />
         <SceneLighting />
         {children}
         <PostprocessingStack performanceFactor={perfFactor} />
