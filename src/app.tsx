@@ -18,6 +18,7 @@ import { ScrollDebug } from './ui/scroll-debug';
 import { SceneLoader } from './ui/scene-loader';
 import { SkipIntroButton } from './ui/skip-intro-button';
 import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
+import { Hud } from './ui/hud';
 
 // Root app shell. Layout:
 //   - <Canvas> fixed full-viewport behind everything (z-0)
@@ -68,6 +69,7 @@ export function App() {
           </SectionOverlay>
         </main>
 
+        <Hud />
         <ReducedMotionToggle />
         <SkipIntroButton />
         <SceneLoader />
