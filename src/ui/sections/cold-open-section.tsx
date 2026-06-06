@@ -21,39 +21,13 @@ export function ColdOpenSection() {
         </h1>
       </div>
 
-      {/* Bottom block — role/org + game-style START prompt */}
-      <div className="flex flex-col items-center gap-6">
+      {/* Bottom block — role/org. The entry CTA lives in the StartGate; once
+          inside, the HUD progress bar conveys scrollability. */}
+      <div className="flex flex-col items-center">
         <p className="font-body text-[0.6rem] uppercase tracking-[0.4em] text-off-white/65">
           {hero.role} &middot; {hero.org}
         </p>
-        <StartPrompt />
       </div>
     </section>
-  );
-}
-
-// Pill CTA that pulses like a "Press Start" arcade prompt.
-// Uses a CSS keyframe animation defined inline so no Tailwind config change is needed.
-function StartPrompt() {
-  return (
-    <>
-      <style>{`
-        @keyframes coke-pulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,254,246,0.0); }
-          50%       { opacity: 0.55; box-shadow: 0 0 18px 4px rgba(255,254,246,0.18); }
-        }
-        .coke-start-pill {
-          animation: coke-pulse 1.8s ease-in-out infinite;
-        }
-      `}</style>
-
-      <button
-        className="coke-start-pill rounded-full border border-off-white/60 px-9 py-3 font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white drop-shadow-[0_0_10px_rgba(255,254,246,0.25)] cursor-default select-none"
-        aria-label="Scroll to enter"
-        tabIndex={-1}
-      >
-        Scroll to Enter&ensp;▾
-      </button>
-    </>
   );
 }

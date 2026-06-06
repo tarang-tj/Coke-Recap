@@ -39,7 +39,7 @@ const LOOK_KEYS: [number, number, number][] = [
 ];
 
 // Intro pose: dramatic pull-back so the first dive-in is cinematic.
-const INTRO_POS = new THREE.Vector3(0, 1.2, 11);
+const INTRO_POS = new THREE.Vector3(0, 0.8, 9.5);
 const INTRO_LOOK = new THREE.Vector3(0, 0, 0);
 
 function makeCurve(points: [number, number, number][]) {

@@ -78,7 +78,7 @@ export function FloatingProps() {
   const iceRef = useRef<THREE.InstancedMesh>(null);
 
   const capData = useMemo(() => buildInstances(CAP_COUNT, 0xc0ca_c01a), [CAP_COUNT]);
-  const iceData = useMemo(() => buildInstances(ICE_COUNT, 0x1ce_c0ld), [ICE_COUNT]);
+  const iceData = useMemo(() => buildInstances(ICE_COUNT, 0x1ce_c01d), [ICE_COUNT]);
 
   // Static colors / materials (created once)
   const capColor = useMemo(() => new THREE.Color('#F40009'), []);

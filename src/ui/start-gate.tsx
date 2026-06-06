@@ -81,11 +81,11 @@ export function StartGate() {
       `}</style>
 
       <div
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+        className="fixed inset-0 z-50 flex flex-col items-center justify-end pb-[20vh]"
         style={{
-          // Radial scrim: dark at edges, partially transparent at center —
-          // keeps the 3-D logo visible while giving the gate a legible stage.
-          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.75) 100%)',
+          // Light radial scrim: bright red world + glowing logo show through;
+          // edges darkened just enough for the gate text to stay legible.
+          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.45) 100%)',
           opacity: started ? 0 : 1,
           pointerEvents: started ? 'none' : 'auto',
           transition: reduced ? 'none' : 'opacity 0.5s ease',
@@ -95,12 +95,7 @@ export function StartGate() {
         aria-modal="true"
         aria-label="Experience start gate"
       >
-        {/* Eyebrow */}
-        <p className="font-body text-[0.5rem] uppercase tracking-[0.7em] text-off-white/50 mb-10 select-none">
-          An Interactive Recap
-        </p>
-
-        {/* PRESS START — arcade-pill CTA */}
+        {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo) */}
         <button
           onClick={start}
           className={[
