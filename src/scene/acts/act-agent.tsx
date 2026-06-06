@@ -8,41 +8,41 @@ import { useScrollRef } from '../scroll-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { getActWindow, actEnvelope } from '../../hooks/use-act-window';
 import { agent } from '../../data/portfolio-content';
+import { DynamicRibbon } from '../brand/dynamic-ribbon';
 
 // Act 3 — Agent (centerpiece)
-// Nebula icosahedron core + 5 orbital rings + 30 spiraling data dots.
-// Gaussian brightness peak at localT=0.5 makes the whole act "ignite".
+// Trimmed: 3 orbital rings, 16 data dots, detail-2 icosahedron core.
+// Two brand ribbons weave through for Coca-Cola flavor.
 
 const CREAM = '#F1E9DA';
 const CARAMEL = '#A06A00';
+const COKE_RED = '#E8000B';
 
 // Gaussian peak centred at localT=0.5
 function gaussianPeak(localT: number): number {
   return Math.exp(-Math.pow((localT - 0.5) * 4, 2));
 }
 
-// ─── 5 orbital ring configs ───────────────────────────────────────────────────
+// ─── 3 orbital ring configs (trimmed from 5) ──────────────────────────────────
 const RING_CONFIGS = [
-  { torusR: 1.20, rotation: new THREE.Euler(Math.PI * 0.25,  0,              Math.PI * 0.10), color: CREAM,   dir:  1, labelIndex: 0 },
-  { torusR: 1.45, rotation: new THREE.Euler(Math.PI * 0.50,  Math.PI * 0.35, 0             ), color: CARAMEL, dir: -1, labelIndex: -1 },
-  { torusR: 1.70, rotation: new THREE.Euler(Math.PI * 0.15,  Math.PI * 0.70, Math.PI * 0.40), color: CREAM,   dir:  1, labelIndex: 2 },
-  { torusR: 1.95, rotation: new THREE.Euler(Math.PI * 0.60,  Math.PI * 0.15, Math.PI * 0.55), color: CARAMEL, dir: -1, labelIndex: -1 },
-  { torusR: 2.20, rotation: new THREE.Euler(Math.PI * 0.35,  Math.PI * 0.80, Math.PI * 0.20), color: CREAM,   dir:  1, labelIndex: 4 },
+  { torusR: 1.20, rotation: new THREE.Euler(Math.PI * 0.25, 0,              Math.PI * 0.10), color: CREAM,   dir:  1, pillarIdx: 0 },
+  { torusR: 1.55, rotation: new THREE.Euler(Math.PI * 0.50, Math.PI * 0.35, 0             ), color: CARAMEL, dir: -1, pillarIdx: 1 },
+  { torusR: 1.90, rotation: new THREE.Euler(Math.PI * 0.20, Math.PI * 0.70, Math.PI * 0.40), color: CREAM,  dir:  1, pillarIdx: 2 },
 ] as const;
 
 const RING_TUBE = 0.012;
 const RING_SEGS = 80;
 const RING_TSEG = 8;
 
-// Label data from pillars (indices 0, 2, 4 → rings 0, 2, 4)
-const PILLAR_LABELS = agent.pillars.map((p) => p.name); // ['Ingest','Analyze','Surface']
+// Pillar labels: ['Ingest', 'Analyze', 'Surface']
+const PILLAR_LABELS = agent.pillars.map((p) => p.name);
 
 interface OrbitalRingProps {
   torusR: number;
   rotation: THREE.Euler;
   color: string;
   dir: number;
-  labelText: string | null;
+  labelText: string;
   matRef: RefObject<THREE.MeshStandardMaterial | null>;
   reduced: boolean;
   elapsedRef: { readonly current: number };
@@ -100,34 +100,29 @@ function OrbitalRing({
         </mesh>
       </group>
 
-      {labelText && (
-        <Billboard position={labelPos} follow>
-          <Text
-            color={CREAM}
-            fontSize={0.13}
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.01}
-            outlineColor="#0A0203"
-          >
-            {labelText}
-          </Text>
-        </Billboard>
-      )}
+      <Billboard position={labelPos} follow>
+        <Text
+          color={CREAM}
+          fontSize={0.13}
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.01}
+          outlineColor="#0A0203"
+        >
+          {labelText}
+        </Text>
+      </Billboard>
     </>
   );
 }
 
-// ─── 30 spiraling data dots ───────────────────────────────────────────────────
-// Logarithmic spiral: start far out, animate inward, recycle.
+// ─── 16 spiraling data dots (trimmed from 30) ─────────────────────────────────
+const DOT_COUNT = 16;
 
-const DOT_COUNT = 30;
-
-// Static spiral seed positions (angle + initial radius offset per dot)
 const DOT_SEEDS = Array.from({ length: DOT_COUNT }, (_, i) => ({
-  angleOffset: (i / DOT_COUNT) * Math.PI * 6,   // spread across 3 full turns
-  radiusBase: 1.8 + (i % 5) * 0.18,             // 1.8 → 2.52
-  speed: 0.12 + (i % 4) * 0.06,                  // inward drift speed
+  angleOffset: (i / DOT_COUNT) * Math.PI * 6,
+  radiusBase: 1.8 + (i % 5) * 0.18,
+  speed: 0.12 + (i % 4) * 0.06,
   phase: (i / DOT_COUNT) * Math.PI * 2,
 }));
 
@@ -241,12 +236,13 @@ export function ActAgent() {
 
   return (
     <group ref={groupRef} visible={false}>
+      {/* Cream ambient fill + red energy core for Coca-Cola glow */}
       <pointLight color={CREAM} intensity={1.8} distance={6} />
-      <pointLight position={[0, 2, 0]} color="#F40009" intensity={1.2} distance={4} />
+      <pointLight color={COKE_RED} intensity={2.2} distance={3.5} />
 
-      {/* Nebula core — icosahedron detail=3 with upgraded shader */}
+      {/* Nebula core — icosahedron detail lowered to 2 for performance */}
       <mesh>
-        <icosahedronGeometry args={[0.7, 3]} />
+        <icosahedronGeometry args={[0.7, 2]} />
         <shaderMaterial
           ref={nebulaMat}
           vertexShader={nebulaVert}
@@ -259,7 +255,7 @@ export function ActAgent() {
         />
       </mesh>
 
-      {/* 5 orbital rings — counter-rotating pairs */}
+      {/* 3 orbital rings — one per pillar, counter-rotating pairs */}
       {RING_CONFIGS.map((cfg, i) => (
         <OrbitalRing
           key={i}
@@ -267,7 +263,7 @@ export function ActAgent() {
           rotation={cfg.rotation}
           color={cfg.color}
           dir={cfg.dir}
-          labelText={cfg.labelIndex >= 0 ? PILLAR_LABELS[Math.floor(cfg.labelIndex / 2)] ?? null : null}
+          labelText={PILLAR_LABELS[cfg.pillarIdx] ?? ''}
           matRef={ringMatRefs[i]}
           reduced={reduced}
           elapsedRef={elapsedRef}
@@ -276,7 +272,7 @@ export function ActAgent() {
         />
       ))}
 
-      {/* 30 data dots spiraling inward */}
+      {/* 16 data dots spiraling inward (trimmed from 30) */}
       {DOT_SEEDS.map((seed, i) => (
         <DataDot
           key={i}
@@ -286,6 +282,26 @@ export function ActAgent() {
           envelopeRef={envelopeRef}
         />
       ))}
+
+      {/* Brand ribbons — Coca-Cola swoosh weaves through the centerpiece.
+          Scaled down so the full ribbon arc fits within the ring orbits.
+          Both instances inherit the parent group's y-rotation for free orbiting. */}
+      <DynamicRibbon
+        scale={0.46}
+        color={COKE_RED}
+        speed={0.65}
+        opacity={0.72}
+        position={[0, 0.18, 0]}
+        rotation={[Math.PI * 0.12, Math.PI * 0.28, 0]}
+      />
+      <DynamicRibbon
+        scale={0.38}
+        color={CREAM}
+        speed={0.45}
+        opacity={0.50}
+        position={[0, -0.14, 0]}
+        rotation={[Math.PI * 0.58, Math.PI * 0.72, Math.PI * 0.22]}
+      />
     </group>
   );
 }
