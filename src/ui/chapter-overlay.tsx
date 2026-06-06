@@ -74,7 +74,7 @@ export function ChapterOverlay() {
             <button
               key={id}
               onClick={() => setView(id)}
-              aria-current={active}
+              aria-current={active ? 'true' : undefined}
               className={[
                 'rounded-full border px-3 py-2 md:px-4 font-body text-[0.55rem] md:text-[0.6rem]',
                 'uppercase tracking-[0.25em] transition-colors duration-200 backdrop-blur',
