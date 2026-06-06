@@ -13,6 +13,7 @@ export default {
         'off-white': '#FFFEF6',
       },
       fontFamily: {
+        brand: ['Pacifico', 'cursive'],
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
       },
