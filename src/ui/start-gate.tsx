@@ -108,12 +108,12 @@ export function StartGate() {
           ].join(' ')}
           aria-label="Press Start to enter the experience"
         >
-          Enter&ensp;the&ensp;Pharmacy
+          Press&ensp;Start
         </button>
 
         {/* Hint line */}
         <p className="mt-10 font-body text-[0.48rem] uppercase tracking-[0.5em] text-off-white/30 select-none">
-          click the door&ensp;•&ensp;or press enter
+          click&ensp;•&ensp;or press enter&ensp;•&ensp;or scroll
         </p>
 
         {/* Historical tidbit — rewards attention, fades with the gate */}

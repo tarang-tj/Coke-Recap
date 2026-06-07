@@ -35,9 +35,10 @@ useGLTF.preload(MACHINE_URL);
 
 /**
  * Target normalized height for the vending machine, in world units.
- * Matches the procedural machine's ~5.6-unit tall bounding box.
+ * 3.6 keeps the machine sized like a real ~1.8m vending machine relative
+ * to the storefront buildings (user feedback: prior 5.6 was too big).
  */
-const TARGET_HEIGHT = 5.6;
+const TARGET_HEIGHT = 3.6;
 
 // ── Bottle-slot hitbox constants (all in the machine's LOCAL normalized frame) ──
 // With the machine normalized to 5.6 units tall (base at y=0, top at y=5.6),
