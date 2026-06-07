@@ -392,6 +392,104 @@ def build_street_and_sidewalk(materials):
 # Main
 # ----------------------------------------------------------------------------
 
+def subdivide_mesh(obj, cuts=2):
+    """Subdivide a mesh so vertex-color AO has enough resolution to show."""
+    if obj.type != "MESH":
+        return
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.subdivide(number_cuts=cuts)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def bake_ao_to_vertex_colors():
+    """
+    Cycles-bake ambient occlusion into per-vertex colors on every mesh.
+
+    Workflow (Bruno-style baked-shading minus UV unwrapping):
+      1. Subdivide each mesh so vertex colors have enough resolution.
+      2. Add a 'Col' vertex color attribute to each mesh.
+      3. Add an Attribute node to each material that reads 'Col' and multiplies
+         it into the Principled BSDF Base Color.
+      4. Configure Cycles to bake AO targeting the active color attribute.
+      5. Bake.
+
+    The exported GLB will carry baked AO in vertex colors which Three.js
+    multiplies into the base color at render time — giving 'pre-lit' surfaces
+    that look dimensional even under simple runtime lighting.
+    """
+    print("\n[atlanta-block] subdividing meshes for vertex-color resolution…")
+    mesh_objects = [o for o in bpy.context.scene.objects if o.type == "MESH"]
+    for obj in mesh_objects:
+        subdivide_mesh(obj, cuts=2)
+
+    print("[atlanta-block] adding vertex color attribute + Attribute node to materials…")
+    for obj in mesh_objects:
+        mesh = obj.data
+        # Ensure a vertex color attribute named "Col" exists (CORNER domain so
+        # each vertex of each face gets its own color — lets AO darken the
+        # face corners while the centers stay light).
+        if "Col" not in mesh.color_attributes:
+            mesh.color_attributes.new(name="Col", type="BYTE_COLOR", domain="CORNER")
+
+        # Wire each material so the vertex color attribute modulates Base Color
+        for slot in obj.material_slots:
+            mat = slot.material
+            if mat is None or not mat.use_nodes:
+                continue
+            nodes = mat.node_tree.nodes
+            links = mat.node_tree.links
+            bsdf = nodes.get("Principled BSDF")
+            if bsdf is None:
+                continue
+            # Capture the original base color before we rewire
+            orig = bsdf.inputs["Base Color"].default_value
+            # Add an Attribute node reading "Col"
+            attr = nodes.new(type="ShaderNodeAttribute")
+            attr.attribute_name = "Col"
+            attr.location = (-400, 100)
+            # Add an RGB constant node holding the original color
+            base = nodes.new(type="ShaderNodeRGB")
+            base.outputs[0].default_value = orig
+            base.location = (-400, -100)
+            # Mix them via Multiply — vertex color (AO) multiplies base color
+            mix = nodes.new(type="ShaderNodeMixRGB")
+            mix.blend_type = "MULTIPLY"
+            mix.inputs["Fac"].default_value = 1.0
+            mix.location = (-150, 0)
+            links.new(base.outputs[0], mix.inputs["Color1"])
+            links.new(attr.outputs["Color"], mix.inputs["Color2"])
+            links.new(mix.outputs["Color"], bsdf.inputs["Base Color"])
+
+    print("[atlanta-block] configuring Cycles AO bake…")
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 16  # AO is cheap; 16 is plenty for vertex bake
+    scene.cycles.use_denoising = True
+    scene.render.bake.target = "VERTEX_COLORS"
+
+    # Add a sun light so the bake has dramatic directional shadows
+    bpy.ops.object.light_add(type="SUN", location=(10, -10, 15))
+    sun = bpy.context.active_object
+    sun.data.energy = 5.0
+    sun.data.color = (1.0, 0.92, 0.72)  # warm golden-hour amber
+    sun.rotation_euler = (math.radians(35), math.radians(-25), math.radians(40))
+
+    print("[atlanta-block] baking AO to vertex colors per object…")
+    for obj in mesh_objects:
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        try:
+            bpy.ops.object.bake(type="AO")
+            print(f"  ✓ baked AO on {obj.name}")
+        except Exception as e:
+            print(f"  ✗ skipped {obj.name}: {e}")
+
+    print("[atlanta-block] AO bake complete\n")
+
+
 def main():
     clear_scene()
 
@@ -425,6 +523,12 @@ def main():
     # Gas lamps on the sidewalk in front of the buildings (Y=-5 sidewalk)
     build_gas_lamp(-3.5, -5.2, materials)
     build_gas_lamp(3.5, -5.2, materials)
+
+    # NOTE: bake_ao_to_vertex_colors() is defined above but disabled — the
+    # per-object bake loop runs ~150 bakes on this scene and OOMs the OS.
+    # Use runtime SSAO postprocessing instead until we collapse all geometry
+    # into a single joined mesh + smart-UV-project + single bake. Future work.
+    # bake_ao_to_vertex_colors()
 
     # Ensure output dir exists
     out_dir = os.path.dirname(OUTPUT_PATH)
