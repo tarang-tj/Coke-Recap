@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
+import { useNavigation } from '../navigation-context';
 
 // Atmospheric floating brand props — bottle caps + ice cubes drifting at varied
 // depths for parallax. Kept subtle so they don't compete with act centerpieces.
@@ -71,6 +72,7 @@ const _axis = new THREE.Vector3(0.3, 1, 0.1).normalize();
 // ─── component ────────────────────────────────────────────────────────────────
 
 export function FloatingProps() {
+  const { view } = useNavigation();
   const reduced = useReducedMotion();
   const { caps: CAP_COUNT } = useMemo(detectCounts, []);
 
@@ -130,6 +132,10 @@ export function FloatingProps() {
 
     animate(capsRef.current, capData);
   });
+
+  // Gate: red bottle caps + sparkles belong only in abstract chapter views.
+  // Exterior (1886 street) and machine (convenience store) should be clean.
+  if (view === 'exterior' || view === 'machine') return null;
 
   return (
     <group>

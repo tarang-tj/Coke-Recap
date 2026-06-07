@@ -13,10 +13,13 @@ export function JacobsPharmacyExterior() {
 
   return (
     <group name="jacobs-pharmacy-exterior" visible={view === 'exterior' || entering}>
-      {/* Primary corner building — the pharmacy itself, fronting the camera */}
+      {/* Primary corner building — the pharmacy itself, fronting the camera.
+          Rotation flipped 180° (exploratory): GLB may face +X natively;
+          Math.PI rotates it to face -Z (toward camera). Revert to [0,0,0]
+          if the building presents its back face at runtime. */}
       <BrickShopBuilding
         position={[0, -3.0, -4.0]}
-        rotation={[0, 0, 0]}
+        rotation={[0, Math.PI, 0]}
         scale={1.0}
       />
 
