@@ -21,10 +21,11 @@ const POSES: Record<Exclude<ViewId, 'exterior'>, Pose> = {
   takeaways: { pos: [0, 0.2, 5.5], look: [0, -0.1, 0] }, // hero contour bottle
 };
 
-// Street-level pose looking at the pharmacy storefront.
+// Street-level pose looking at the brick-shop GLB corner block.
+// Pulled back to z=7.5 and lowered to y=0.5 so the building isn't cut off.
 const EXTERIOR_POSE: Pose = {
-  pos:  [0, 1.8, 5.0],
-  look: [0, 1.8, -5.0],
+  pos:  [0, 0.5, 7.5],
+  look: [0, 1.5, -4.0],
 };
 
 const ENTRY_DURATION = 1.6; // seconds — exterior → machine transition
