@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { VendingMachine, type MachineItem } from './brand/vending-machine';
 import { useNavigation } from './navigation-context';
 import { useSceneMixes } from './scene-transition-context';
+import { JacobsPharmacy } from './jacobs-pharmacy';
 
 const ITEMS: MachineItem[] = [
   { id: 'role', label: 'THE ROLE' },
@@ -42,6 +43,7 @@ export function MachineHub() {
 
   return (
     <group ref={groupRef} visible={false}>
+      <JacobsPharmacy />
       <VendingMachine items={ITEMS} active={active} onSelect={(id) => setView(id)} />
     </group>
   );
