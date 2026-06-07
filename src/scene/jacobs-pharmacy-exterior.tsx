@@ -22,18 +22,29 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { AtlantaCornerBlock } from './brand/atlanta-corner-block-gltf';
 import { CocaColaVendingMachine } from './brand/coca-cola-vending-machine-gltf';
+import { BottleGltf } from './brand/bottle-gltf';
 import { useNavigation } from './navigation-context';
 import type { ViewId } from './navigation-context';
 import { useSceneMixes } from './scene-transition-context';
 
-// ── Vending-machine placement on the sidewalk ────────────────────────────────
-// In the GLB (after Blender yup conversion), the pharmacy facade sits at
-// world z≈+3.55 facing toward +Z (toward the camera). The sidewalk lives
-// just in front of the facade at z ∈ [3.7, 6.3]. Sidewalk top is at y=0.2.
-// Place the machine to the right of the pharmacy door (door at x≈0.6),
-// base flat on the sidewalk, facing straight toward the camera.
-const MACHINE_POSITION: [number, number, number] = [2.6, 0.2, 5.2];
-const MACHINE_ROTATION: [number, number, number] = [0, 0, 0];
+// ── Hero bottle on the pedestal — the main visual anchor ─────────────────────
+// The contour bottle is the most iconic Coca-Cola artifact ever designed and
+// belongs as the literal centerpiece of an internship-recap site. Floats on a
+// marble pedestal in the foreground center of the sidewalk, dramatically uplit
+// by the bottle-pedestal spot, with the pharmacy + corner block behind it.
+const HERO_BOTTLE_POSITION: [number, number, number] = [0, 1.4, 6.8];
+const HERO_BOTTLE_SCALE = 4.0; // ~6.2 units tall, taller than ground floor
+
+// Pedestal — cream marble cylinder + dome cap
+const PEDESTAL_POSITION: [number, number, number] = [0, 0.2, 6.8];
+const PEDESTAL_HEIGHT = 1.2;
+const PEDESTAL_RADIUS = 1.3;
+
+// ── Vending machine — supporting role, off to the side ──────────────────────
+// Pushed further right so it doesn't compete with the hero bottle. Still
+// interactive (click bottles → chapters), still on the sidewalk.
+const MACHINE_POSITION: [number, number, number] = [5.0, 0.2, 5.4];
+const MACHINE_ROTATION: [number, number, number] = [0, -Math.PI / 10, 0];
 
 // JACOBS' PHARMACY signage sits just in front of the brick facade above
 // the awning. Default drei <Text> faces +Z which is where the camera is —
@@ -106,7 +117,63 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
         decay={1.6}
       />
 
-      {/* Vending machine on the sidewalk, right of the pharmacy door */}
+      {/* ── HERO PEDESTAL — cream marble base for the giant bottle ───────── */}
+      <group position={PEDESTAL_POSITION}>
+        {/* Marble column */}
+        <mesh position={[0, PEDESTAL_HEIGHT / 2, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[PEDESTAL_RADIUS * 0.85, PEDESTAL_RADIUS, PEDESTAL_HEIGHT, 24]} />
+          <meshStandardMaterial color="#F1E9DA" roughness={0.45} metalness={0.05} />
+        </mesh>
+        {/* Carved top cap */}
+        <mesh position={[0, PEDESTAL_HEIGHT + 0.06, 0]} castShadow>
+          <cylinderGeometry args={[PEDESTAL_RADIUS * 1.05, PEDESTAL_RADIUS * 0.85, 0.12, 24]} />
+          <meshStandardMaterial color="#E8DEC0" roughness={0.35} metalness={0.08} />
+        </mesh>
+        {/* Carved base ring */}
+        <mesh position={[0, 0.06, 0]} castShadow>
+          <cylinderGeometry args={[PEDESTAL_RADIUS * 1.05, PEDESTAL_RADIUS * 1.05, 0.12, 24]} />
+          <meshStandardMaterial color="#E8DEC0" roughness={0.35} metalness={0.08} />
+        </mesh>
+        {/* Brass placard on the front of the pedestal — period-correct museum touch */}
+        <mesh position={[0, PEDESTAL_HEIGHT * 0.5, PEDESTAL_RADIUS + 0.01]} castShadow>
+          <boxGeometry args={[0.9, 0.28, 0.02]} />
+          <meshStandardMaterial color="#9C7A3C" roughness={0.4} metalness={0.7} />
+        </mesh>
+        <Text
+          position={[0, PEDESTAL_HEIGHT * 0.5, PEDESTAL_RADIUS + 0.025]}
+          fontSize={0.07}
+          color="#2A1A08"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.06}
+          maxWidth={0.82}
+        >
+          {`COCA-COLA · INVENTED MAY 8, 1886\nJACOBS' PHARMACY · ATLANTA, GA`}
+        </Text>
+      </group>
+
+      {/* ── HERO BOTTLE — giant contour bottle floating on the pedestal ──── */}
+      <group position={HERO_BOTTLE_POSITION}>
+        <BottleGltf scale={HERO_BOTTLE_SCALE} highlight={0.25} />
+        {/* Dramatic up-spot on the hero bottle — museum-vitrine pop */}
+        <pointLight
+          color="#FFE6B0"
+          intensity={1.4}
+          position={[0, 5, 0.5]}
+          distance={7}
+          decay={1.8}
+        />
+        {/* Warm rim light from behind-right for silhouette + glow */}
+        <pointLight
+          color="#E8835A"
+          intensity={0.9}
+          position={[1.5, 3, -1.5]}
+          distance={5}
+          decay={1.8}
+        />
+      </group>
+
+      {/* Vending machine — supporting detail, pushed to the side */}
       <CocaColaVendingMachine
         position={MACHINE_POSITION}
         rotation={MACHINE_ROTATION}

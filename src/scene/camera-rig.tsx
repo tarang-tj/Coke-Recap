@@ -14,14 +14,13 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<ViewId, Pose> = {
-  // Home scene: slight 3/4 angle view of the corner block. Offset left
-  // so the camera looks AT the corner where the pharmacy meets the
-  // perpendicular corner building. Block extends from x≈-13 to x≈+13;
-  // pharmacy door at x=0, corner of block at x≈+4. Camera at x=-3 frames
-  // the pharmacy front and corner building both visible. Lowered eye
-  // level (y=3) and tilted slightly up by looking at y=4 — period
-  // photograph composition.
-  machine:   { pos: [-3, 3, 18],   look: [3, 4, 2] },
+  // Home scene: hero-bottle composition. The giant Coca-Cola contour
+  // bottle on the marble pedestal sits at world (0, 1.4, 6.8) reaching
+  // y≈7.6 at its cap. Camera offset slightly right (x=2) at slightly
+  // above eye level (y=4) backed off to z=20 to frame the hero bottle
+  // dead-center with the pharmacy looming behind. Look target hits
+  // the bottle's mid-label height (y≈4) at its world position (z=6.8).
+  machine:   { pos: [2, 4, 20],    look: [0, 4, 6.8] },
   role:      { pos: [0, 0.1, 3.2], look: [0, 0,    0]   },
   tools:     { pos: [0, 0.8, 5.2], look: [0, 0,    0]   },
   agent:     { pos: [0, 0.3, 4.4], look: [0, 0,    0]   },
