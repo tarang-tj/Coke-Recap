@@ -115,6 +115,11 @@ export function StartGate() {
         <p className="mt-10 font-body text-[0.48rem] uppercase tracking-[0.5em] text-off-white/30 select-none">
           click&ensp;•&ensp;or press enter&ensp;•&ensp;or scroll
         </p>
+
+        {/* Historical tidbit — rewards attention, fades with the gate */}
+        <p className="mt-4 font-body text-[0.42rem] uppercase tracking-[0.45em] text-off-white/25 select-none">
+          1886&ensp;•&ensp;atlanta&ensp;•&ensp;invented by john&nbsp;s. pemberton
+        </p>
       </div>
     </>
   );

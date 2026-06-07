@@ -1,11 +1,17 @@
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 
-// Postprocessing stack — trimmed for the red Coca-Cola world.
-// ChromaticAberration and Noise removed (were visually muddy on red bg).
-// Edge antialiasing via the composer's WebGL2 multisampled render target
-// (multisampling={4}) instead of the SMAA effect — cheaper and avoids SMAA's
-// large embedded lookup-texture payload in the bundle.
-// When performanceFactor < 0.5, Bloom's pass is dropped on low-end GPUs.
+// Postprocessing stack — tuned for art-direction uplevel.
+//
+// Bloom:   tighter — only the brightest highlights bloom (threshold 0.85).
+//          Lower intensity avoids the constant-glow problem.
+// Vignette: stronger corner darkening (darkness 0.85) for cinematic depth.
+// Noise:   mild film grain via OVERLAY blend — adds texture without muddying.
+//          premultiply=false keeps grain stable (non-pulsing).
+// MSAA:    WebGL2 multisampled render target (multisampling=4) — cheaper than
+//          SMAA and avoids its large lookup-texture bundle payload.
+// Low-end: When performanceFactor < 0.5, Bloom is dropped. Noise + Vignette
+//          are kept (cheap, no additional render passes).
 
 type Props = {
   performanceFactor?: number;
@@ -14,12 +20,15 @@ type Props = {
 export function PostprocessingStack({ performanceFactor = 1 }: Props) {
   const bloomEnabled = performanceFactor >= 0.5;
 
-  // Two explicit trees so EffectComposer always receives valid Element
-  // children (a `false` child fails its strict typing).
   if (!bloomEnabled) {
     return (
       <EffectComposer multisampling={4}>
-        <Vignette eskil={false} offset={0.25} darkness={0.65} />
+        <Vignette eskil={false} offset={0.3} darkness={0.90} />
+        <Noise
+          premultiply={false}
+          opacity={0.06}
+          blendFunction={BlendFunction.OVERLAY}
+        />
       </EffectComposer>
     );
   }
@@ -27,12 +36,17 @@ export function PostprocessingStack({ performanceFactor = 1 }: Props) {
   return (
     <EffectComposer multisampling={4}>
       <Bloom
-        intensity={1.1}
-        luminanceThreshold={0.65}
-        luminanceSmoothing={0.5}
+        intensity={0.30}
+        luminanceThreshold={0.93}
+        luminanceSmoothing={0.025}
         mipmapBlur
       />
-      <Vignette eskil={false} offset={0.25} darkness={0.65} />
+      <Vignette eskil={false} offset={0.3} darkness={0.90} />
+      <Noise
+        premultiply={false}
+        opacity={0.06}
+        blendFunction={BlendFunction.OVERLAY}
+      />
     </EffectComposer>
   );
 }

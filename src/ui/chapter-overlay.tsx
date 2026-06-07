@@ -68,6 +68,12 @@ export function ChapterOverlay() {
               {LABELS[view as ChapterId]}
             </p>
             <Section />
+            {/* Takeaways historical tidbit — museum caption, only on this chapter */}
+            {view === 'takeaways' && (
+              <p className="mt-8 font-body text-[0.5rem] uppercase tracking-[0.45em] text-off-white/30 select-none">
+                sold for 5¢ from 1886&nbsp;–&nbsp;1959&ensp;•&ensp;73 years at the same price
+              </p>
+            )}
           </div>
         </div>
       )}
