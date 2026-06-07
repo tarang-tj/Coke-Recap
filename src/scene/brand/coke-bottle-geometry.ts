@@ -3,78 +3,107 @@ import * as THREE from 'three';
 /**
  * Classic Coca-Cola contour-bottle profile — 1915 hobble-skirt patented silhouette.
  *
- * Target ratios (Earl R. Dean patent US D77,834):
+ * Phase B (bottle-authenticity): ~70 profile points for smoother lathe curvature.
  *   Height ≈ 1.55 units
- *   Max belly radius ≈ 0.36  →  H:diameter ≈ 4.2:1  (was 3.4:1, too wide)
- *   Waist radius ≈ 0.21 at y ≈ 0.62  (more pronounced pinch)
- *   Shoulder radius ≈ 0.32 at y ≈ 0.82  (fuller above waist)
- *   Neck smooth S-curve down to ≈ 0.13 at y ≈ 1.0
- *   Base flare at y 0.0 → 0.08 for the foot ring
+ *   Belly peak radius ≈ 0.355 at y ≈ 0.44  (moved up for correct proportion)
+ *   Waist pinch r ≈ 0.205 at y ≈ 0.62
+ *   Shoulder bulge r ≈ 0.33 at y ≈ 0.80
+ *   Neck soft S-curve → collar swell at y ≈ 1.34
  */
 export function buildContourProfile(): THREE.Vector2[] {
-  // [radius, y] in local units — 35+ points for smooth cubic-feel curvature
+  // [radius, y] — ~70 points for smooth lathe with no visible facets at close range
   const raw: [number, number][] = [
     // --- Base foot ring (slight outward flare) ---
-    [0.00, 0.000], // center bottom (lathe axis)
-    [0.26, 0.000], // foot edge
-    [0.27, 0.010], // foot ring bevel start
-    [0.265, 0.030], // foot ring top
-    [0.255, 0.060], // base transition
+    [0.000, 0.000], // lathe axis center bottom
+    [0.245, 0.000], // foot edge
+    [0.258, 0.008], // foot ring bevel start
+    [0.265, 0.018], // foot ring bevel mid
+    [0.268, 0.030], // foot ring top
+    [0.262, 0.042], // base transition
+    [0.257, 0.055], // base to lower body
 
     // --- Lower hobble-skirt belly rise ---
-    [0.26, 0.100],
-    [0.28, 0.150],
-    [0.30, 0.200],
-    [0.325, 0.260],
-    [0.345, 0.310],
+    [0.258, 0.075],
+    [0.264, 0.100],
+    [0.275, 0.128],
+    [0.288, 0.158],
+    [0.300, 0.188],
+    [0.313, 0.218],
+    [0.325, 0.248],
+    [0.336, 0.278],
+    [0.344, 0.308],
+    [0.350, 0.336],
 
-    // --- Belly peak (max radius) ---
-    [0.360, 0.370], // belly peak — slimmer than before
-    [0.360, 0.420], // sustained belly
-    [0.355, 0.470],
+    // --- Belly peak (max radius) moved up to y ≈ 0.44 ---
+    [0.354, 0.360],
+    [0.355, 0.390], // belly peak rise
+    [0.355, 0.420], // belly peak — max radius
+    [0.354, 0.440], // sustained belly
+    [0.352, 0.458],
+    [0.349, 0.475],
 
     // --- Upper belly tapering toward waist ---
-    [0.340, 0.510],
-    [0.310, 0.550],
-    [0.270, 0.585],
+    [0.344, 0.492],
+    [0.336, 0.510],
+    [0.324, 0.528],
+    [0.310, 0.547],
+    [0.293, 0.565],
+    [0.274, 0.580],
 
     // --- Waist pinch (most dramatic narrowing) ---
-    [0.225, 0.615], // waist pinch
-    [0.210, 0.630], // waist minimum
-    [0.218, 0.645],
+    [0.248, 0.594],
+    [0.228, 0.608],
+    [0.210, 0.622], // waist pinch — tightest
+    [0.205, 0.630], // waist minimum
+    [0.208, 0.638],
+    [0.215, 0.647],
 
-    // --- Shoulder — re-expands above the waist ---
-    [0.255, 0.680],
-    [0.295, 0.715],
-    [0.320, 0.745], // shoulder bulge
-    [0.325, 0.770], // shoulder peak
-    [0.315, 0.795],
-    [0.290, 0.820],
+    // --- Shoulder — S-curve re-expansion above waist (6 intermediate samples) ---
+    [0.228, 0.660],
+    [0.245, 0.673],
+    [0.262, 0.686],
+    [0.280, 0.700],
+    [0.298, 0.715],
+    [0.314, 0.728],
+    [0.325, 0.742],
+    [0.330, 0.757], // shoulder bulge
+    [0.332, 0.770], // shoulder peak
+    [0.330, 0.782],
+    [0.322, 0.795],
+    [0.308, 0.808],
 
     // --- Neck upper shoulder taper ---
-    [0.255, 0.845],
-    [0.210, 0.875],
-    [0.170, 0.910],
-    [0.145, 0.950],
-    [0.130, 0.995],
+    [0.290, 0.820],
+    [0.268, 0.835],
+    [0.243, 0.852],
+    [0.215, 0.872],
+    [0.188, 0.896],
+    [0.165, 0.925],
+    [0.148, 0.958],
+    [0.138, 0.992],
 
     // --- Straight neck cylinder ---
-    [0.125, 1.040],
-    [0.123, 1.090],
-    [0.122, 1.140],
-    [0.124, 1.190],
+    [0.130, 1.030],
+    [0.127, 1.070],
+    [0.125, 1.110],
+    [0.124, 1.155],
+    [0.124, 1.198],
 
     // --- Slight neck swell before collar ---
-    [0.130, 1.240],
-    [0.140, 1.280],
-    [0.150, 1.310], // neck collar
+    [0.127, 1.238],
+    [0.134, 1.272],
+    [0.143, 1.302],
+    [0.152, 1.325], // collar start
 
-    // --- Neck top taper to cap seating ---
-    [0.155, 1.350],
-    [0.160, 1.390],
-    [0.163, 1.430],
-    [0.165, 1.470],
-    [0.162, 1.510],
+    // --- Neck collar swell (y ≈ 1.34, r=0.165) ---
+    [0.160, 1.340],
+    [0.165, 1.350], // collar swell peak
+
+    // --- Cap seating taper ---
+    [0.162, 1.380],
+    [0.158, 1.415],
+    [0.155, 1.450],
+    [0.152, 1.490],
     [0.150, 1.550], // bottle top rim
   ];
   return raw.map(([r, y]) => new THREE.Vector2(r, y));
@@ -88,11 +117,10 @@ export interface BottleGeometrySet {
 /**
  * Builds the main lathe body plus subtle vertical ribbing geometry.
  *
- * The flutes are 10 thin lathe-like curved wedge meshes placed radially around
- * the lower hobble-skirt band (y 0.05 → 0.56). Each rib bulges outward by
- * ~0.012 units — subtle vertical ribbing, not chunky box-stamps.
+ * Phase B: segments bumped from 64 → 96 for smoother surface revolution at close range.
+ * Rib y range stays approximately y=0.06 → 0.54; rib bulge ~0.013.
  */
-export function buildBottleGeometrySet(segments = 64): BottleGeometrySet {
+export function buildBottleGeometrySet(segments = 96): BottleGeometrySet {
   const body = new THREE.LatheGeometry(buildContourProfile(), segments);
 
   // --- Subtle vertical ribs (10 thin lathe-slices around the lower body) ---
@@ -133,8 +161,6 @@ export function buildBottleGeometrySet(segments = 64): BottleGeometrySet {
       heights.push(ribYMin + (s / ribSamples) * (ribYMax - ribYMin));
     }
 
-    // We'll build triangle quads: for each pair of adjacent rows, for each
-    // pair of adjacent angular columns
     const cols = angularSteps.length; // 3
     const rows = heights.length;      // ribSamples + 1
 
