@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { useNavigation } from './navigation-context';
 
 // Atmospheric backdrop for the Coca-Cola world.
 //
@@ -10,51 +11,89 @@ import { useReducedMotion } from '../hooks/use-reduced-motion';
 // part of the 3-D scene so bloom/vignette can operate on it.
 //
 // Backdrop layers:
-//   1. Inverted skydome — vertical gradient (deep burgundy top → brand red
-//      horizon → dark wine bottom) composited with a radial corner vignette.
+//   1. Inverted skydome — vertical gradient (view-aware palette) composited
+//      with a radial corner vignette via shader uniforms.
 //   2. InstancedMesh particle field — ~80 cream dust motes drifting slowly
-//      downward with slight horizontal drift. Conveys volumetric depth without
-//      needing fog or transmission.
+//      downward with slight horizontal drift. Visible only on chapter views.
+//
+// Palettes:
+//   exterior   — dark dusk evening sky, warm amber-burgundy horizon
+//   machine    — dim walnut interior warmth
+//   chapters   — original red atmospheric (role / tools / agent / takeaways)
 
 // ---------------------------------------------------------------------------
-// Gradient + vignette texture
+// Palette definitions
 // ---------------------------------------------------------------------------
 
-function makeGradientTexture(): THREE.CanvasTexture {
-  const size = 512;
-  const c = document.createElement('canvas');
-  c.width = size;
-  c.height = size;
-  const ctx = c.getContext('2d')!;
-
-  // Vertical gradient: burgundy top → brand red horizon → dark wine bottom.
-  // The sphere is inverted so "top" of the canvas maps to the top of the dome.
-  const vGrad = ctx.createLinearGradient(0, 0, 0, size);
-  vGrad.addColorStop(0.0, '#3A0006');   // deep burgundy at sky apex
-  vGrad.addColorStop(0.45, '#A60010');  // brand red at horizon
-  vGrad.addColorStop(1.0, '#1A0004');   // dark wine at ground
-  ctx.fillStyle = vGrad;
-  ctx.fillRect(0, 0, size, size);
-
-  // Radial vignette: multiply-dark corners over the gradient.
-  // Canvas doesn't support multiply blend natively, so we approximate by
-  // drawing a dark-to-transparent radial gradient on top with globalAlpha.
-  ctx.globalCompositeOperation = 'multiply';
-  const rGrad = ctx.createRadialGradient(
-    size * 0.5, size * 0.5, size * 0.18,
-    size * 0.5, size * 0.5, size * 0.72
-  );
-  rGrad.addColorStop(0.0, '#ffffff');   // transparent center (multiply by white = no change)
-  rGrad.addColorStop(1.0, '#3a0006');   // darken corners toward burgundy
-  ctx.fillStyle = rGrad;
-  ctx.fillRect(0, 0, size, size);
-
-  ctx.globalCompositeOperation = 'source-over';
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+interface GradientPalette {
+  top: THREE.Color;
+  mid: THREE.Color;
+  bot: THREE.Color;
 }
+
+const PALETTES: Record<'exterior' | 'machine' | 'chapter', GradientPalette> = {
+  exterior: {
+    top: new THREE.Color('#1A1612'),
+    mid: new THREE.Color('#3A2010'),
+    bot: new THREE.Color('#0A0805'),
+  },
+  machine: {
+    top: new THREE.Color('#1A0F08'),
+    mid: new THREE.Color('#3A2A1C'),
+    bot: new THREE.Color('#0F0905'),
+  },
+  chapter: {
+    top: new THREE.Color('#3A0006'),
+    mid: new THREE.Color('#A60010'),
+    bot: new THREE.Color('#1A0004'),
+  },
+};
+
+function getPalette(view: string): GradientPalette {
+  if (view === 'exterior') return PALETTES.exterior;
+  if (view === 'machine') return PALETTES.machine;
+  return PALETTES.chapter;
+}
+
+// ---------------------------------------------------------------------------
+// Skydome shader
+//
+// Vertex shader passes the local-space Y position (normalised 0..1 from -1..1)
+// to the fragment shader, which blends three colors:
+//   bottom (y≈0) → mid (y≈0.45) → top (y≈1)
+// A radial corner vignette darkens the four corners toward the "top" color.
+// ---------------------------------------------------------------------------
+
+const vertexShader = /* glsl */ `
+  varying float vY;
+  void main() {
+    vY = position.y;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const fragmentShader = /* glsl */ `
+  uniform vec3 uColorTop;
+  uniform vec3 uColorMid;
+  uniform vec3 uColorBot;
+  varying float vY;
+
+  void main() {
+    // Sphere local Y runs from -1 (bottom) to +1 (top).
+    // Remap to 0..1.
+    float t = clamp((vY + 1.0) * 0.5, 0.0, 1.0);
+
+    // Two-segment vertical blend: bot → mid → top
+    vec3 color;
+    if (t < 0.45) {
+      color = mix(uColorBot, uColorMid, t / 0.45);
+    } else {
+      color = mix(uColorMid, uColorTop, (t - 0.45) / 0.55);
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
 
 // ---------------------------------------------------------------------------
 // Soft circular disc texture for dust motes
@@ -128,10 +167,14 @@ function buildParticles(): ParticleState[] {
 }
 
 // ---------------------------------------------------------------------------
-// Components
+// DustParticles — gated on chapter views only
 // ---------------------------------------------------------------------------
 
-function DustParticles() {
+interface DustParticlesProps {
+  visible: boolean;
+}
+
+function DustParticles({ visible }: DustParticlesProps) {
   const reduced = useReducedMotion();
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dustTex = useMemo(makeDustTexture, []);
@@ -158,6 +201,7 @@ function DustParticles() {
 
   useFrame((_state, delta) => {
     const mesh = meshRef.current;
+    // Reduced motion freezes animation; visibility gate handled via prop.
     if (!mesh || reduced) return;
 
     const dt = Math.min(delta, 0.05); // clamp to avoid huge jumps
@@ -182,7 +226,7 @@ function DustParticles() {
   useEffect(() => () => dustTex.dispose(), [dustTex]);
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]} visible={visible}>
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial
         map={dustTex}
@@ -197,26 +241,74 @@ function DustParticles() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// SceneBackdrop — view-aware gradient skydome + gated dust motes
+// ---------------------------------------------------------------------------
+
+// Lerp speed constant: 200ms ≈ lerp factor ~5 per second (approaches target
+// in ~200ms with exponential smoothing at dt=0.016).
+const COLOR_LERP_SPEED = 5;
+
 export function SceneBackdrop() {
-  const texture = useMemo(makeGradientTexture, []);
-  useEffect(() => () => texture.dispose(), [texture]);
+  const { view } = useNavigation();
+
+  // Shader material created once, uniforms mutated in useFrame.
+  const shaderMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        uniforms: {
+          uColorTop: { value: new THREE.Color(PALETTES.chapter.top) },
+          uColorMid: { value: new THREE.Color(PALETTES.chapter.mid) },
+          uColorBot: { value: new THREE.Color(PALETTES.chapter.bot) },
+        },
+        side: THREE.BackSide,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
+  );
+
+  // Target color refs — updated reactively when view changes.
+  // Current colors are the live uniform values (mutated in useFrame).
+  const targetTop = useRef(new THREE.Color(PALETTES.chapter.top));
+  const targetMid = useRef(new THREE.Color(PALETTES.chapter.mid));
+  const targetBot = useRef(new THREE.Color(PALETTES.chapter.bot));
+
+  // Sync targets whenever view changes.
+  useEffect(() => {
+    const p = getPalette(view);
+    targetTop.current.copy(p.top);
+    targetMid.current.copy(p.mid);
+    targetBot.current.copy(p.bot);
+  }, [view]);
+
+  // Lerp uniforms toward targets each frame (~200ms convergence).
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const alpha = Math.min(1, COLOR_LERP_SPEED * dt);
+
+    shaderMaterial.uniforms.uColorTop.value.lerp(targetTop.current, alpha);
+    shaderMaterial.uniforms.uColorMid.value.lerp(targetMid.current, alpha);
+    shaderMaterial.uniforms.uColorBot.value.lerp(targetBot.current, alpha);
+  });
+
+  useEffect(() => () => shaderMaterial.dispose(), [shaderMaterial]);
+
+  // Dust motes are chapter-only. Gate independent of reduced motion —
+  // reduced motion governs animation freeze, not visibility.
+  const isChapterView = view !== 'exterior' && view !== 'machine';
 
   return (
     <>
-      {/* Inverted skydome — vertical gradient + radial vignette */}
-      <mesh renderOrder={-1} frustumCulled={false}>
+      {/* Inverted skydome — shader-based vertical gradient, view-aware palette */}
+      <mesh renderOrder={-1} frustumCulled={false} material={shaderMaterial}>
         <sphereGeometry args={[45, 32, 32]} />
-        <meshBasicMaterial
-          map={texture}
-          side={THREE.BackSide}
-          depthWrite={false}
-          toneMapped={false}
-          fog={false}
-        />
       </mesh>
 
-      {/* Atmospheric dust motes — depth cue without fog/transmission */}
-      <DustParticles />
+      {/* Atmospheric dust motes — visible on chapter views only */}
+      <DustParticles visible={isChapterView} />
     </>
   );
 }

@@ -38,7 +38,6 @@ export interface VendingMachineProps {
 const BOTTLE_X = [-0.95, -0.32, 0.32, 0.95];
 const BOTTLE_Y = 0.35;
 const BOTTLE_Z = 0.55;
-const LIFT_HOVER = 0.14;
 const LERP = 9;
 
 const CHROME = '#C8C4BC';
@@ -85,7 +84,7 @@ function BottleSlot({
     const g = groupRef.current;
     if (!g) return;
     const t = redRef.current ? 1 : Math.min(1, LERP * dt);
-    const targetLift = pressRef.current ? -0.35 : hovRef.current ? LIFT_HOVER : 0;
+    const targetLift = pressRef.current ? -0.35 : 0;
     liftRef.current += (targetLift - liftRef.current) * t;
     g.position.y = BOTTLE_Y + liftRef.current;
     const s = hovRef.current ? 1.06 : 1;
