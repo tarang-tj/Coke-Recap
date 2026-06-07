@@ -133,50 +133,107 @@ function buildCrateStencilTexture(): THREE.CanvasTexture {
 }
 
 function buildNeckTagTexture(toolName: string): THREE.CanvasTexture {
-  const W = 128;
-  const H = 80;
+  // 512×384 for sharp reading at camera distance
+  const W = 512;
+  const H = 384;
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
 
-  // Aged cream paper base
-  ctx.fillStyle = TAG_CREAM;
+  // Aged cream paper base — period paper tone
+  ctx.fillStyle = '#EAD8B0';
   ctx.fillRect(0, 0, W, H);
 
-  // Slight paper toning
-  ctx.fillStyle = 'rgba(180,140,80,0.12)';
+  // Subtle paper grain overlay for warmth
+  ctx.fillStyle = 'rgba(160,110,40,0.08)';
   ctx.fillRect(0, 0, W, H);
 
-  // Small hole at top (punched for twine)
-  ctx.strokeStyle = 'rgba(100,70,30,0.6)';
+  // Dark ink border ~6px stroke
+  ctx.strokeStyle = '#1A1408';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(10, 10, W - 20, H - 20);
+
+  // Inner lighter border for tag-printing feel
+  ctx.strokeStyle = 'rgba(60,35,10,0.3)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(18, 18, W - 36, H - 36);
+
+  // ── "TOOL" microtype stamp at top ──────────────────────────────────────────
+  ctx.font = 'bold 28px Georgia, serif';
+  ctx.fillStyle = '#A60010';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.letterSpacing = '4px';
+  ctx.globalAlpha = 0.92;
+  ctx.fillText('T  O  O  L', W / 2, 32);
+  ctx.globalAlpha = 1;
+  ctx.letterSpacing = '0px';
+
+  // Thin red rule under the stamp
+  ctx.strokeStyle = '#A60010';
   ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.6;
   ctx.beginPath();
-  ctx.arc(W / 2, 10, 5, 0, Math.PI * 2);
+  ctx.moveTo(60, 72);
+  ctx.lineTo(W - 60, 72);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(160,120,60,0.5)';
-  ctx.fill();
+  ctx.globalAlpha = 1;
 
-  // Tool name text — typewriter / stamp style
-  const fontSize = toolName.length > 8 ? 13 : 16;
+  // ── Punched hole at top center (twine anchor) ───────────────────────────────
+  // (drawn after border so it sits on top of the border line)
+  ctx.beginPath();
+  ctx.arc(W / 2, 85, 18, 0, Math.PI * 2);
+  ctx.fillStyle = '#C9A96E';
+  ctx.globalAlpha = 0.7;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(80,50,20,0.8)';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.9;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // ── Tool name — bold typewriter, dark ink ────────────────────────────────
+  // Scale font to fit: max 80px, scale down for long names
+  const maxFontSize = 80;
+  const minFontSize = 48;
+  // Measure at max size first
+  ctx.font = `bold ${maxFontSize}px "Courier New", monospace`;
+  const measured = ctx.measureText(toolName);
+  const availW = W - 80; // leave margin
+  let fontSize = maxFontSize;
+  if (measured.width > availW) {
+    fontSize = Math.max(minFontSize, Math.floor(maxFontSize * (availW / measured.width)));
+  }
+
   ctx.font = `bold ${fontSize}px "Courier New", monospace`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Ink stamp — slightly uneven for realism
-  ctx.fillStyle = TAG_INK;
-  ctx.globalAlpha = 0.88;
-  ctx.fillText(toolName, W / 2 + 0.5, H / 2 + 8);
-  ctx.globalAlpha = 0.7;
-  ctx.fillText(toolName, W / 2, H / 2 + 7);
+  // Slight shadow for ink depth
+  ctx.shadowColor = 'rgba(0,0,0,0.18)';
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 2;
+
+  // Main ink pass
+  ctx.fillStyle = '#1A1408';
+  ctx.globalAlpha = 0.95;
+  ctx.fillText(toolName, W / 2, H * 0.62);
+
+  // Second pass slightly offset — worn stamp texture
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = '#0E0B05';
+  ctx.globalAlpha = 0.4;
+  ctx.fillText(toolName, W / 2 - 1, H * 0.62 - 1);
   ctx.globalAlpha = 1;
 
-  // Border lines like a printed tag
-  ctx.strokeStyle = 'rgba(80,50,20,0.4)';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(4, 4, W - 8, H - 8);
-
   const tex = new THREE.CanvasTexture(canvas);
+  // Sharp anisotropic filtering so text stays crisp when viewed at angle
+  tex.anisotropy = 8;
   return tex;
 }
 
@@ -444,10 +501,11 @@ function BottleInCrate({ toolName, col, row, rotJitter, tagTex }: BottleInCrateP
         <primitive object={twineMat} attach="material" />
       </mesh>
 
-      {/* Paper neck-tag — hangs just below the neck ring */}
-      {/* Tag is a thin plane rotated slightly for natural hang */}
-      <mesh position={[0.12, 0.88, 0.02]} rotation={[0.05, -0.3, 0.08]}>
-        <planeGeometry args={[0.18, 0.11]} />
+      {/* Paper neck-tag — enlarged for readability, pushed forward (+z) to clear glass.
+          y=0.80 in crate-local space ≈ bottle-local y≈1.14 (÷ scale 0.7) — just below
+          the crown cap. +z=0.14 offset clears the bottle glass. */}
+      <mesh position={[0.0, 0.80, 0.14]} rotation={[0.05, 0.0, 0.06]}>
+        <boxGeometry args={[0.32, 0.20, 0.005]} />
         <primitive object={tagMat} attach="material" />
       </mesh>
     </group>
@@ -495,6 +553,8 @@ export function ActTools() {
   // Bake all canvas textures once
   const stencilTex = useMemo(() => buildCrateStencilTexture(), []);
   const plankTex = useMemo(() => buildPlankTexture(), []);
+  // tools is a const module import — array identity is stable across renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const tagTextures = useMemo(
     () => tools.map((t) => buildNeckTagTexture(t.name)),
     [],
