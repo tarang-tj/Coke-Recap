@@ -173,6 +173,70 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
         />
       </group>
 
+      {/* ── CHAPTER NAMEPLATES — brass plaques floating around the bottle ──
+          Four engraved brass tags, one per chapter, arranged in a tight arc
+          IN FRONT of the pedestal at two heights (upper row + lower row) so
+          all four fit in the camera frame without occluding the bottle. */}
+      {(['role', 'tools', 'agent', 'takeaways'] as const).map((id, i) => {
+        const labels: Record<ChapterId, string> = {
+          role: 'THE ROLE',
+          tools: 'THE STACK',
+          agent: 'THE AGENT',
+          takeaways: 'TAKEAWAYS',
+        };
+        // 2x2 layout — upper row (role, tools) at higher y, lower row (agent,
+        // takeaways) below. All four IN FRONT of the pedestal so the bottle
+        // stays the dominant silhouette and nothing gets occluded.
+        const cols = [-1.8, 1.8];          // x offsets from pedestal center
+        const rows = [4.4, 2.9];           // y heights — bottom row lifted to
+                                            //   keep TAKEAWAYS in frame
+        const xOff = cols[i % 2];
+        const py = rows[Math.floor(i / 2)];
+        const px = PEDESTAL_POSITION[0] + xOff;
+        const pz = PEDESTAL_POSITION[2] + 1.8;  // forward of the pedestal
+        return (
+          <group key={id} position={[px, py, pz]}>
+            {/* Brass plaque — large, readable, clickable */}
+            <mesh
+              castShadow
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectChapter?.(id);
+              }}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={() => {
+                document.body.style.cursor = '';
+              }}
+            >
+              <boxGeometry args={[1.6, 0.55, 0.08]} />
+              <meshStandardMaterial
+                color="#C6A06A"
+                roughness={0.32}
+                metalness={0.78}
+                emissive="#5A3A12"
+                emissiveIntensity={0.22}
+              />
+            </mesh>
+            {/* Engraved chapter label */}
+            <Text
+              position={[0, 0, 0.045]}
+              fontSize={0.20}
+              color="#2A1A08"
+              anchorX="center"
+              anchorY="middle"
+              letterSpacing={0.14}
+              outlineWidth={0.005}
+              outlineColor="#0A0A0A"
+            >
+              {labels[id]}
+            </Text>
+          </group>
+        );
+      })}
+
       {/* Vending machine — supporting detail, pushed to the side */}
       <CocaColaVendingMachine
         position={MACHINE_POSITION}
