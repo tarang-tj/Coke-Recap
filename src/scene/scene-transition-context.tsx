@@ -12,9 +12,11 @@ import {
 import { useFrame } from '@react-three/fiber';
 import { useNavigation, type ViewId } from './navigation-context';
 
-const ALL_VIEWS: ViewId[] = ['machine', 'role', 'tools', 'agent', 'takeaways'];
+// 'exterior' is excluded — the transition mixer only manages machine + chapter
+// views. The exterior scene gates its own visibility via navigation view prop.
+const ALL_VIEWS: Exclude<ViewId, 'exterior'>[] = ['machine', 'role', 'tools', 'agent', 'takeaways'];
 
-export type SceneMix = Record<ViewId, number>;
+export type SceneMix = Record<Exclude<ViewId, 'exterior'>, number>;
 
 const SceneTransitionContext = createContext<MutableRefObject<SceneMix> | null>(null);
 
@@ -30,7 +32,7 @@ export function SceneTransitionProvider({ children }: { children: ReactNode }) {
   viewRef.current = view;
 
   const mixesRef = useRef<SceneMix>({
-    machine: 1,
+    machine: 0,
     role: 0,
     tools: 0,
     agent: 0,
@@ -49,7 +51,7 @@ export function SceneTransitionProvider({ children }: { children: ReactNode }) {
       if (mixes[id] > 0.999) mixes[id] = 1;
     }
 
-    if (active !== 'machine' && mixes.machine > 0.12) {
+    if (active !== 'machine' && active !== 'exterior' && mixes.machine > 0.12) {
       mixes[active] = 0;
     }
     if (active === 'machine') {

@@ -9,6 +9,7 @@ import { ActRole } from './scene/acts/act-role';
 import { ActTools } from './scene/acts/act-tools';
 import { ActAgent } from './scene/acts/act-agent';
 import { ActBottle } from './scene/acts/act-bottle';
+import { JacobsPharmacyExterior } from './scene/jacobs-pharmacy-exterior';
 import { ChapterOverlay } from './ui/chapter-overlay';
 import { StartGate } from './ui/start-gate';
 import { SceneLoader } from './ui/scene-loader';
@@ -33,6 +34,7 @@ export function App() {
             <SceneRoot>
               <SceneTransitionProvider>
                 <FluidEnvironment />
+                <JacobsPharmacyExterior />
                 <MachineHub />
                 <ActRole />
                 <ActTools />

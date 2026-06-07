@@ -10,7 +10,7 @@ import { LearningsSection } from './sections/learnings-section';
 // column over a dark-red scrim (so text is always readable, never floating on
 // the busy 3-D scene); the chapter's 3-D motif shows through on the right.
 
-type ChapterId = Exclude<ViewId, 'machine'>;
+type ChapterId = Exclude<ViewId, 'machine' | 'exterior'>;
 
 const SECTIONS: Record<ChapterId, () => ReactElement> = {
   role: RoleSection,
@@ -27,15 +27,20 @@ const LABELS: Record<ChapterId, string> = {
 };
 
 export function ChapterOverlay() {
-  const { view, setView, goHome } = useNavigation();
+  const { view, setView, goHome, entering } = useNavigation();
+  // 'exterior' and 'machine' are hub-level views — no chapter content shown.
+  const isHubView = view === 'machine' || view === 'exterior';
   const isMachine = view === 'machine';
-  const Section = isMachine ? null : SECTIONS[view];
-  const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
+  // Hide UI chrome on the exterior view AND during the entry dolly so the
+  // cinematic moment stays clean (no logo + nav popping into frame mid-animation).
+  const isExteriorOrEntering = view === 'exterior' || entering;
+  const Section = isHubView ? null : SECTIONS[view as ChapterId];
+  const chapterIndex = isHubView ? -1 : CHAPTERS.indexOf(view as ChapterId);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
       {/* Left readability scrim — only in chapter views */}
-      {!isMachine && (
+      {!isHubView && (
         <div
           className="coke-fade-in absolute inset-0"
           style={{
@@ -45,14 +50,17 @@ export function ChapterOverlay() {
         />
       )}
 
-      {/* Home / brand — top-left */}
-      <button
-        onClick={goHome}
-        aria-label="Back to the machine"
-        className="pointer-events-auto fixed top-6 left-7 z-40 transition-opacity hover:opacity-80"
-      >
-        <Logo variant="white" className="w-24 md:w-28" />
-      </button>
+      {/* Home / brand — top-left. Hidden on exterior + during entry dolly so
+          the cinematic frame stays clean. */}
+      {!isExteriorOrEntering && (
+        <button
+          onClick={goHome}
+          aria-label="Back to the machine"
+          className="pointer-events-auto fixed top-6 left-7 z-40 transition-opacity hover:opacity-80"
+        >
+          <Logo variant="white" className="w-24 md:w-28" />
+        </button>
+      )}
 
       {/* Chapter content — left column, high contrast */}
       {Section && (
@@ -90,7 +98,9 @@ export function ChapterOverlay() {
         </div>
       )}
 
-      {/* Persistent chapter selector — bottom center */}
+      {/* Persistent chapter selector — bottom center. Hidden on exterior + during
+          entry dolly. */}
+      {!isExteriorOrEntering && (
       <nav className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex items-center justify-center gap-2 md:gap-3 px-4">
         {CHAPTERS.map((id, i) => {
           const active = view === id;
@@ -113,6 +123,7 @@ export function ChapterOverlay() {
           );
         })}
       </nav>
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function CreditHud() {
   const reducedMotion = useReducedMotion();
 
   // Visible when the gate is still up OR we're back at the machine hub.
-  const show = !started || view === 'machine';
+  const show = !started || view === 'machine' || view === 'exterior';
 
   return (
     <p
