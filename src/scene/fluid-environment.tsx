@@ -3,12 +3,11 @@ import { useNavigation } from './navigation-context';
 
 // FluidEnvironment — carbonation bubbles for the abstract chapter views.
 // Gated on chapter views only (role / tools / agent / takeaways / bottle).
-// Hidden on 'exterior' and 'machine' to avoid the "red floating circles" vibe
-// leaking into the store/machine scenes.
+// Hidden on 'machine' to avoid the "red floating circles" vibe leaking into
+// the corner-block home scene.
 
 export function FluidEnvironment() {
   const { view } = useNavigation();
-  const isChapterView = view !== 'exterior' && view !== 'machine';
-  if (!isChapterView) return null;
+  if (view === 'machine') return null;
   return <Bubbles />;
 }

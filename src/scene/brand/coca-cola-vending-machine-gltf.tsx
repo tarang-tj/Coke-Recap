@@ -50,7 +50,7 @@ const HITBOX_Z = 0.6;           // forward offset from machine origin (machine f
 const HITBOX_SIZE: [number, number, number] = [0.35, 1.0, 0.4]; // w × h × d per slot
 const HITBOX_X_POSITIONS = [-0.7, -0.25, 0.25, 0.7] as const; // 4 evenly-spaced columns
 
-type ChapterId = Exclude<ViewId, 'machine' | 'exterior'>;
+type ChapterId = Exclude<ViewId, 'machine'>;
 const CHAPTER_IDS: ChapterId[] = ['role', 'tools', 'agent', 'takeaways'];
 
 export interface CocaColaVendingMachineProps {

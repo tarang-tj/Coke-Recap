@@ -10,7 +10,7 @@ import { LearningsSection } from './sections/learnings-section';
 // column over a dark-red scrim (so text is always readable, never floating on
 // the busy 3-D scene); the chapter's 3-D motif shows through on the right.
 
-type ChapterId = Exclude<ViewId, 'machine' | 'exterior'>;
+type ChapterId = Exclude<ViewId, 'machine'>;
 
 const SECTIONS: Record<ChapterId, () => ReactElement> = {
   role: RoleSection,
@@ -27,20 +27,15 @@ const LABELS: Record<ChapterId, string> = {
 };
 
 export function ChapterOverlay() {
-  const { view, setView, goHome, entering } = useNavigation();
-  // 'exterior' and 'machine' are hub-level views — no chapter content shown.
-  const isHubView = view === 'machine' || view === 'exterior';
+  const { view, setView, goHome } = useNavigation();
   const isMachine = view === 'machine';
-  // Hide UI chrome on the exterior view AND during the entry dolly so the
-  // cinematic moment stays clean (no logo + nav popping into frame mid-animation).
-  const isExteriorOrEntering = view === 'exterior' || entering;
-  const Section = isHubView ? null : SECTIONS[view as ChapterId];
-  const chapterIndex = isHubView ? -1 : CHAPTERS.indexOf(view as ChapterId);
+  const Section = isMachine ? null : SECTIONS[view as ChapterId];
+  const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
       {/* Left readability scrim — only in chapter views */}
-      {!isHubView && (
+      {!isMachine && (
         <div
           className="coke-fade-in absolute inset-0"
           style={{
@@ -50,9 +45,8 @@ export function ChapterOverlay() {
         />
       )}
 
-      {/* Home / brand — top-left. Hidden on exterior + during entry dolly so
-          the cinematic frame stays clean. */}
-      {!isExteriorOrEntering && (
+      {/* Home / brand — top-left. Shown on chapter views only. */}
+      {!isMachine && (
         <button
           onClick={goHome}
           aria-label="Back to the machine"
@@ -98,31 +92,30 @@ export function ChapterOverlay() {
         </div>
       )}
 
-      {/* Persistent chapter selector — bottom center. Hidden on exterior + during
-          entry dolly. */}
-      {!isExteriorOrEntering && (
-      <nav className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex items-center justify-center gap-2 md:gap-3 px-4">
-        {CHAPTERS.map((id, i) => {
-          const active = view === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setView(id)}
-              aria-current={active ? 'true' : undefined}
-              className={[
-                'rounded-full border px-3.5 py-2 md:px-4 font-body text-[0.55rem] md:text-[0.6rem]',
-                'uppercase tracking-[0.2em] transition-colors duration-200 backdrop-blur',
-                active
-                  ? 'border-transparent bg-coke-red text-off-white shadow-[0_0_18px_rgba(244,0,9,0.5)]'
-                  : 'border-off-white/30 bg-coke-black/40 text-off-white/70 hover:text-off-white hover:border-off-white/60',
-              ].join(' ')}
-            >
-              <span className="mr-1.5 opacity-60">{i + 1}</span>
-              {LABELS[id]}
-            </button>
-          );
-        })}
-      </nav>
+      {/* Persistent chapter selector — bottom center. Shown on chapter views only. */}
+      {!isMachine && (
+        <nav className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex items-center justify-center gap-2 md:gap-3 px-4">
+          {CHAPTERS.map((id, i) => {
+            const active = view === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setView(id)}
+                aria-current={active ? 'true' : undefined}
+                className={[
+                  'rounded-full border px-3.5 py-2 md:px-4 font-body text-[0.55rem] md:text-[0.6rem]',
+                  'uppercase tracking-[0.2em] transition-colors duration-200 backdrop-blur',
+                  active
+                    ? 'border-transparent bg-coke-red text-off-white shadow-[0_0_18px_rgba(244,0,9,0.5)]'
+                    : 'border-off-white/30 bg-coke-black/40 text-off-white/70 hover:text-off-white hover:border-off-white/60',
+                ].join(' ')}
+              >
+                <span className="mr-1.5 opacity-60">{i + 1}</span>
+                {LABELS[id]}
+              </button>
+            );
+          })}
+        </nav>
       )}
     </div>
   );

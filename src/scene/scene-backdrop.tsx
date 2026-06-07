@@ -17,9 +17,8 @@ import { useNavigation } from './navigation-context';
 //      downward with slight horizontal drift. Visible only on chapter views.
 //
 // Palettes:
-//   exterior   — dark dusk evening sky, warm amber-burgundy horizon
-//   machine    — dim walnut interior warmth
-//   chapters   — original red atmospheric (role / tools / agent / takeaways)
+//   machine  — dusk Atlanta sky, warm amber-burgundy horizon (home/corner-block)
+//   chapters — original red atmospheric (role / tools / agent / takeaways)
 
 // ---------------------------------------------------------------------------
 // Palette definitions
@@ -31,16 +30,13 @@ interface GradientPalette {
   bot: THREE.Color;
 }
 
-const PALETTES: Record<'exterior' | 'machine' | 'chapter', GradientPalette> = {
-  exterior: {
+// Two palette modes: machine = dusk Atlanta sky (warm amber-burgundy),
+// chapters = original red atmospheric.
+const PALETTES: Record<'machine' | 'chapter', GradientPalette> = {
+  machine: {
     top: new THREE.Color('#1A1612'),
     mid: new THREE.Color('#3A2010'),
     bot: new THREE.Color('#0A0805'),
-  },
-  machine: {
-    top: new THREE.Color('#1A0F08'),
-    mid: new THREE.Color('#3A2A1C'),
-    bot: new THREE.Color('#0F0905'),
   },
   chapter: {
     top: new THREE.Color('#3A0006'),
@@ -50,7 +46,6 @@ const PALETTES: Record<'exterior' | 'machine' | 'chapter', GradientPalette> = {
 };
 
 function getPalette(view: string): GradientPalette {
-  if (view === 'exterior') return PALETTES.exterior;
   if (view === 'machine') return PALETTES.machine;
   return PALETTES.chapter;
 }
@@ -298,7 +293,7 @@ export function SceneBackdrop() {
 
   // Dust motes are chapter-only. Gate independent of reduced motion —
   // reduced motion governs animation freeze, not visibility.
-  const isChapterView = view !== 'exterior' && view !== 'machine';
+  const isChapterView = view !== 'machine';
 
   return (
     <>

@@ -134,8 +134,8 @@ export function FloatingProps() {
   });
 
   // Gate: red bottle caps + sparkles belong only in abstract chapter views.
-  // Exterior (1886 street) and machine (convenience store) should be clean.
-  if (view === 'exterior' || view === 'machine') return null;
+  // Machine (home/corner-block scene) should be clean.
+  if (view === 'machine') return null;
 
   return (
     <group>
