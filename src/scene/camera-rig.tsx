@@ -14,15 +14,14 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<ViewId, Pose> = {
-  // Home scene: across-the-street view of the Atlanta corner block. The
-  // Blender-generated block (after yup conversion) has the pharmacy facade
-  // at z≈+3.55, sidewalk at z=3.7-6.3, street at z=4-18. Camera backed off
-  // to z=22 at y=6 (adult eye level looking up at the 14m-tall facade) to
-  // frame the full 4-story pharmacy + the corner building + the gas lamps
-  // + the storefront awning + the JACOBS' PHARMACY sign + the vending
-  // machine on the sidewalk. Look target at the pharmacy mid-height
-  // (y≈6) on the facade plane (z≈+2).
-  machine:   { pos: [0, 6, 22],    look: [0, 6, 2] },
+  // Home scene: slight 3/4 angle view of the corner block. Offset left
+  // so the camera looks AT the corner where the pharmacy meets the
+  // perpendicular corner building. Block extends from x≈-13 to x≈+13;
+  // pharmacy door at x=0, corner of block at x≈+4. Camera at x=-3 frames
+  // the pharmacy front and corner building both visible. Lowered eye
+  // level (y=3) and tilted slightly up by looking at y=4 — period
+  // photograph composition.
+  machine:   { pos: [-3, 3, 18],   look: [3, 4, 2] },
   role:      { pos: [0, 0.1, 3.2], look: [0, 0,    0]   },
   tools:     { pos: [0, 0.8, 5.2], look: [0, 0,    0]   },
   agent:     { pos: [0, 0.3, 4.4], look: [0, 0,    0]   },

@@ -31,13 +31,14 @@ import { useSceneMixes } from './scene-transition-context';
 // world z≈+3.55 facing toward +Z (toward the camera). The sidewalk lives
 // just in front of the facade at z ∈ [3.7, 6.3]. Sidewalk top is at y=0.2.
 // Place the machine to the right of the pharmacy door (door at x≈0.6),
-// base flat on the sidewalk, angled slightly toward the camera.
-const MACHINE_POSITION: [number, number, number] = [2.4, 0.2, 5.0];
-const MACHINE_ROTATION: [number, number, number] = [0, Math.PI / 8, 0];
+// base flat on the sidewalk, facing straight toward the camera.
+const MACHINE_POSITION: [number, number, number] = [2.6, 0.2, 5.2];
+const MACHINE_ROTATION: [number, number, number] = [0, 0, 0];
 
-// JACOBS' PHARMACY signage sits just in front of the brick facade at z≈3.6,
-// above the second-floor windows so it reads as a hanging hand-painted sign.
-const SIGN_Y = 8.0;
+// JACOBS' PHARMACY signage sits just in front of the brick facade above
+// the awning. Default drei <Text> faces +Z which is where the camera is —
+// no rotation needed.
+const SIGN_Y = 4.2;
 const SIGN_Z = 3.7;
 
 type ChapterId = Exclude<ViewId, 'machine'>;
@@ -69,10 +70,9 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
           above the awning, below the second-floor windows */}
       <Text
         position={[0, SIGN_Y, SIGN_Z]}
-        rotation={[0, Math.PI, 0]}
-        fontSize={1.4}
+        fontSize={0.85}
         color="#D4A847"
-        outlineWidth={0.06}
+        outlineWidth={0.04}
         outlineColor="#5A3A12"
         anchorX="center"
         anchorY="middle"
@@ -83,11 +83,10 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
 
       {/* SODA · FOUNTAIN · DRUGS · 1886 — small subtitle below the main sign */}
       <Text
-        position={[0, SIGN_Y - 1.0, SIGN_Z]}
-        rotation={[0, Math.PI, 0]}
-        fontSize={0.42}
+        position={[0, SIGN_Y - 0.65, SIGN_Z]}
+        fontSize={0.28}
         color="#F1E9DA"
-        outlineWidth={0.02}
+        outlineWidth={0.015}
         outlineColor="#2A1A08"
         anchorX="center"
         anchorY="middle"
