@@ -23,10 +23,10 @@ export function PostprocessingStack({ performanceFactor = 1 }: Props) {
   if (!bloomEnabled) {
     return (
       <EffectComposer multisampling={4}>
-        <Vignette eskil={false} offset={0.3} darkness={0.85} />
+        <Vignette eskil={false} offset={0.3} darkness={0.90} />
         <Noise
           premultiply={false}
-          opacity={0.08}
+          opacity={0.06}
           blendFunction={BlendFunction.OVERLAY}
         />
       </EffectComposer>
@@ -36,15 +36,15 @@ export function PostprocessingStack({ performanceFactor = 1 }: Props) {
   return (
     <EffectComposer multisampling={4}>
       <Bloom
-        intensity={0.6}
-        luminanceThreshold={0.85}
+        intensity={0.30}
+        luminanceThreshold={0.93}
         luminanceSmoothing={0.025}
         mipmapBlur
       />
-      <Vignette eskil={false} offset={0.3} darkness={0.85} />
+      <Vignette eskil={false} offset={0.3} darkness={0.90} />
       <Noise
         premultiply={false}
-        opacity={0.08}
+        opacity={0.06}
         blendFunction={BlendFunction.OVERLAY}
       />
     </EffectComposer>

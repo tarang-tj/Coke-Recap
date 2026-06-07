@@ -13,7 +13,7 @@ export function SceneLighting() {
       {/* Hero key — warm cream from upper-left */}
       <directionalLight
         position={[-5, 8, 4]}
-        intensity={1.4}
+        intensity={0.85}
         color="#FFF6E0"
         castShadow
         shadow-mapSize-width={1024}
@@ -21,19 +21,19 @@ export function SceneLighting() {
       />
 
       {/* Soft fill — hemisphere wraps the world in brand palette */}
-      <hemisphereLight args={['#FF8A8A', '#3A0006', 0.35]} />
+      <hemisphereLight args={['#FF8A8A', '#3A0006', 0.22]} />
 
       {/* Brand accent rim — Coca-Cola red from behind-right-below */}
       <pointLight
         position={[4, -2, -3]}
-        intensity={1.8}
+        intensity={1.0}
         color="#F40009"
-        distance={9}
+        distance={7}
         decay={2}
       />
 
       {/* Subtle ambient lift — prevents pitch-black shadow areas */}
-      <ambientLight intensity={0.12} color="#FFEFE0" />
+      <ambientLight intensity={0.08} color="#FFEFE0" />
     </>
   );
 }
