@@ -14,11 +14,17 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<Exclude<ViewId, 'exterior'>, Pose> = {
-  machine:   { pos: [0, 0.2, 7.8], look: [0, 0.1, 0] },  // nostalgic upright machine
-  role:      { pos: [0, 0.1, 3.2], look: [0, 0, 0] },    // bottle cap, face-on
-  tools:     { pos: [0, 0.8, 5.2], look: [0, 0, 0] },    // chip ring
-  agent:     { pos: [0, 0.3, 4.4], look: [0, 0, 0] },    // energy core
-  takeaways: { pos: [0, 0.2, 5.5], look: [0, -0.1, 0] }, // hero contour bottle
+  // Machine hub: standing-eye-level view of the GLB vending machine.
+  // Machine base at y=0, top at y=5.6 (normalized), center at y=2.8.
+  // Camera at y=2.0 feels like looking at the machine at standing height.
+  // z=4.5 gives enough distance to see the full machine width + some store floor.
+  // Look target at y=2.5 — slightly above center so the coin slot + label rows
+  // are all visible without the top of the machine being cut off.
+  machine:   { pos: [0, 2.0, 4.5],  look: [0, 2.5,  0] },
+  role:      { pos: [0, 0.1, 3.2],  look: [0, 0,    0] }, // bottle cap, face-on
+  tools:     { pos: [0, 0.8, 5.2],  look: [0, 0,    0] }, // chip ring
+  agent:     { pos: [0, 0.3, 4.4],  look: [0, 0,    0] }, // energy core
+  takeaways: { pos: [0, 0.2, 5.5],  look: [0, -0.1, 0] }, // hero contour bottle
 };
 
 // Street-level pose looking at the brick-shop GLB corner block.
@@ -36,6 +42,8 @@ const _targetLook = new THREE.Vector3();
 // Mutable objects reused each frame (avoid allocations in useFrame).
 const _extPos  = new THREE.Vector3(...EXTERIOR_POSE.pos);
 const _extLook = new THREE.Vector3(...EXTERIOR_POSE.look);
+// These must stay in sync with POSES.machine — they're reused each frame
+// during the exterior→machine entry animation to avoid allocations in useFrame.
 const _machPos  = new THREE.Vector3(...POSES.machine.pos);
 const _machLook = new THREE.Vector3(...POSES.machine.look);
 

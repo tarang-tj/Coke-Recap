@@ -1,8 +1,8 @@
 /**
  * ConvenienceStore — GLB-driven convenience store interior environment.
  *
- * Wraps around the vending machine inside the pharmacy scene. The GLB is
- * 12 MB and may be Draco-compressed — decoder path is set at module scope.
+ * Wraps around the vending machine inside the pharmacy scene. The v2 GLB is
+ * 75 MB with higher detail — decoder path is set at module scope.
  *
  * Normalization:
  *   The GLB's bounding box is measured once; the inner group is scaled so the
@@ -19,9 +19,9 @@ import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-const STORE_URL = '/assets/models/convenience-store-interior.glb';
+const STORE_URL = '/assets/models/convenience-store-interior-v2.glb';
 
-// Set Draco decoder path before preload — the 12 MB GLB may be compressed.
+// Set Draco decoder path before preload — the 75 MB v2 GLB may be compressed.
 useGLTF.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 
 // Preload at module load — asset starts fetching the instant this file is imported.
