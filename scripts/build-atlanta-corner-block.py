@@ -363,20 +363,28 @@ def build_gas_lamp(x, y, materials):
 
 
 def build_street_and_sidewalk(materials):
-    """Cobblestone street + wooden plank sidewalk in front of the buildings."""
-    # Street (large flat plane)
-    add_plane(
-        "street",
-        (40.0, 14.0),
-        (0.0, 6.5, 0.0),
-        materials["cobble"],
-    )
-    # Sidewalk — narrow strip in front of pharmacy building
+    """
+    Cobblestone street + wooden plank sidewalk IN FRONT of the buildings.
+    Blender -Y direction is "forward" (toward camera in GLTF after yup
+    conversion), so the street and sidewalk live at more-negative Y values
+    than the pharmacy facade at Y=-3.55.
+    """
+    # Sidewalk — narrow strip between buildings and street, on the sidewalk side
+    # of the facade. Y=-5 puts it ~1.5 units in front of the facade.
     add_box(
         "sidewalk",
         (28.0, 2.6, 0.20),
-        (-2.0, -1.5, 0.10),
+        (-2.0, -5.0, 0.10),
         materials["wood_tan"],
+    )
+    # Street (large flat plane) — further forward, between sidewalk and the
+    # viewer. Y=-11 with width 14 puts it spanning Y from -18 to -4 (just
+    # past the sidewalk's front edge at Y=-6.3).
+    add_plane(
+        "street",
+        (40.0, 14.0),
+        (0.0, -11.0, 0.0),
+        materials["cobble"],
     )
 
 
@@ -414,8 +422,9 @@ def main():
     build_corner_building(x=7.0, z=-1.0, materials=materials)
     build_distant_building(x=-9.0, z=-1.5, materials=materials)
     build_street_and_sidewalk(materials)
-    build_gas_lamp(-3.5, -2.0, materials)
-    build_gas_lamp(3.5, -2.0, materials)
+    # Gas lamps on the sidewalk in front of the buildings (Y=-5 sidewalk)
+    build_gas_lamp(-3.5, -5.2, materials)
+    build_gas_lamp(3.5, -5.2, materials)
 
     # Ensure output dir exists
     out_dir = os.path.dirname(OUTPUT_PATH)

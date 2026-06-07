@@ -27,16 +27,18 @@ import type { ViewId } from './navigation-context';
 import { useSceneMixes } from './scene-transition-context';
 
 // ── Vending-machine placement on the sidewalk ────────────────────────────────
-// Pharmacy door is centered at x≈0.6, z≈-3.5. Sidewalk top is at y=0.2 and
-// spans z ∈ [-2.8, -0.2]. Place the machine to the right of the door, base
-// flat on the sidewalk, angled slightly toward the camera.
-const MACHINE_POSITION: [number, number, number] = [2.4, 0.2, -1.6];
-const MACHINE_ROTATION: [number, number, number] = [0, -Math.PI / 8, 0];
+// In the GLB (after Blender yup conversion), the pharmacy facade sits at
+// world z≈+3.55 facing toward +Z (toward the camera). The sidewalk lives
+// just in front of the facade at z ∈ [3.7, 6.3]. Sidewalk top is at y=0.2.
+// Place the machine to the right of the pharmacy door (door at x≈0.6),
+// base flat on the sidewalk, angled slightly toward the camera.
+const MACHINE_POSITION: [number, number, number] = [2.4, 0.2, 5.0];
+const MACHINE_ROTATION: [number, number, number] = [0, Math.PI / 8, 0];
 
-// JACOBS' PHARMACY signage sits above the awning (awning is at z≈-3.5, top
-// around y=3.5). The sign hangs flat against the brick facade.
-const SIGN_Y = 4.0;
-const SIGN_Z = -3.5;
+// JACOBS' PHARMACY signage sits just in front of the brick facade at z≈3.6,
+// above the second-floor windows so it reads as a hanging hand-painted sign.
+const SIGN_Y = 8.0;
+const SIGN_Z = 3.7;
 
 type ChapterId = Exclude<ViewId, 'machine'>;
 
@@ -66,24 +68,26 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
       {/* JACOBS' PHARMACY gold-leaf signage hanging on the brick facade,
           above the awning, below the second-floor windows */}
       <Text
-        position={[0, SIGN_Y, SIGN_Z + 0.06]}
-        fontSize={0.55}
+        position={[0, SIGN_Y, SIGN_Z]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={1.4}
         color="#D4A847"
-        outlineWidth={0.025}
+        outlineWidth={0.06}
         outlineColor="#5A3A12"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.06}
+        letterSpacing={0.08}
       >
         JACOBS&apos; PHARMACY
       </Text>
 
       {/* SODA · FOUNTAIN · DRUGS · 1886 — small subtitle below the main sign */}
       <Text
-        position={[0, SIGN_Y - 0.55, SIGN_Z + 0.06]}
-        fontSize={0.18}
+        position={[0, SIGN_Y - 1.0, SIGN_Z]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={0.42}
         color="#F1E9DA"
-        outlineWidth={0.008}
+        outlineWidth={0.02}
         outlineColor="#2A1A08"
         anchorX="center"
         anchorY="middle"
@@ -92,13 +96,14 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
         SODA · FOUNTAIN · DRUGS · 1886
       </Text>
 
-      {/* Warm fill light to lift the storefront in the dusk backdrop —
-          complements the two gas-lamp emissive globes baked into the GLB */}
+      {/* Warm fill light from the gas-lamp direction (sidewalk in front of
+          the pharmacy door) — complements the two emissive globes baked
+          into the GLB and lifts the storefront in the dusk backdrop. */}
       <pointLight
         color="#FFE4A0"
-        intensity={1.2}
-        position={[0, 2.5, -2.2]}
-        distance={6}
+        intensity={1.5}
+        position={[0, 4.5, 5.5]}
+        distance={9}
         decay={1.6}
       />
 

@@ -15,13 +15,14 @@ type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<ViewId, Pose> = {
   // Home scene: across-the-street view of the Atlanta corner block. The
-  // Blender-generated block has buildings reaching y≈14, street at y=0,
-  // sidewalk at y=0.2. Camera at y=4.5 (looking up at the storefront from
-  // adult eye level) backed off to z=11 to frame the full 4-story pharmacy
-  // facade + the corner building + the gas lamps. Look target at the
-  // pharmacy mid-height (y≈4) on the building face (z≈-2) so the awning,
-  // signage, and ground-floor storefront sit centrally in the frame.
-  machine:   { pos: [0, 4.5, 11],  look: [0, 4.0, -2.0] },
+  // Blender-generated block (after yup conversion) has the pharmacy facade
+  // at z≈+3.55, sidewalk at z=3.7-6.3, street at z=4-18. Camera backed off
+  // to z=22 at y=6 (adult eye level looking up at the 14m-tall facade) to
+  // frame the full 4-story pharmacy + the corner building + the gas lamps
+  // + the storefront awning + the JACOBS' PHARMACY sign + the vending
+  // machine on the sidewalk. Look target at the pharmacy mid-height
+  // (y≈6) on the facade plane (z≈+2).
+  machine:   { pos: [0, 6, 22],    look: [0, 6, 2] },
   role:      { pos: [0, 0.1, 3.2], look: [0, 0,    0]   },
   tools:     { pos: [0, 0.8, 5.2], look: [0, 0,    0]   },
   agent:     { pos: [0, 0.3, 4.4], look: [0, 0,    0]   },
