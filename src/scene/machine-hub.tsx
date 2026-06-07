@@ -32,8 +32,13 @@ export function MachineHub() {
       <JacobsPharmacy />
       {/* GLB-driven Coca-Cola vending machine — replaces the procedural VendingMachine.
           vending-machine.tsx is kept as a fallback but no longer mounted here. */}
+      {/* Machine position — base at world y=-3.0 (the store floor).
+          X=2.0, Z=-4.5 places the machine against the right-rear wall.
+          Slight inward rotation (-Math.PI/8) angles it toward the camera.
+          Tune X/Z here once the store layout is confirmed visually. */}
       <CocaColaVendingMachine
-        position={[0, 0, 0]}
+        position={[2.0, -3.0, -4.5]}
+        rotation={[0, -Math.PI / 8, 0]}
         onSelectChapter={(chapter) => setView(chapter)}
       />
     </group>

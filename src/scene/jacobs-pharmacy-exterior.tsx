@@ -5,6 +5,7 @@
  * GLB arranged as an L-shape corner block. Visible ONLY when
  * view === 'exterior' or during the entry dolly (entering === true).
  */
+import { Text } from '@react-three/drei';
 import { BrickShopBuilding } from './brand/brick-shop-building-gltf';
 import { useNavigation } from './navigation-context';
 
@@ -35,6 +36,37 @@ export function JacobsPharmacyExterior() {
         rotation={[0, Math.PI / 8, 0]}
         scale={0.85}
       />
+
+      {/* JACOBS' PHARMACY gold-leaf signage — positioned above the primary
+          building entrance. The primary building sits at position [0,-3,-4].
+          Sign y=1.4 world, z=-2.4 (slightly forward of the building face).
+          Tune y/z once the GLB entrance height is confirmed visually. */}
+      <Text
+        position={[0, 1.4, -2.4]}
+        fontSize={0.55}
+        color="#D4A847"
+        outlineWidth={0.025}
+        outlineColor="#5A3A12"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.06}
+      >
+        JACOBS&apos; PHARMACY
+      </Text>
+
+      {/* Subtitle — cream on dark, tight tracking for an 1886 apothecary look */}
+      <Text
+        position={[0, 0.85, -2.4]}
+        fontSize={0.18}
+        color="#F1E9DA"
+        outlineWidth={0.008}
+        outlineColor="#2A1A08"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.18}
+      >
+        SODA · FOUNTAIN · DRUGS · 1886
+      </Text>
 
       {/* Warm street-lamp glow at the storefront door */}
       <pointLight

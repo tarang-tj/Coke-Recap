@@ -14,13 +14,14 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<Exclude<ViewId, 'exterior'>, Pose> = {
-  // Machine hub: standing-eye-level view of the GLB vending machine.
-  // Machine base at y=0, top at y=5.6 (normalized), center at y=2.8.
-  // Camera at y=2.0 feels like looking at the machine at standing height.
-  // z=4.5 gives enough distance to see the full machine width + some store floor.
-  // Look target at y=2.5 — slightly above center so the coin slot + label rows
-  // are all visible without the top of the machine being cut off.
-  machine:   { pos: [0, 2.0, 4.5],  look: [0, 2.5,  0] },
+  // Machine hub: eye-level view of the Coke machine at world position [2, -3, -4.5].
+  // Machine base is at world y=-3.0, top at y=2.6 (base + TARGET_HEIGHT 5.6),
+  // center at world y=-0.2. Camera y=-0.8 is eye-height above the store floor.
+  // z=4.5 gives enough distance to see the full machine + INSERT COIN graphic.
+  // Look target matches the machine's world center (x=2.0, y≈0, z=-4.5).
+  // OrbitControls takes over once the entry transition ends — this pose is only
+  // used during the exterior→machine dolly and as the OrbitControls initial state.
+  machine:   { pos: [2.0, -0.8, 4.5], look: [2.0, 0.0, -4.5] },
   role:      { pos: [0, 0.1, 3.2],  look: [0, 0,    0] }, // bottle cap, face-on
   tools:     { pos: [0, 0.8, 5.2],  look: [0, 0,    0] }, // chip ring
   agent:     { pos: [0, 0.3, 4.4],  look: [0, 0,    0] }, // energy core
@@ -44,6 +45,7 @@ const _extPos  = new THREE.Vector3(...EXTERIOR_POSE.pos);
 const _extLook = new THREE.Vector3(...EXTERIOR_POSE.look);
 // These must stay in sync with POSES.machine — they're reused each frame
 // during the exterior→machine entry animation to avoid allocations in useFrame.
+// Values reflect the machine's new world position [2.0, -3.0, -4.5].
 const _machPos  = new THREE.Vector3(...POSES.machine.pos);
 const _machLook = new THREE.Vector3(...POSES.machine.look);
 
@@ -99,6 +101,12 @@ export function CameraRig() {
   useFrame(({ pointer, clock: _clock }, dt) => {
     const isStarted = startedRef.current;
     const currentView = viewRef.current;
+
+    // ── OrbitControls gate ─────────────────────────────────────────────
+    // When the user is in the machine view and the entry transition has
+    // finished, OrbitControls owns the camera. We early-return so the
+    // camera-rig's damp loop doesn't fight the orbit controls each frame.
+    if (currentView === 'machine' && !transition.current.active) return;
 
     // ── Entry animation: exterior → machine ────────────────────────────
     if (transition.current.active) {
