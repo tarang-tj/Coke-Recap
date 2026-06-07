@@ -1,16 +1,16 @@
 /**
  * CokeBottle — authentic contour-bottle 3-D asset.
  *
- * Phase B (reference-driven rebuild):
- *   - Clear glass (#DCE0DC, opacity 0.18) replacing Georgia green
- *   - Prominent caramel-brown liquid lathe inside (always rendered)
- *   - Meniscus highlight disc at liquid surface
- *   - NO red label band (contour silhouette is the brand identity)
- *   - Slimmer silhouette: max belly radius 0.24, H:D ~3.2:1
- *   - Crown cap with 21 crimped flutes + wordmark stamp (kept, resized to fit)
- *   - Optional upper-neck embossed wordmark (like real Coke bottles)
+ * Phase B (proportion fix + dark liquid + glass tint):
+ *   - Belly peak moved from y=0.44 → y=0.62 (40% from base, less elongated above)
+ *   - Near-black liquid (#0A0503) — real Coke reads dark through bottle glass
+ *   - Faint green-blue glass tint (#D0DDD2, opacity 0.22)
+ *   - Meniscus disc moved to y=0.96 (matches new liquid top)
+ *   - Upper-neck wordmark at y=1.20 (mid-neck cylinder)
+ *   - Neck ring torus at y=1.39 (new collar position)
+ *   - Crown cap with 21 crimped flutes + wordmark stamp (unchanged)
  *   - `interior` prop kept for API compat but liquid always renders (no-op)
- *   - `highlight` prop drives liquid emissiveIntensity (0.18 → 0.45)
+ *   - `highlight` prop drives liquid emissiveIntensity (0.05 → 0.18)
  *
  * Props interface unchanged — all consumers depend on these exact names:
  *   scale, lift, highlight, showLogo, customLabel, interior, reducedMotion,
@@ -25,19 +25,20 @@ import { buildBottleGeometrySet, buildLiquidGeometry, profileRadiusAt, buildCont
 
 // ---- Material color constants ----
 
-// Phase B: clear glass — near-transparent, slight gray tint
-const GLASS_COLOR = '#DCE0DC';        // very light gray, near clear
-const GLASS_RIB_COLOR = '#E8EBE8';    // slightly lighter for highlight ridge effect
+// Phase B: faint green-blue glass tint (real Coke bottle glass), opacity bumped to 0.22
+const GLASS_COLOR = '#D0DDD2';        // faint green-blue tint
+const GLASS_RIB_COLOR = '#DCE8DC';    // slightly lighter for highlight ridge effect
 
-// Liquid constants
-const LIQUID_COLOR = '#3D1E0F';       // deep caramel cola brown
-const LIQUID_EMISSIVE = '#3D1E0F';    // warm inner glow (same hue)
-const LIQUID_EMISSIVE_BASE = 0.18;    // base emissive intensity
-const LIQUID_EMISSIVE_HIGHLIGHT = 0.45; // emissive on highlight=1
+// Liquid constants — near-black (real Coke reads dark through bottle glass)
+const LIQUID_COLOR = '#0A0503';       // very dark, near-black
+const LIQUID_EMISSIVE = '#1A0D05';    // very subtle warm interior glow
+const LIQUID_EMISSIVE_BASE = 0.05;    // base emissive intensity (much darker than before)
+const LIQUID_EMISSIVE_HIGHLIGHT = 0.18; // emissive on highlight=1
 
-// Meniscus (liquid surface highlight)
-const MENISCUS_Y = 1.06;              // matches liquid top (yEnd in buildLiquidGeometry)
-const MENISCUS_R = 0.082;             // inset radius at y=1.05 from the slimmer profile
+// Meniscus (liquid surface highlight) — moved down to match new yEnd=0.96
+const MENISCUS_Y = 0.96;              // matches new liquid top (yEnd in buildLiquidGeometry)
+// MENISCUS_R derived from profileRadiusAt(profile, 0.96) - 0.012 inset → ~0.143
+// (computed at runtime below using the profile helper)
 
 // Crown cap geometry constants
 const CRIMP_COUNT = 21;
@@ -203,12 +204,14 @@ export function CokeBottle({
     m.emissiveIntensity += (target - m.emissiveIntensity) * Math.min(1, dt * 8);
   });
 
-  // Upper-neck embossed wordmark position — sit on bottle surface at y ≈ 0.95
+  // Profile used for all decoration position lookups
   const profile = useMemo(() => buildContourProfile(), []);
-  const neckEmbossZ = profileRadiusAt(profile, 0.95) + 0.005;
 
-  // Meniscus disc radius — profile radius at y=1.05, inset slightly
-  // (matches the liquid top surface)
+  // Upper-neck embossed wordmark — mid-neck cylinder at y=1.20
+  const neckEmbossZ = profileRadiusAt(profile, 1.20) + 0.005;
+
+  // Meniscus disc radius — profile radius at new yEnd=0.96, inset 0.012
+  const meniscusR = profileRadiusAt(profile, MENISCUS_Y) - 0.012;
 
   return (
     <group
@@ -232,9 +235,9 @@ export function CokeBottle({
         />
       </mesh>
 
-      {/* Meniscus highlight — thin disc at liquid top surface */}
+      {/* Meniscus highlight — thin disc at liquid top surface (y=0.96) */}
       <mesh position={[0, MENISCUS_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[MENISCUS_R, 24]} />
+        <circleGeometry args={[meniscusR, 24]} />
         <meshStandardMaterial
           color="#7A4519"
           emissive="#5A2F12"
@@ -254,7 +257,7 @@ export function CokeBottle({
           clearcoat={1}
           clearcoatRoughness={0.04}
           transparent
-          opacity={0.18}
+          opacity={0.22}
           side={THREE.DoubleSide}
           depthWrite={false}
         />
@@ -277,7 +280,7 @@ export function CokeBottle({
       {/* Upper-neck embossed wordmark — like real Coke bottles, subtle glass-color */}
       {customLabel ? (
         <Text
-          position={[0, 0.95, neckEmbossZ]}
+          position={[0, 1.20, neckEmbossZ]}
           fontSize={0.055}
           color="#E8EAE8"
           outlineWidth={0.003}
@@ -292,7 +295,7 @@ export function CokeBottle({
         </Text>
       ) : (
         <Text
-          position={[0, 0.95, neckEmbossZ]}
+          position={[0, 1.20, neckEmbossZ]}
           fontSize={0.055}
           color="#E8EAE8"
           outlineWidth={0.003}
@@ -307,18 +310,18 @@ export function CokeBottle({
         </Text>
       )}
 
-      {/* Neck ring — collar swell at y ≈ 1.34 per profile */}
-      <mesh position={[0, 1.340, 0]}>
-        <torusGeometry args={[0.111, 0.007, 8, 32]} />
+      {/* Neck ring — collar swell at y ≈ 1.39 per new profile (Phase B) */}
+      <mesh position={[0, 1.390, 0]}>
+        <torusGeometry args={[0.140, 0.007, 8, 32]} />
         <meshStandardMaterial color={GLASS_COLOR} roughness={0.2} metalness={0.1} />
       </mesh>
 
       {/* Crown cap — resized for slimmer neck (r=0.102 at top rim) */}
       <CrownCrimps logoTex={logoTex} showLogo={showLogo} />
 
-      {/* Base punt ring — foot ring at y ≈ 0.028, radius matches slimmer base */}
+      {/* Base punt ring — foot ring at y ≈ 0.028, radius matches new foot ring ~0.20 */}
       <mesh position={[0, 0.028, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.170, 0.012, 8, 32]} />
+        <torusGeometry args={[0.195, 0.012, 8, 32]} />
         <meshStandardMaterial color={GLASS_COLOR} roughness={0.4} metalness={0.15} />
       </mesh>
 
