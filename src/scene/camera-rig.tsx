@@ -14,10 +14,14 @@ import { useNavigation, type ViewId } from './navigation-context';
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
 const POSES: Record<ViewId, Pose> = {
-  // Home scene: street-level view of the corner block + vending machine on the
-  // sidewalk. Camera backed off to z=6.5 at eye level (y=0) to frame the full
-  // building facade. Look target slightly above street level toward the building.
-  machine:   { pos: [0, 0, 6.5],   look: [0, 0.5, -3.0] },
+  // Home scene: across-the-street view of the Atlanta corner block. The
+  // Blender-generated block has buildings reaching y≈14, street at y=0,
+  // sidewalk at y=0.2. Camera at y=4.5 (looking up at the storefront from
+  // adult eye level) backed off to z=11 to frame the full 4-story pharmacy
+  // facade + the corner building + the gas lamps. Look target at the
+  // pharmacy mid-height (y≈4) on the building face (z≈-2) so the awning,
+  // signage, and ground-floor storefront sit centrally in the frame.
+  machine:   { pos: [0, 4.5, 11],  look: [0, 4.0, -2.0] },
   role:      { pos: [0, 0.1, 3.2], look: [0, 0,    0]   },
   tools:     { pos: [0, 0.8, 5.2], look: [0, 0,    0]   },
   agent:     { pos: [0, 0.3, 4.4], look: [0, 0,    0]   },

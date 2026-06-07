@@ -1,36 +1,42 @@
 /**
  * JacobsPharmacyExterior — the ONE home scene.
  *
- * Atlanta downtown corner block, 1886. The Coca-Cola vending machine sits on
- * the sidewalk just to the right of the pharmacy door. This component owns:
- *   - Three brick-shop building instances (L-shape corner block)
- *   - JACOBS' PHARMACY signage
- *   - The vending machine on the sidewalk (with chapter-select callbacks)
- *   - Warm gas-lamp glow at the door
+ * Five Points Atlanta 1886. The Blender-generated atlanta-corner-block.glb
+ * contains the pharmacy + corner building + distant filler + cobblestone
+ * street + plank sidewalk + two gas lamps (emissive glass globes). On top
+ * of that we layer:
+ *   - JACOBS' PHARMACY gold-leaf signage above the storefront awning
+ *   - The Coca-Cola vending machine on the sidewalk right of the door
+ *   - A warm fill light to lift the storefront in the dusk backdrop
  *
- * Visible when view === 'machine'. Hidden during chapter views so their 3-D
- * motifs aren't competing with the street scene.
+ * Visible when view === 'machine'. Hidden during chapter views via the
+ * scene-transition mixer so the chapter motifs aren't competing.
  *
- * Machine sidewalk position constants (tune at top of file):
- *   MACHINE_POSITION — right of the pharmacy door, base on sidewalk at y=-3
- *   MACHINE_ROTATION — slight inward angle toward camera
+ * Block coordinate convention (matches the Blender source):
+ *   Y up. Pharmacy storefront at x=0, facade faces -Z. Street at y=0.
+ *   Sidewalk top at y=0.2. Pharmacy roofline at y≈14.
  */
+import { useRef } from 'react';
 import { Text } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+import { AtlantaCornerBlock } from './brand/atlanta-corner-block-gltf';
 import { CocaColaVendingMachine } from './brand/coca-cola-vending-machine-gltf';
-import { BrickShopBuilding } from './brand/brick-shop-building-gltf';
 import { useNavigation } from './navigation-context';
 import type { ViewId } from './navigation-context';
 import { useSceneMixes } from './scene-transition-context';
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
 
-// ── Machine placement constants ───────────────────────────────────────────────
-// Primary brick-shop is at world [0, -3, -4]. The pharmacy door faces the
-// camera roughly at x=0. Place the machine to the right of the door, base
-// on the sidewalk at y=-3.
-const MACHINE_POSITION: [number, number, number] = [1.5, -3.0, -2.0];
-const MACHINE_ROTATION: [number, number, number] = [0, -Math.PI / 12, 0];
+// ── Vending-machine placement on the sidewalk ────────────────────────────────
+// Pharmacy door is centered at x≈0.6, z≈-3.5. Sidewalk top is at y=0.2 and
+// spans z ∈ [-2.8, -0.2]. Place the machine to the right of the door, base
+// flat on the sidewalk, angled slightly toward the camera.
+const MACHINE_POSITION: [number, number, number] = [2.4, 0.2, -1.6];
+const MACHINE_ROTATION: [number, number, number] = [0, -Math.PI / 8, 0];
+
+// JACOBS' PHARMACY signage sits above the awning (awning is at z≈-3.5, top
+// around y=3.5). The sign hangs flat against the brick facade.
+const SIGN_Y = 4.0;
+const SIGN_Z = -3.5;
 
 type ChapterId = Exclude<ViewId, 'machine'>;
 
@@ -44,7 +50,7 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
   const groupRef = useRef<THREE.Group>(null);
 
   // Fade in/out with the machine mix so the exterior scene transitions
-  // smoothly alongside the vending machine group.
+  // smoothly alongside the chapter views.
   useFrame(() => {
     const g = groupRef.current;
     if (!g) return;
@@ -54,30 +60,13 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
 
   return (
     <group ref={groupRef} name="jacobs-pharmacy-exterior" visible={view === 'machine'}>
-      {/* Primary corner building — the pharmacy itself, fronting the camera */}
-      <BrickShopBuilding
-        position={[0, -3.0, -4.0]}
-        rotation={[0, 0, 0]}
-        scale={1.0}
-      />
+      {/* The Blender-generated 1886 corner block — buildings, street, sidewalk, gas lamps */}
+      <AtlantaCornerBlock position={[0, 0, 0]} />
 
-      {/* Neighboring building rotated 90° — establishes the corner block */}
-      <BrickShopBuilding
-        position={[5.5, -3.0, -4.5]}
-        rotation={[0, -Math.PI / 2, 0]}
-        scale={1.0}
-      />
-
-      {/* Distant building down the street — smaller scale, atmospheric depth */}
-      <BrickShopBuilding
-        position={[-7.0, -3.0, -6.5]}
-        rotation={[0, Math.PI / 8, 0]}
-        scale={0.85}
-      />
-
-      {/* JACOBS' PHARMACY gold-leaf signage — above the primary building entrance */}
+      {/* JACOBS' PHARMACY gold-leaf signage hanging on the brick facade,
+          above the awning, below the second-floor windows */}
       <Text
-        position={[0, 1.4, -2.4]}
+        position={[0, SIGN_Y, SIGN_Z + 0.06]}
         fontSize={0.55}
         color="#D4A847"
         outlineWidth={0.025}
@@ -89,9 +78,9 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
         JACOBS&apos; PHARMACY
       </Text>
 
-      {/* Subtitle — cream on dark, 1886 apothecary style */}
+      {/* SODA · FOUNTAIN · DRUGS · 1886 — small subtitle below the main sign */}
       <Text
-        position={[0, 0.85, -2.4]}
+        position={[0, SIGN_Y - 0.55, SIGN_Z + 0.06]}
         fontSize={0.18}
         color="#F1E9DA"
         outlineWidth={0.008}
@@ -103,13 +92,14 @@ export function JacobsPharmacyExterior({ onSelectChapter }: Props) {
         SODA · FOUNTAIN · DRUGS · 1886
       </Text>
 
-      {/* Warm gas-lamp glow at the storefront door */}
+      {/* Warm fill light to lift the storefront in the dusk backdrop —
+          complements the two gas-lamp emissive globes baked into the GLB */}
       <pointLight
         color="#FFE4A0"
-        intensity={1.4}
-        position={[0, 0.5, -2.5]}
-        distance={4}
-        decay={1.5}
+        intensity={1.2}
+        position={[0, 2.5, -2.2]}
+        distance={6}
+        decay={1.6}
       />
 
       {/* Vending machine on the sidewalk, right of the pharmacy door */}
