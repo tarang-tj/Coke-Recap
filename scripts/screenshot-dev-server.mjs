@@ -56,8 +56,9 @@ try {
   console.log(`[shot] waiting ${delayMs}ms for GLBs and first-render…`);
   await new Promise((r) => setTimeout(r, delayMs));
 
-  // Click "Press Start" (the gate button) if it's still up. Bypass the click
-  // if the button isn't present — the gate may already be down.
+  // Click "Press Start" (the gate button) if it's still up, then wait for the
+  // gate dialog element to unmount entirely so the screenshot isn't dimmed
+  // by the gate scrim.
   try {
     const clicked = await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'));
@@ -69,8 +70,19 @@ try {
       return false;
     });
     if (clicked) {
-      console.log(`[shot] clicked start gate; waiting another 1500ms for scene transition…`);
-      await new Promise((r) => setTimeout(r, 1500));
+      console.log(`[shot] clicked start gate; waiting for it to unmount…`);
+      // Wait up to 4s for the gate's [role=dialog] to be removed from the DOM.
+      try {
+        await page.waitForSelector('[role="dialog"][aria-label*="start"]', {
+          hidden: true,
+          timeout: 4000,
+        });
+      } catch {
+        // Gate may already be gone or selector mismatch — keep going.
+      }
+      // Extra settle time for any post-gate scene transition + GLB load.
+      // 2500ms is enough for the gate's CSS fadeout (600ms) plus a buffer.
+      await new Promise((r) => setTimeout(r, 2500));
     }
   } catch (e) {
     console.log(`[shot] start-gate click skipped: ${e.message}`);

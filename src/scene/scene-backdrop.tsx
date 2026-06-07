@@ -30,13 +30,14 @@ interface GradientPalette {
   bot: THREE.Color;
 }
 
-// Two palette modes: machine = dusk Atlanta sky (warm amber-burgundy),
-// chapters = original red atmospheric.
+// Two palette modes: machine = golden-hour Atlanta sky (deep dusk blue at
+// zenith → warm peach horizon → deep amber at the ground line), chapters =
+// original red atmospheric.
 const PALETTES: Record<'machine' | 'chapter', GradientPalette> = {
   machine: {
-    top: new THREE.Color('#1A1612'),
-    mid: new THREE.Color('#3A2010'),
-    bot: new THREE.Color('#0A0805'),
+    top: new THREE.Color('#2A3550'),  // deep dusk navy at zenith
+    mid: new THREE.Color('#E8835A'),  // warm peach horizon
+    bot: new THREE.Color('#5A2818'),  // amber-brown ground line silhouette
   },
   chapter: {
     top: new THREE.Color('#3A0006'),
@@ -60,9 +61,11 @@ function getPalette(view: string): GradientPalette {
 // ---------------------------------------------------------------------------
 
 const vertexShader = /* glsl */ `
-  varying float vY;
+  varying vec3 vDir;
   void main() {
-    vY = position.y;
+    // Normalize the world-space direction so the gradient is independent
+    // of sphere radius (was bug: assumed unit sphere but actual r=45).
+    vDir = normalize(position);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -71,19 +74,19 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uColorTop;
   uniform vec3 uColorMid;
   uniform vec3 uColorBot;
-  varying float vY;
+  varying vec3 vDir;
 
   void main() {
-    // Sphere local Y runs from -1 (bottom) to +1 (top).
-    // Remap to 0..1.
-    float t = clamp((vY + 1.0) * 0.5, 0.0, 1.0);
+    // Direction Y from south pole (-1) to north pole (+1) → remap 0..1
+    float t = clamp((vDir.y + 1.0) * 0.5, 0.0, 1.0);
 
-    // Two-segment vertical blend: bot → mid → top
+    // Two-segment vertical blend: bot → mid (horizon) → top.
+    // Horizon at t=0.50 — peach band sits at eye level.
     vec3 color;
-    if (t < 0.45) {
-      color = mix(uColorBot, uColorMid, t / 0.45);
+    if (t < 0.50) {
+      color = mix(uColorBot, uColorMid, t / 0.50);
     } else {
-      color = mix(uColorMid, uColorTop, (t - 0.45) / 0.55);
+      color = mix(uColorMid, uColorTop, (t - 0.50) / 0.50);
     }
 
     gl_FragColor = vec4(color, 1.0);
