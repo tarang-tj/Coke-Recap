@@ -435,6 +435,23 @@ export function ActAgent() {
           reduced={reduced}
         />
       ))}
+
+      {/* Historical brass plaque — front face of dispenser plinth base */}
+      <mesh position={[0, -0.78, 0.78]}>
+        <boxGeometry args={[0.78, 0.09, 0.015]} />
+        <meshStandardMaterial color="#8E7547" roughness={0.5} metalness={0.6} />
+      </mesh>
+      <Text
+        position={[0, -0.78, 0.793]}
+        fontSize={0.038}
+        color="#2A1A08"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.06}
+        font={undefined}
+      >
+        FIRST SERVED · JACOBS' PHARMACY · MAY 8, 1886
+      </Text>
     </group>
   );
 }

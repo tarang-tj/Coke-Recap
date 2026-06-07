@@ -326,6 +326,25 @@ export function ActRole() {
       >
         GLOBAL HUMAN INSIGHTS
       </Text>
+
+      {/* Historical brass plaque — upper-right corner of frame */}
+      <mesh position={[0.7, 1.30, 0.10]}>
+        <boxGeometry args={[0.65, 0.085, 0.015]} />
+        <meshStandardMaterial color="#8E7547" roughness={0.5} metalness={0.6} />
+      </mesh>
+
+      {/* Historical plaque text */}
+      <Text
+        position={[0.7, 1.30, 0.117]}
+        fontSize={0.028}
+        color="#2A1A08"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.06}
+        font={undefined}
+      >
+        CONTOUR BOTTLE · PATENTED 1915 · ROOT GLASS CO.
+      </Text>
     </group>
   );
 }

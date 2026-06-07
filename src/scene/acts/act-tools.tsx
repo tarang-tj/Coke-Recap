@@ -1,5 +1,6 @@
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
@@ -656,6 +657,24 @@ export function ActTools() {
 
         {/* Internal divider grid — 6×4 slots */}
         <CrateDividers />
+
+        {/* Historical brass plaque — front wall (-Z, faces camera at idle pose) */}
+        <mesh position={[0, -CRATE_H * 0.20, -(CRATE_D / 2 + 0.020)]}>
+          <boxGeometry args={[1.0, 0.10, 0.015]} />
+          <meshStandardMaterial color="#8E7547" roughness={0.5} metalness={0.6} />
+        </mesh>
+        <Text
+          position={[0, -CRATE_H * 0.20, -(CRATE_D / 2)]}
+          rotation={[0, Math.PI, 0]}
+          fontSize={0.045}
+          color="#2A1A08"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.06}
+          font={undefined}
+        >
+          FIRST BOTTLED 1894 · JOSEPH BIEDENHARN · VICKSBURG MS
+        </Text>
 
         {/* 6 bottles in selected slots */}
         {BOTTLE_SLOTS.map(([col, row], i) => (
