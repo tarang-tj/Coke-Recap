@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { useLogoTexture } from '../../hooks/use-logo-texture';
 import { CokeBottle } from './coke-bottle';
+import { BottleGltf } from './bottle-gltf';
 
 export type MachineItemId = 'role' | 'tools' | 'agent' | 'takeaways';
 
@@ -99,10 +100,9 @@ function BottleSlot({
       onPointerOut={(e) => { e.stopPropagation(); onHoverEnd(); }}
       onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
     >
-      <CokeBottle
+      <BottleGltf
         scale={0.58}
         highlight={isHovered ? 1 : 0.2}
-        showLogo
       />
       <Text
         position={[0, -0.22, 0.15]}

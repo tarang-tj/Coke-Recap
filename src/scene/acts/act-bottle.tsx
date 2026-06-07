@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PresentationControls } from '@react-three/drei';
 import { useSceneMixes } from '../scene-transition-context';
-import { CokeBottle } from '../brand/coke-bottle';
+import { BottleGltf } from '../brand/bottle-gltf';
 
 // Act 4 — Takeaways: hero contour bottle with drag-to-orbit.
 
@@ -44,7 +44,7 @@ export function ActBottle() {
         polar={[-0.35, 0.35]}
         azimuth={[-0.5, 0.5]}
       >
-        <CokeBottle scale={1} highlight={0.6} showLogo />
+        <BottleGltf scale={1} highlight={0.6} />
       </PresentationControls>
     </group>
   );

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useSceneMixes } from '../scene-transition-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { tools } from '../../data/portfolio-content';
-import { CokeBottle } from '../brand/coke-bottle';
+import { BottleGltf } from '../brand/bottle-gltf';
 
 // Act 2 — Tools: wooden Coca-Cola bottle crate still-life
 //
@@ -493,8 +493,8 @@ function BottleInCrate({ toolName, col, row, rotJitter, tagTex }: BottleInCrateP
 
   return (
     <group position={[cx, baseY, cz]} rotation={[0, rotJitter, 0]}>
-      {/* The Coke bottle — scale 0.7, trademark wordmark on label */}
-      <CokeBottle scale={0.7} showLogo={true} highlight={0.1} />
+      {/* The Coke bottle — scale 0.7, GLB asset with neck-tag decoration below */}
+      <BottleGltf scale={0.7} highlight={0.1} />
 
       {/* Twine ring around neck — at y ≈ 0.7 * 1.31 = 0.917 in local space */}
       <mesh position={[0, 0.917, 0]}>
