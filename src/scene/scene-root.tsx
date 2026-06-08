@@ -1,10 +1,9 @@
 import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Environment, ContactShadows } from '@react-three/drei';
+import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Environment } from '@react-three/drei';
 import { CameraRig } from './camera-rig';
 import { SceneLighting } from './scene-lighting';
 import { SceneBackdrop } from './scene-backdrop';
-import { FloatingProps } from './brand/floating-props';
 import { PostprocessingStack } from './postprocessing-stack';
 
 // Persistent <Canvas> — mounted once, never unmounted.
@@ -22,7 +21,7 @@ export function SceneRoot({ children }: Props) {
 
   return (
     <Canvas
-      camera={{ position: [0, 0.3, 6], fov: 55, near: 0.05, far: 80 }}
+      camera={{ position: [-8, 7, -34], fov: 55, near: 0.5, far: 400 }}
       dpr={[1, 1.5]}
       gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
     >
@@ -34,25 +33,13 @@ export function SceneRoot({ children }: Props) {
       <AdaptiveEvents />
 
       <Suspense fallback={null}>
-        {/* HDR environment — warehouse preset for chrome/glass reflections.
-            background={false} so our custom SceneBackdrop wins visually. */}
+        {/* HDR environment — warehouse preset for chrome/glass/brass
+            reflections on the fountain + vending machine. background={false}
+            so our custom SceneBackdrop sky wins visually. */}
         <Environment preset="warehouse" background={false} />
-
-        {/* Ground shadow plane — soft contact shadows for the Role frame
-            (which has no built-in floor). Tools and Agent have their own
-            procedural ground planes (planks + tile) at higher y, so the
-            shadow here lives below the visible frame for all three acts. */}
-        <ContactShadows
-          position={[0, -1.45, 0]}
-          opacity={0.5}
-          blur={2.8}
-          far={4}
-          resolution={512}
-        />
 
         <CameraRig />
         <SceneBackdrop />
-        <FloatingProps />
         <SceneLighting />
         {children}
         <PostprocessingStack performanceFactor={perfFactor} />

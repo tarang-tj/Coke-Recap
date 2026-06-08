@@ -10,12 +10,13 @@ import {
 import { useExperience } from './experience-context';
 
 // Navigation is a small state machine (NOT scroll). The "machine" view is the
-// vending-machine hub; the four chapter views are reached by selecting a bottle
-// (or keys 1-4 / arrows), and ESC returns to the hub.
+// home scene (corner block + vending machine outside); the four chapter views
+// are reached by selecting a bottle (or keys 1-4 / arrows), and ESC returns home.
 
 export type ViewId = 'machine' | 'role' | 'tools' | 'agent' | 'takeaways';
 
 // Chapter order for prev/next + the 1-4 number keys.
+// 'machine' is excluded — chapters are the four act views only.
 export const CHAPTERS: Exclude<ViewId, 'machine'>[] = ['role', 'tools', 'agent', 'takeaways'];
 
 export interface NavState {
@@ -40,10 +41,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   const goHome = useCallback(() => setView('machine'), []);
 
+  type ChapterId = Exclude<ViewId, 'machine'>;
+
   const next = useCallback(() => {
     setView((v) => {
       if (v === 'machine') return CHAPTERS[0];
-      const i = CHAPTERS.indexOf(v as Exclude<ViewId, 'machine'>);
+      const i = CHAPTERS.indexOf(v as ChapterId);
       return CHAPTERS[Math.min(CHAPTERS.length - 1, i + 1)];
     });
   }, []);
@@ -51,7 +54,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const prev = useCallback(() => {
     setView((v) => {
       if (v === 'machine') return 'machine';
-      const i = CHAPTERS.indexOf(v as Exclude<ViewId, 'machine'>);
+      const i = CHAPTERS.indexOf(v as ChapterId);
       return i <= 0 ? 'machine' : CHAPTERS[i - 1];
     });
   }, []);
@@ -77,7 +80,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [started, goHome, next, prev]);
 
-  const value = useMemo<NavState>(() => ({ view, setView, goHome, next, prev }), [view, goHome, next, prev]);
+  const value = useMemo<NavState>(
+    () => ({ view, setView, goHome, next, prev }),
+    [view, goHome, next, prev],
+  );
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
 }

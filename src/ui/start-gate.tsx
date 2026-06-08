@@ -120,6 +120,11 @@ export function StartGate() {
         <p className="mt-4 font-body text-[0.42rem] uppercase tracking-[0.45em] text-off-white/25 select-none">
           1886&ensp;•&ensp;atlanta&ensp;•&ensp;invented by john&nbsp;s. pemberton
         </p>
+
+        {/* Music attribution (CC BY 3.0 requires credit) */}
+        <p className="mt-6 font-body text-[0.4rem] uppercase tracking-[0.4em] text-off-white/20 select-none">
+          music — “jingle bells” · kevin macleod · incompetech.com · cc&nbsp;by&nbsp;3.0
+        </p>
       </div>
     </>
   );
