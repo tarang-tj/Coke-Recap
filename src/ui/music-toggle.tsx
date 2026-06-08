@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '../scene/experience-context';
 
-// Festive background music + on/off toggle. The track ("Jingle Bells" by Kevin
-// MacLeod, CC BY 3.0 — attributed on the start gate) loops quietly to match the
-// Coca-Cola holiday vibe. Browsers block autoplay-with-sound until a user
-// gesture, so playback only starts after Press Start; the toggle persists the
-// listener's choice across visits.
+// Background music + on/off toggle. The track ("Fig Leaf Times Two" by Kevin
+// MacLeod, CC BY 3.0 — attributed on the start gate) is a light old-timey
+// ragtime that matches the 1886 soda-fountain setting. Browsers block
+// autoplay-with-sound until a user gesture, so playback only starts after
+// Press Start; the toggle persists the listener's choice across visits.
 
-const SRC = '/assets/audio/festive.mp3';
+const SRC = '/assets/audio/ambient-ragtime.m4a';
 const KEY = 'coke-recap:music';
 
 export function MusicToggle() {
@@ -54,8 +54,8 @@ export function MusicToggle() {
     <button
       onClick={() => setOn((v) => !v)}
       aria-pressed={on}
-      aria-label={`Toggle festive music. Currently ${on ? 'on' : 'off'}.`}
-      title="Music: “Jingle Bells” — Kevin MacLeod (incompetech.com), CC BY 3.0"
+      aria-label={`Toggle music. Currently ${on ? 'on' : 'off'}.`}
+      title="Music: “Fig Leaf Times Two” — Kevin MacLeod (incompetech.com), CC BY 3.0"
       className="fixed bottom-16 left-4 z-40 rounded-full border border-cream/20 bg-coke-black/40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 backdrop-blur transition hover:border-cream/40 hover:text-cream"
     >
       {on ? '♪ Music: On' : '♪ Music: Off'}
