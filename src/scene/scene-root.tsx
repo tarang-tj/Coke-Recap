@@ -1,4 +1,5 @@
 import { Suspense, useState } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Environment } from '@react-three/drei';
 import { CameraRig } from './camera-rig';
@@ -24,6 +25,13 @@ export function SceneRoot({ children }: Props) {
       camera={{ position: [-8, 7, -34], fov: 55, near: 0.5, far: 400 }}
       dpr={[1, 1.5]}
       gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
+      // ACES filmic + a touch under 1.0 exposure recovers the blown cream
+      // facades and deepens the golden-hour grade (the scene was lit slightly
+      // hot; this reins in the highlights without crushing shadows).
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 0.85;
+      }}
     >
       <PerformanceMonitor
         onChange={({ factor }) => setPerfFactor(factor)}

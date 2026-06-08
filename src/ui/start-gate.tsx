@@ -123,7 +123,7 @@ export function StartGate() {
 
         {/* Music attribution (CC BY 3.0 requires credit) */}
         <p className="mt-6 font-body text-[0.4rem] uppercase tracking-[0.4em] text-off-white/20 select-none">
-          music — “jingle bells” · kevin macleod · incompetech.com · cc&nbsp;by&nbsp;3.0
+          music — “fig leaf times two” · kevin macleod · incompetech.com · cc&nbsp;by&nbsp;3.0
         </p>
       </div>
     </>

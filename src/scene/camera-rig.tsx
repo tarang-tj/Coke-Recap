@@ -26,9 +26,10 @@ type Pose = { pos: [number, number, number]; look: [number, number, number] };
 //   Pharmacy center ≈ (0, 6, -2)   soda fountain ≈ (2.6, 1.0, -1.5)
 //   vending machine ≈ (3.6, 0.8, -5.9)   delivery wagon ≈ (32, 1.1, -13.5)
 const POSES: Record<ViewId, Pose> = {
-  // Home: wide establishing hero of the pharmacy facade with the street and
-  // traffic (wagon at z≈-14) reading as foreground depth.
-  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]    },
+  // Home: a 3/4 establishing hero that still reads the pharmacy facade + street
+  // depth, but pulled in and biased right so the Coca-Cola vending machine
+  // (≈3.6,0.8,-5.9) is a clear, clickable focal point rather than a distant speck.
+  machine:   { pos: [0.4, 2.5, -14], look: [3.4, 1.0, -5.9] },
   // Role: intimate storefront — look toward the glowing soda fountain where
   // Coca-Cola was first served.
   role:      { pos: [2.6, 2.4, -12], look: [2.6, 1.6, -2]  },
