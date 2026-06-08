@@ -58,12 +58,12 @@ const RED_LETTER_DECALS = [
   'Car_ad_m', // motorcar side ad — cream backing
   'Barrel_lbl_m', // barrel/crate label — cream backing
   'Win_poster_m', // storefront window poster — light glass
+  'Vend_logo_m', // vending machine header — light/cream panel (like its ICE COLD sign)
 ];
 // Red/dark backings would render red-on-red, so re-tint the letters white for
 // the iconic red-ground / white-script look.
 const WHITE_LETTER_DECALS = [
   'Btn_logo_m', // round button medallion — red disc
-  'Vend_logo_m', // vending machine front — red body
   'Coke_fascia_m', // storefront awning fascia — red awning
 ];
 // `Coke_ghost_m` (rear-facade mural) is intentionally omitted — it never faces
