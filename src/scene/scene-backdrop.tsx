@@ -46,9 +46,11 @@ const PALETTES: Record<'machine' | 'chapter', GradientPalette> = {
   },
 };
 
-function getPalette(view: string): GradientPalette {
-  if (view === 'machine') return PALETTES.machine;
-  return PALETTES.chapter;
+// The diorama is one continuous golden-hour world; every vantage shares the
+// same Atlanta dusk sky (the per-chapter red palette belonged to the old
+// abstract scene and is no longer used).
+function getPalette(_view: string): GradientPalette {
+  return PALETTES.machine;
 }
 
 // ---------------------------------------------------------------------------
@@ -294,19 +296,17 @@ export function SceneBackdrop() {
 
   useEffect(() => () => shaderMaterial.dispose(), [shaderMaterial]);
 
-  // Dust motes are chapter-only. Gate independent of reduced motion —
-  // reduced motion governs animation freeze, not visibility.
-  const isChapterView = view !== 'machine';
-
   return (
     <>
-      {/* Inverted skydome — shader-based vertical gradient, view-aware palette */}
+      {/* Inverted skydome — large enough to enclose the whole diorama
+          (extends to z≈107, x≈±120) so far buildings and the skyline read
+          against the dusk gradient rather than clipping through it. */}
       <mesh renderOrder={-1} frustumCulled={false} material={shaderMaterial}>
-        <sphereGeometry args={[45, 32, 32]} />
+        <sphereGeometry args={[320, 32, 32]} />
       </mesh>
 
-      {/* Atmospheric dust motes — visible on chapter views only */}
-      <DustParticles visible={isChapterView} />
+      {/* Floating dust motes drifting through the golden-hour light. */}
+      <DustParticles visible />
     </>
   );
 }

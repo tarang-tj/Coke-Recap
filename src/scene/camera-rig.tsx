@@ -1,31 +1,52 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { damp3 } from 'maath/easing';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 import { useExperience } from './experience-context';
 import { useNavigation, type ViewId } from './navigation-context';
+import { useRecap } from './recap/recap-context';
 
 // Camera rig — ALL camera motion lives here. View-driven (no scroll): the camera
 // flies between the home scene (machine view) and each chapter "stage" as the
 // nav view changes. Before PRESS START it holds the home pose; clicking the gate
 // simply removes it (no entry dolly animation needed).
+//
+// Two overrides layer on top of the nav poses:
+//   - recap focus: while the vending-machine recap is running, the camera holds
+//     a close pose on the machine so the coin/bottle dispense is centre-frame.
+//   - free-look: dragging on the home view pans the look target a little, so
+//     the visitor can glance around the diorama.
 
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
 
+// All vantage points live in the diorama's native world coordinates. The
+// building block runs along X with every facade facing -Z (the street side),
+// so the camera always sits on the -Z side looking back toward +Z.
+//   Pharmacy center ≈ (0, 6, -2)   soda fountain ≈ (2.6, 1.0, -1.5)
+//   vending machine ≈ (3.6, 0.8, -5.9)   delivery wagon ≈ (32, 1.1, -13.5)
 const POSES: Record<ViewId, Pose> = {
-  // Home scene: hero-bottle composition. The giant Coca-Cola contour
-  // bottle on the marble pedestal sits at world (0, 1.4, 6.8) reaching
-  // y≈7.6 at its cap. Camera offset slightly right (x=2) at slightly
-  // above eye level (y=4) backed off to z=20 to frame the hero bottle
-  // dead-center with the pharmacy looming behind. Look target hits
-  // the bottle's mid-label height (y≈4) at its world position (z=6.8).
-  machine:   { pos: [2, 4, 20],    look: [0, 4, 6.8] },
-  role:      { pos: [0, 0.1, 3.2], look: [0, 0,    0]   },
-  tools:     { pos: [0, 0.8, 5.2], look: [0, 0,    0]   },
-  agent:     { pos: [0, 0.3, 4.4], look: [0, 0,    0]   },
-  takeaways: { pos: [0, 0.2, 5.5], look: [0, -0.1, 0]   },
+  // Home: wide establishing hero of the pharmacy facade with the street and
+  // traffic (wagon at z≈-14) reading as foreground depth.
+  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]    },
+  // Role: intimate storefront — look toward the glowing soda fountain where
+  // Coca-Cola was first served.
+  role:      { pos: [2.6, 2.4, -12], look: [2.6, 1.6, -2]  },
+  // Stack: the Coca-Cola vending machine + delivery crates on the sidewalk.
+  tools:     { pos: [7, 2.4, -12.5], look: [3.7, 1.0, -5.9] },
+  // Agent: a low axial view straight down the street past the lamp-lined facades.
+  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.3, -15.5] },
+  // Takeaways: grand pull-back over the whole block at golden hour.
+  takeaways: { pos: [0, 17, -50],    look: [0, 6, -4]      },
 };
+
+// Close focus on the vending machine — frames the coin slot + the bottle's hero
+// pose (≈ 4.35, 0.74, -7.8) on the right so the recap panel reads on the left.
+const RECAP_POSE: Pose = { pos: [3.4, 1.6, -11.6], look: [3.95, 1.55, -8.4] };
+
+// How far a full drag pans the look target (world units).
+const FREE_LOOK_X = 2.6;
+const FREE_LOOK_Y = 1.3;
 
 const _targetPos  = new THREE.Vector3();
 const _targetLook = new THREE.Vector3();
@@ -35,12 +56,52 @@ export function CameraRig() {
   const reduced = useReducedMotion();
   const { started } = useExperience();
   const { view } = useNavigation();
+  const { phase } = useRecap();
 
   // Mirror reactive values into refs so useFrame never reads a stale closure.
   const startedRef = useRef(started);
   startedRef.current = started;
   const viewRef = useRef<ViewId>(view);
   viewRef.current = view;
+  const recapActiveRef = useRef(phase !== 'idle');
+  recapActiveRef.current = phase !== 'idle';
+
+  // Accumulated, clamped free-look offset in [-1, 1] per axis.
+  const drag = useRef({ x: 0, y: 0 });
+
+  // Pointer-drag free-look: only meaningful when exploring (recap idle). A plain
+  // click (the hotspot) moves the pointer ~0px, so it won't perturb the view.
+  useEffect(() => {
+    let down = false;
+    const onDown = () => {
+      if (!startedRef.current || recapActiveRef.current) return;
+      down = true;
+    };
+    const onUp = () => {
+      down = false;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!down || reduced) return;
+      drag.current.x = THREE.MathUtils.clamp(
+        drag.current.x + e.movementX / window.innerWidth,
+        -1,
+        1,
+      );
+      drag.current.y = THREE.MathUtils.clamp(
+        drag.current.y + e.movementY / window.innerHeight,
+        -1,
+        1,
+      );
+    };
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointermove', onMove);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointermove', onMove);
+    };
+  }, [reduced]);
 
   const smoothLook = useRef(new THREE.Vector3(
     POSES.machine.look[0],
@@ -51,17 +112,22 @@ export function CameraRig() {
   useFrame(({ pointer }, dt) => {
     const currentView = viewRef.current;
     const isStarted = startedRef.current;
+    const recapActive = recapActiveRef.current;
 
-    const pose = POSES[currentView];
+    const pose = recapActive ? RECAP_POSE : POSES[currentView];
 
     _targetPos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
     _targetLook.set(pose.look[0], pose.look[1], pose.look[2]);
 
-    // Mouse parallax — only once started and not on the home/machine view,
-    // and not under reduced motion.
-    if (isStarted && !reduced && currentView !== 'machine') {
-      _targetPos.x += pointer.x * 0.3;
-      _targetPos.y += pointer.y * 0.2;
+    if (isStarted && !reduced && !recapActive) {
+      // Mouse parallax — chapter views only (home stays locked for the CTA).
+      if (currentView !== 'machine') {
+        _targetPos.x += pointer.x * 1.4;
+        _targetPos.y += pointer.y * 0.9;
+      }
+      // Free-look pan — drag to glance around the diorama.
+      _targetLook.x += drag.current.x * FREE_LOOK_X;
+      _targetLook.y -= drag.current.y * FREE_LOOK_Y;
     }
 
     const lambda = reduced ? 1000 : 3.2;

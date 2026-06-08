@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { useNavigation, CHAPTERS, type ViewId } from '../scene/navigation-context';
+import { useRecap } from '../scene/recap/recap-context';
 import { Logo } from './brand/logo';
 import { RoleSection } from './sections/role-section';
 import { ToolsSection } from './sections/tools-section';
@@ -28,6 +29,7 @@ const LABELS: Record<ChapterId, string> = {
 
 export function ChapterOverlay() {
   const { view, setView, goHome } = useNavigation();
+  const { phase } = useRecap();
   const isMachine = view === 'machine';
   const Section = isMachine ? null : SECTIONS[view as ChapterId];
   const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
@@ -80,14 +82,14 @@ export function ChapterOverlay() {
         </div>
       )}
 
-      {/* Machine-view prompt */}
-      {isMachine && (
+      {/* Machine-view prompt — hidden once the recap sequence is running */}
+      {isMachine && phase === 'idle' && (
         <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-2 text-center">
           <p className="font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white/80">
-            Select a chapter
+            Click the Coca-Cola machine
           </p>
           <p className="font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45">
-            click a bottle or button · keys 1&ndash;4 · arrows
+            drag to look around · keys 1&ndash;4 for chapters
           </p>
         </div>
       )}
