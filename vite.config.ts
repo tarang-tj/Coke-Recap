@@ -9,22 +9,24 @@ export default defineConfig({
     target: 'es2020',
     sourcemap: false,
     // The `three` chunk is ~850 KB by nature (vendor engine code, long-cached);
-    // raise the warning bar above it so intentional vendor splits stay quiet.
+    // raise the warning bar above it so the intentional vendor split stays quiet.
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        // Split heavy, stable vendor code into long-cached chunks so app-code
-        // edits don't bust the (large) three.js / R3F download on repeat visits.
+        // Split ONLY three.js (the ~850 KB engine) into its own long-cached
+        // chunk. three has no React dependency, so isolating it is safe.
+        //
+        // Do NOT also split react / react-dom / @react-three into separate
+        // chunks: that reorders module init across chunks and React ends up
+        // `undefined` at first use ("Cannot read properties of undefined
+        // (reading 'useState')"), crashing the whole app in the production
+        // build (dev is unaffected — it doesn't apply manualChunks). Keeping
+        // the React ecosystem in the default entry chunk preserves Rollup's
+        // correct dependency ordering.
         manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          if (id.includes('/three/') || id.includes('/three-stdlib/')) return 'three';
-          if (
-            id.includes('@react-three') ||
-            id.includes('/postprocessing/') ||
-            id.includes('/maath/')
-          )
-            return 'r3f';
-          if (id.includes('/react') || id.includes('/scheduler/')) return 'react';
+          if (id.includes('node_modules/three/') || id.includes('node_modules/three-stdlib/')) {
+            return 'three';
+          }
         },
       },
     },
