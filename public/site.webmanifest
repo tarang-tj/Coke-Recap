@@ -1,0 +1,13 @@
+{
+  "name": "Coke-Recap — Tarang Jammalamadaka",
+  "short_name": "Coke-Recap",
+  "description": "An interactive 3D recap of a Global Human Insights internship at Coca-Cola — step into 1886 Atlanta where it all began.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1B1B1B",
+  "theme_color": "#1B1B1B",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

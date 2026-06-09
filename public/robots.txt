@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://coke-recap.vercel.app/sitemap.xml
