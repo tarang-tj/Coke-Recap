@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '../scene/experience-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { hero } from '../data/portfolio-content';
 
 // Full-screen intro gate. The 3-D world renders behind the translucent scrim.
 // Dismissible by: button click, Enter/Space keydown, or wheel/touchmove.
@@ -83,9 +84,10 @@ export function StartGate() {
       <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-end pb-[20vh]"
         style={{
-          // Light radial scrim: bright red world + glowing logo show through;
-          // edges darkened just enough for the gate text to stay legible.
-          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.45) 100%)',
+          // Vertical scrim — light up top so the diorama tease shows through,
+          // heavy at the bottom where the name + PRESS START sit (they were
+          // unreadable straight over the cream pharmacy facade).
+          background: 'linear-gradient(180deg, rgba(18,3,5,0.30) 0%, rgba(18,3,5,0.46) 55%, rgba(18,3,5,0.90) 100%)',
           opacity: started ? 0 : 1,
           pointerEvents: started ? 'none' : 'auto',
           transition: reduced ? 'none' : 'opacity 0.5s ease',
@@ -95,6 +97,18 @@ export function StartGate() {
         aria-modal="true"
         aria-label="Experience start gate"
       >
+        {/* Who + what — the gate is the first frame a visitor sees, so it
+            carries the name and role instead of being an anonymous black
+            screen with a lone button. */}
+        <div className="mb-12 text-center px-6">
+          <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight text-off-white">
+            {hero.name}
+          </h1>
+          <p className="mt-3 font-body text-[0.62rem] md:text-[0.7rem] uppercase tracking-[0.4em] text-off-white/80">
+            {hero.role} · {hero.org}
+          </p>
+        </div>
+
         {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo) */}
         <button
           onClick={start}

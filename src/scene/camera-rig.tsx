@@ -31,13 +31,17 @@ const POSES: Record<ViewId, Pose> = {
   // a small part of the wider scene — the pulsing beacon (see VendingHotspot)
   // is what draws the eye to it, not the camera framing.
   machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]    },
-  // Role: intimate storefront — look toward the glowing soda fountain where
-  // Coca-Cola was first served.
-  role:      { pos: [2.6, 2.4, -12], look: [2.6, 1.6, -2]  },
+  // Role: three-quarter view of the pharmacy storefront — the diagonal gives
+  // the facade depth (the old straight-on framing put the faceless pedestrians
+  // dead centre and flattened the building).
+  role:      { pos: [-4.5, 2.2, -10.5], look: [2.2, 1.8, -2.5] },
   // Stack: the Coca-Cola vending machine + delivery crates on the sidewalk.
   tools:     { pos: [7, 2.4, -12.5], look: [3.7, 1.0, -5.9] },
-  // Agent: a low axial view straight down the street past the lamp-lined facades.
-  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.3, -15.5] },
+  // Agent: a tree-lined diagonal down the working street — wagon and traffic
+  // as midground life, facades receding. (Close-ups of the horse are off the
+  // table: its neck/head are baked with a broken transform and it reads as a
+  // headless box from near range. The old axial view was an empty void.)
+  agent:     { pos: [38.5, 2.6, -20], look: [26, 1.2, -12] },
   // Takeaways: grand pull-back over the whole block at golden hour.
   takeaways: { pos: [0, 17, -50],    look: [0, 6, -4]      },
 };

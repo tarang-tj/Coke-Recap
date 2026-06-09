@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRecap } from '../../scene/recap/recap-context';
-import { hero, role } from '../../data/portfolio-content';
+import { hero, recap } from '../../data/portfolio-content';
 
 // DOM half of the recap. Fades in once the dispensed bottle reaches its hero
 // pose (phase === 'reveal'): the contour bottle floats on the right of the
@@ -39,18 +39,18 @@ export function RecapPanel() {
             <span className="inline-flex h-7 items-center justify-center rounded-full bg-coke-red px-3 text-[0.6rem] font-semibold text-off-white">
               Recap
             </span>
-            Freshly dispensed
+            {recap.kicker}
           </p>
 
           <h2 className="font-display text-3xl md:text-5xl font-bold leading-tight text-off-white">
-            {hero.role}
+            {hero.name}
           </h2>
           <p className="mt-1 font-body text-sm uppercase tracking-[0.3em] text-coke-red">
-            {hero.org}
+            {hero.role} · {hero.org}
           </p>
 
           <div className="mt-6 space-y-4">
-            {role.body.map((para) => (
+            {recap.body.map((para) => (
               <p key={para} className="font-body text-base leading-relaxed text-off-white/85">
                 {para}
               </p>
@@ -58,7 +58,7 @@ export function RecapPanel() {
           </div>
 
           <ul className="mt-6 flex flex-wrap gap-2">
-            {role.focusAreas.map((area) => (
+            {recap.highlights.map((area) => (
               <li
                 key={area}
                 className="rounded-full border border-off-white/25 bg-coke-black/40 px-3 py-1.5 font-body text-[0.6rem] uppercase tracking-[0.18em] text-off-white/75"
@@ -68,9 +68,13 @@ export function RecapPanel() {
             ))}
           </ul>
 
+          <p className="mt-6 font-body text-[0.62rem] uppercase tracking-[0.3em] text-off-white/50">
+            {recap.closer}
+          </p>
+
           <button
             onClick={reset}
-            className="pointer-events-auto mt-9 rounded-full border border-off-white/30 bg-coke-black/40 px-5 py-2.5 font-body text-[0.6rem] uppercase tracking-[0.25em] text-off-white/80 transition-colors hover:border-off-white/60 hover:text-off-white"
+            className="pointer-events-auto mt-6 rounded-full border border-off-white/30 bg-coke-black/40 px-5 py-2.5 font-body text-[0.6rem] uppercase tracking-[0.25em] text-off-white/80 transition-colors hover:border-off-white/60 hover:text-off-white"
           >
             ◂ Back to the machine
           </button>

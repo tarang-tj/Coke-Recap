@@ -3,6 +3,7 @@ import { Edges, Html, Billboard } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useRecap } from './recap-context';
+import { useNavigation } from '../navigation-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
 // Invisible click proxy wrapping the diorama's vending machine. Raycasting one
@@ -10,8 +11,12 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 // clean place to hang hover affordance + the click that starts the recap.
 //
 // Vending machine world bbox: min(3.2,0.08,-6.11) max(4.0,1.45,-5.70).
-const CENTER: [number, number, number] = [3.6, 0.77, -5.9];
-const SIZE: [number, number, number] = [0.92, 1.46, 0.52];
+// The proxy box is padded well beyond the bbox — from the wide home shot the
+// machine is only ~30 screen-pixels tall, so a tight box made the click a
+// pixel-hunt. Padding (plus the beacon overhead) keeps the affordance honest
+// while making the target comfortably hittable.
+const CENTER: [number, number, number] = [3.6, 0.95, -5.9];
+const SIZE: [number, number, number] = [1.5, 2.3, 1.1];
 
 // Always-on "look here" beacon hovering above the machine so the core
 // interaction is discoverable from the wide establishing shot. A double pulse
@@ -82,6 +87,7 @@ function MachineBeacon() {
 
 export function VendingHotspot() {
   const { phase, activate } = useRecap();
+  const { view } = useNavigation();
   const [hovered, setHovered] = useState(false);
   const reduced = useReducedMotion();
 
@@ -94,8 +100,10 @@ export function VendingHotspot() {
     };
   }, [hovered]);
 
-  // Only interactive before the sequence begins.
-  if (phase !== 'idle') return null;
+  // Only interactive before the sequence begins, and only on the home view —
+  // the machine sits on-camera in the Role/Stack chapters too, where the
+  // beacon + "Insert 5¢" tooltip used to bleed distractingly into the shot.
+  if (phase !== 'idle' || view !== 'machine') return null;
 
   return (
     <>

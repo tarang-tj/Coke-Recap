@@ -123,6 +123,11 @@ export function CocaColaDiorama() {
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
+      // Opt every mesh into the sun's shadow map — GLB meshes default to
+      // castShadow/receiveShadow = false, which left the whole town shadowless
+      // (and flat). The low-poly scene is cheap to shadow.
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       mats.forEach((mat) => {
         if (!mat || seen.has(mat)) return;

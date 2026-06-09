@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
 import { useNavigation, CHAPTERS, type ViewId } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
+import { useExperience } from '../scene/experience-context';
+import { hero } from '../data/portfolio-content';
 import { Logo } from './brand/logo';
 import { RoleSection } from './sections/role-section';
 import { ToolsSection } from './sections/tools-section';
@@ -30,7 +32,12 @@ const LABELS: Record<ChapterId, string> = {
 export function ChapterOverlay() {
   const { view, setView, goHome } = useNavigation();
   const { phase } = useRecap();
+  const { started } = useExperience();
   const isMachine = view === 'machine';
+
+  // Nothing from this layer should leak through the start gate's translucent
+  // scrim (the gate carries its own identity block).
+  if (!started) return null;
   const Section = isMachine ? null : SECTIONS[view as ChapterId];
   const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
 
@@ -82,20 +89,41 @@ export function ChapterOverlay() {
         </div>
       )}
 
-      {/* Machine-view prompt — hidden once the recap sequence is running */}
+      {/* Home-view identity — the visitor should know whose story this is
+          before they touch anything. Hidden while the recap runs (the recap
+          panel restates it). */}
       {isMachine && phase === 'idle' && (
-        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-2 text-center">
-          <p className="font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white/80">
-            Click the Coca-Cola machine
+        <div className="coke-fade-in absolute top-8 left-8 md:top-10 md:left-12 max-w-[80vw]">
+          <h1 className="font-display text-3xl md:text-5xl font-bold leading-tight text-off-white drop-shadow-[0_2px_14px_rgba(18,3,5,0.85)]">
+            {hero.name}
+          </h1>
+          <p className="mt-2 font-body text-[0.62rem] md:text-[0.7rem] uppercase tracking-[0.35em] text-off-white/90 drop-shadow-[0_1px_8px_rgba(18,3,5,0.9)]">
+            {hero.role} · {hero.org}
           </p>
-          <p className="font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45">
-            drag to look around · keys 1&ndash;4 for chapters
+          <p className="mt-3 max-w-md font-body text-sm leading-relaxed text-off-white/75 drop-shadow-[0_1px_8px_rgba(18,3,5,0.9)]">
+            {hero.tagline}
           </p>
         </div>
       )}
 
-      {/* Persistent chapter selector — bottom center. Shown on chapter views only. */}
-      {!isMachine && (
+      {/* Machine-view prompt — hidden once the recap sequence is running.
+          Sits on a dark pill so it stays readable over the bright street. */}
+      {isMachine && phase === 'idle' && (
+        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-2 text-center">
+          <p className="rounded-full bg-coke-black/60 px-5 py-2.5 font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white backdrop-blur">
+            Click the Coca-Cola machine
+          </p>
+          <p className="rounded-full bg-coke-black/45 px-4 py-1.5 font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/70 backdrop-blur">
+            drag to look around · or pick a chapter below
+          </p>
+        </div>
+      )}
+
+      {/* Persistent chapter selector — bottom center. Shown on the home view
+          too (hidden only during the recap sequence): without it, touch
+          visitors had NO way into the four chapters (keys 1-4 was the only
+          entry point from home). */}
+      {(!isMachine || phase === 'idle') && (
         <nav className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex items-center justify-center gap-2 md:gap-3 px-4">
           {CHAPTERS.map((id, i) => {
             const active = view === id;

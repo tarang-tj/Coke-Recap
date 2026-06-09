@@ -71,6 +71,23 @@ export const agent = {
   ],
 };
 
+// Shown on the vending-machine recap panel. Deliberately DIFFERENT copy from
+// the Role chapter — the recap is the 30-second summary a visitor gets for a
+// nickel, not a repeat of chapter one.
+export const recap = {
+  kicker: 'Freshly dispensed',
+  body: [
+    'One summer at the intersection of AI martech and consumer marketing data — turning signals from real people into decisions brand teams can act on.',
+    'The headline project: an AI agent for consumer marketing metrics, built to turn dashboards into conversations.',
+  ],
+  highlights: [
+    'AI agent prototype',
+    'Consumer analytics',
+    'Insight storytelling',
+  ],
+  closer: 'Explore the four chapters for the full story.',
+};
+
 export const learnings = [
   'Insight has no impact until it changes a decision.',
   'AI doesn\u2019t replace the analyst \u2014 it gives them leverage.',
