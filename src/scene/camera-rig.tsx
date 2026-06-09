@@ -132,9 +132,19 @@ export function CameraRig() {
       _targetLook.y -= drag.current.y * FREE_LOOK_Y;
     }
 
-    const lambda = reduced ? 1000 : 3.2;
-    damp3(camera.position, _targetPos, lambda, dt);
-    damp3(smoothLook.current, _targetLook, lambda, dt);
+    if (reduced) {
+      // Reduced motion: snap straight to the target pose, no easing. (The
+      // old `damp3(..., 1000, dt)` misread maath's third arg as a rate — it's
+      // smoothTime, the seconds-to-settle, so 1000 effectively froze the
+      // camera and stranded reduced-motion visitors at the home pose whenever
+      // they navigated to a chapter.)
+      camera.position.copy(_targetPos);
+      smoothLook.current.copy(_targetLook);
+    } else {
+      // ~3.2s smoothTime — slow cinematic glide between poses.
+      damp3(camera.position, _targetPos, 3.2, dt);
+      damp3(smoothLook.current, _targetLook, 3.2, dt);
+    }
     camera.lookAt(smoothLook.current);
   });
 
