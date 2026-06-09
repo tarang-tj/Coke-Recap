@@ -8,6 +8,16 @@ dist
 dist-ssr
 *.local
 
+# tsc -b artifacts (regenerated on every build; the node tsconfig is
+# `composite` so it must emit — just keep the emit out of git)
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# local screenshot/icon scratch scripts (puppeteer helpers, not part of the app)
+.shot-*.mjs
+.gen-icons.mjs
+
 # env
 .env
 .env.*
