@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useExperience } from '../scene/experience-context';
 
 // User-controllable reduced-motion override. System preference is the
 // default; this toggle persists an override in localStorage and exposes
@@ -15,14 +16,23 @@ type Pref = 'system' | 'reduced' | 'full';
 
 function readPref(): Pref {
   if (typeof window === 'undefined') return 'system';
-  return (window.localStorage.getItem(KEY) as Pref) ?? 'system';
+  try {
+    return (window.localStorage.getItem(KEY) as Pref) ?? 'system';
+  } catch {
+    return 'system'; // storage blocked
+  }
 }
 
 export function ReducedMotionToggle() {
+  const { started } = useExperience();
   const [pref, setPref] = useState<Pref>(readPref);
 
   useEffect(() => {
-    window.localStorage.setItem(KEY, pref);
+    try {
+      window.localStorage.setItem(KEY, pref);
+    } catch {
+      /* storage blocked — preference just won't persist */
+    }
     document.body.dataset.motion = pref;
   }, [pref]);
 
@@ -31,6 +41,11 @@ export function ReducedMotionToggle() {
   };
 
   const label = pref === 'system' ? 'Motion: Auto' : pref === 'reduced' ? 'Motion: Off' : 'Motion: On';
+
+  // Behind the start gate this is an invisible tab stop under a modal —
+  // same sweep as ChapterOverlay/MusicToggle. The persisted pref is applied
+  // via the body attribute on mount regardless.
+  if (!started) return null;
 
   return (
     <button

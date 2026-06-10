@@ -3,6 +3,7 @@ import { ExperienceContext } from './scene/experience-context';
 import { NavigationProvider } from './scene/navigation-context';
 import { SceneRoot } from './scene/scene-root';
 import { CocaColaDiorama } from './scene/coca-cola-diorama';
+import { StreetLamps } from './scene/street-lamps';
 import { RecapProvider } from './scene/recap/recap-context';
 import { VendingHotspot } from './scene/recap/vending-hotspot';
 import { RecapDispenser } from './scene/recap/recap-dispenser';
@@ -14,6 +15,7 @@ import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
 import { MusicToggle } from './ui/music-toggle';
 import { CreditHud } from './ui/credit-hud';
 import { WebglFallbackBoundary } from './ui/webgl-fallback';
+import { LiveAnnouncer } from './ui/live-announcer';
 
 // Root shell — a single-viewport spatial experience (no scroll).
 //   - persistent <Canvas> holds the one 1886 Atlanta diorama
@@ -28,6 +30,7 @@ function SceneContent() {
   return (
     <>
       <CocaColaDiorama />
+      <StreetLamps />
       <VendingHotspot />
       <RecapDispenser />
     </>
@@ -42,12 +45,22 @@ export function App() {
     <ExperienceContext.Provider value={{ started, start }}>
       <NavigationProvider>
         <RecapProvider>
-          <div className="relative h-screen w-screen overflow-hidden bg-coke-black text-cream font-body">
+          <main className="relative h-screen w-screen overflow-hidden bg-coke-black text-cream font-body">
             {/* ALL experience chrome lives inside the boundary: if the canvas
                 (or anything else) fails to mount, the whole interactive shell
                 unmounts with it — no invisible StartGate listeners arming the
                 music over the fallback, no loader masking it. */}
             <WebglFallbackBoundary>
+              {/* Document outline + SR narration for the interactive shell —
+                  the visual title lives in the 3-D scene, which screen
+                  readers can't see. (The fallback page has its own h1, so
+                  these live inside the boundary.) */}
+              <h1 className="sr-only">
+                Coke-Recap — Tarang Jammalamadaka, Global Human Insights Intern
+                at The Coca-Cola Company
+              </h1>
+              <LiveAnnouncer />
+
               <div className="fixed inset-0 z-0">
                 <SceneRoot>
                   <SceneContent />
@@ -62,7 +75,7 @@ export function App() {
               <CreditHud />
               <SceneLoader />
             </WebglFallbackBoundary>
-          </div>
+          </main>
         </RecapProvider>
       </NavigationProvider>
     </ExperienceContext.Provider>

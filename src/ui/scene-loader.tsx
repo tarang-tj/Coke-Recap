@@ -5,8 +5,8 @@ import { useProgress } from '@react-three/drei';
 // fades away. Rendered outside the <Canvas> so it covers first paint.
 //
 // Progress is driven by drei's loading store (useProgress) — the honest count
-// of GLTF/texture/audio bytes resolving via the three.js LoadingManager — not a
-// faux timer, so the fill tracks the actual ~17 MB download.
+// of GLTF/texture bytes resolving via the three.js LoadingManager — not a
+// faux timer, so the fill tracks the real multi-MB download.
 
 export function SceneLoader() {
   const { active, progress } = useProgress(); // progress is 0..100
@@ -46,6 +46,11 @@ export function SceneLoader() {
   return (
     <div
       aria-hidden={hidden}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={pct}
+      aria-label="Loading the 3-D scene"
       className={`fixed inset-0 z-[100] flex items-center justify-center bg-coke-black transition-opacity duration-500 ${
         hidden ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}

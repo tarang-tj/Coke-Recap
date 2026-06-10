@@ -11,10 +11,20 @@
  * origin with no normalization — camera-rig poses are written in these same
  * world coordinates.
  *
- * Of the 30 baked clips, ONLY the chimney smoke plays. The vehicle bake (wagon,
- * car, and all their wheels) is broken — wheels spin off-axis — so those clips
- * are left stopped and the traffic reads as a still tableau. Smoke clips are
- * pure upward/opacity drifts with no axle rig, so they animate cleanly.
+ * ANIMATION. Smoke clips (16, position-only) always play. The wagon/car RIG
+ * clips (position-only, x-axis street runs, 9.9 s loops) play on the HOME
+ * view so the street reads alive, but stay parked everywhere else — the
+ * agent chapter's camera sits IN the vehicle corridor (the motorcar would
+ * clip through the lens) and the takeaways pull-back sees the whole street,
+ * so the loop-seam teleports would pop in plain sight. The 12 WHEEL-spin
+ * clips are never played: each wheel pivot was baked at the rig ORIGIN (not
+ * its axle), so the rotation orbits the whole wheel around the rig — that is
+ * the long-standing "wheels spin off-axis" breakage. Worse, the pivots' rest
+ * pose equals the spin clip's first keyframe, which left car wheels
+ * underground and wagon wheels floating even in the still tableau. Resetting
+ * every wheel pivot to the identity quaternion drops each wheel exactly onto
+ * its axle (verified against the GLB anatomy dump in
+ * plans/reports/glb-anatomy-260609-2113.json).
  *
  * GREEN-LOGO FIX. Every Coca-Cola decal (the motorcar ad, the round button
  * sign, etc.) shares one alpha-channel logo PNG, but each decal material was
@@ -36,12 +46,16 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { useNavigation } from './navigation-context';
 
-const DIORAMA_URL = '/assets/models/coca-cola-diorama.glb';
+export const DIORAMA_URL = '/assets/models/coca-cola-diorama.glb';
 
-// Only clips whose name starts with this drive the smoke; everything else
-// (WagonRig, CarRig, Wheel_*, Car_wheel*) stays stopped.
+// Clip routing (see header): smoke always; rigs on wide views; wheels never.
 const SMOKE_PREFIX = 'Smoke';
+const VEHICLE_RIG_PREFIXES = ['WagonRig', 'CarRig'];
+// Wheel pivot nodes whose rest rotation must be reset to identity so the
+// wheels sit on their axles (their spin clips stay stopped).
+const WHEEL_NODE_PREFIXES = ['Wheel_', 'Car_wheel'];
 
 // The car body was baked dark green; recolor it to the same Coca-Cola red used
 // by the brand's `CokeRed` material so the side-panel logo loses its green frame.
@@ -115,6 +129,22 @@ export function CocaColaDiorama() {
   const { scene, animations } = useGLTF(DIORAMA_URL);
   const { actions } = useAnimations(animations, group);
   const reduced = useReducedMotion();
+  const { view } = useNavigation();
+  // Home view only: from the takeaways pull-back the whole street corridor is
+  // on screen, so the clips' loop-seam teleports (wagon x 36 -> -29 and back)
+  // would pop in plain sight. From the home pose both seam endpoints sit
+  // outside the visible corridor.
+  const vehiclesOn = !reduced && view === 'machine';
+
+  // Drop every wheel onto its axle: the baked rest pose carried the spin
+  // clip's first (origin-orbiting) keyframe. Runs once per loaded scene.
+  useMemo(() => {
+    scene.traverse((obj) => {
+      if (WHEEL_NODE_PREFIXES.some((p) => obj.name.startsWith(p))) {
+        obj.quaternion.identity();
+      }
+    });
+  }, [scene]);
 
   // De-green the Coca-Cola signage once per loaded scene. Materials may be
   // shared across meshes, so a Set guards against touching an instance twice.
@@ -157,6 +187,35 @@ export function CocaColaDiorama() {
 
     return () => smoke.forEach((action) => action.stop());
   }, [actions, reduced]);
+
+  // Street traffic — the wagon and motorcar glide their baked street runs on
+  // the wide views. Fade in/out instead of hard play/stop so entering a
+  // chapter doesn't visibly freeze mid-street.
+  useEffect(() => {
+    const rigs = Object.entries(actions)
+      .filter(([name]) => VEHICLE_RIG_PREFIXES.some((p) => name.startsWith(p)))
+      .map(([, action]) => action)
+      .filter((a): a is THREE.AnimationAction => a !== null);
+
+    const timeouts: number[] = [];
+    rigs.forEach((action) => {
+      if (vehiclesOn) {
+        if (!action.isRunning()) {
+          action.reset();
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          action.play();
+        }
+        action.fadeIn(0.6);
+      } else if (action.isRunning()) {
+        action.fadeOut(0.6);
+        // Let the fade finish, then actually stop so the mixer goes idle.
+        timeouts.push(window.setTimeout(() => action.stop(), 700));
+      }
+    });
+    // Re-running (view flipped back) cancels any pending stop so a fresh
+    // fadeIn isn't killed 700 ms later by the stale timer.
+    return () => timeouts.forEach((t) => window.clearTimeout(t));
+  }, [actions, vehiclesOn]);
 
   return (
     <group ref={group}>

@@ -1,56 +1,66 @@
 # Coke-Recap
 
-An interactive 3D portfolio summarizing my Global Human Insights internship at The Coca-Cola Company.
+**An interactive 3-D recap of a Global Human Insights internship at The Coca-Cola Company — served ice cold.**
 
-The site is one continuous scrollytelling scene — a "Liquid Universe" where the camera floats through a Coca-Cola-red liquid and morphs through five Acts:
+🥤 **Live:** [coke-recap.vercel.app](https://coke-recap.vercel.app)
 
-1. **Cold Open** — a floating glass droplet
-2. **Role** — a refracting sphere wrapped in glowing data streams
-3. **Tools** — six frosted-glass cubes (NIQ, PowerBI, DAX, SQL, Python, internal tooling)
-4. **Agent** — a luminous nebula core with orbiting rings (Ingest / Analyze / Surface) — the AI consumer marketing metrics agent
-5. **Bottle** — the camera pulls back to reveal the whole scene was inside a glass Coke bottle
+![Coke-Recap — 1886 Five Points, Atlanta at golden hour](./public/og-image.jpg)
 
-## Content policy
+---
 
-**Zero specifics.** No internal data, no real metric names, no real campaign names, no proprietary architecture. Tool names are shown alongside generic descriptions; the agent project is described conceptually only.
+## The concept
 
-## Stack
+Instead of a slide deck, the internship recap is a miniature diorama of **Five Points, Atlanta, 1886** — the Jacobs' Pharmacy block where Coca-Cola was first served on May 8, 1886 — rendered at golden hour and explored entirely in the browser.
 
-- Vite + React 19 + TypeScript
-- `@react-three/fiber` + `@react-three/drei` + `three`
-- Tailwind CSS
-- `maath` for easing, `leva` for dev-only tuning
+Press **START** and the camera settles into a wide establishing shot. From there, two ways in:
 
-## Local development
+1. **The vending machine.** Click the glowing Coca-Cola machine: a 5-cent coin drops, a contour bottle is dispensed and floats up to a hero pose, and a story-mode panel pages through the whole internship — intro → The Role → The Stack → The Agent → Takeaways.
+2. **The chapter pills.** Click a pill (or press keys **1–4**) and the camera flies to a vantage point in the diorama for that chapter.
+
+Drag to look around. **ESC** returns home.
+
+### A note on content
+
+> Zero specifics by design — no internal data, metrics, or campaign names. Tools are named with generic blurbs, and the AI agent is described conceptually.
+
+## Built with
+
+| Layer | Tech |
+|---|---|
+| Framework | [Vite](https://vitejs.dev) + [React 19](https://react.dev) + TypeScript |
+| 3-D | [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber) v9, [drei](https://docs.pmnd.rs/drei), [three](https://threejs.org) 0.184 |
+| Post-processing | [@react-three/postprocessing](https://docs.pmnd.rs/react-postprocessing) — SSAO, bloom, vignette, film grain |
+| UI | Tailwind CSS 3.4 |
+| Animation math | [maath](https://github.com/pmndrs/maath) |
+| Assets | Diorama + bottle GLBs, meshopt-compressed (~76% smaller) |
+| Hosting | Vercel |
+
+## Engineering highlights
+
+- **One Canvas, zero scrolling.** A single persistent `<Canvas>` and a view-state machine drive all navigation — the camera rig owns every movement, and scene transitions are exclusive so views never fight.
+- **Runtime decal re-tint.** The baked Coca-Cola script decals are re-tinted on a canvas at runtime to get crisp white lettering without shipping duplicate textures.
+- **Capture-phase key routing.** Keyboard input is routed at the capture phase so the recap panel and diorama navigation never steal each other's keys.
+- **Respectful by default.** `prefers-reduced-motion` support, a WebGL fallback, and lazy-loaded music — nothing autoplays at you.
+- **Shippable polish.** PWA manifest, SEO/OG tags, and a production-bundle screenshot verification loop (Puppeteer) that catches visual regressions before deploy.
+
+## Period details
+
+The diorama keeps it honest to 1886: **ICE COLD** signage on the block, and the machine takes a nickel — the price of a Coca-Cola from 1886 all the way to 1959.
+
+## Running locally
 
 ```bash
 npm install
-npm run dev
+npm run dev       # local dev server
+npm run preview   # serve the production output locally
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+## Music
 
-```bash
-npm run build      # production bundle to dist/
-npm run preview    # serve the production build
-npm run typecheck  # tsc --noEmit
-```
+*"Fig Leaf Times Two"* by **Kevin MacLeod** ([incompetech.com](https://incompetech.com))
+Licensed under [Creative Commons: By Attribution 3.0](https://creativecommons.org/licenses/by/3.0/)
 
-## Architecture notes
+## Author
 
-- A single persistent `<Canvas>` is mounted at the app root. Acts mount inside it as time-windowed scene-graph children — they never unmount on scroll.
-- One source of scroll truth: `useScrollProgressRef()` returns a `RefObject<number>` shared via context. Acts read it inside `useFrame` — zero React re-renders on scroll.
-- The camera is owned exclusively by `src/scene/camera-rig.tsx`. Individual acts may never move or look-at the camera.
-- All copy lives in `src/data/portfolio-content.ts`.
-- All scroll windows live in `src/data/act-windows.ts`.
-
-## Deploy
-
-Production target: Vercel. `vercel.json` sets SPA rewrites and immutable caching for hashed assets.
-
-## Design + plan
-
-- Design spec: `docs/specs/2026-06-05-coke-recap-design.md`
-- Implementation plan: `plans/260605-1627-coke-recap-build/`
-
-— Tarang Jammalamadaka
+**Tarang Jammalamadaka**
+[GitHub](https://github.com/tarang-tj) · [LinkedIn](https://linkedin.com/in/tarang-jammalamadaka)
