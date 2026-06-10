@@ -35,11 +35,40 @@ export function useNavigation(): NavState {
   return ctx;
 }
 
+// '#tools' → 'tools' when it names a chapter; anything else → null.
+function viewFromHash(hash: string): ViewId | null {
+  const h = hash.replace(/^#/, '');
+  return (CHAPTERS as readonly string[]).includes(h) ? (h as ViewId) : null;
+}
+
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const { started } = useExperience();
-  const [view, setView] = useState<ViewId>('machine');
+  // Deep links: arriving on /#tools starts the camera flying to that chapter
+  // behind the start gate, so Press Start lands the visitor right in it.
+  const [view, setView] = useState<ViewId>(
+    () => viewFromHash(window.location.hash) ?? 'machine',
+  );
 
   const goHome = useCallback(() => setView('machine'), []);
+
+  // view → URL. One history entry per view change so the browser back button
+  // walks the visit instead of exiting the site.
+  useEffect(() => {
+    const desired = view === 'machine' ? '' : `#${view}`;
+    if (window.location.hash === desired) return; // popstate/deep-link already in sync
+    window.history.pushState(
+      null,
+      '',
+      desired || window.location.pathname + window.location.search,
+    );
+  }, [view]);
+
+  // URL → view (back/forward buttons, manual hash edits).
+  useEffect(() => {
+    const onPop = () => setView(viewFromHash(window.location.hash) ?? 'machine');
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   type ChapterId = Exclude<ViewId, 'machine'>;
 
