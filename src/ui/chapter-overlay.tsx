@@ -27,6 +27,11 @@ export function ChapterOverlay() {
   useEffect(() => {
     const base = 'Coke-Recap — Tarang Jammalamadaka';
     document.title = isMachine ? base : `${LABELS[view as ChapterId]} — ${base}`;
+    // Reset on unmount: if the canvas dies mid-chapter the fallback page
+    // would otherwise keep the stale chapter title.
+    return () => {
+      document.title = base;
+    };
   }, [view, isMachine]);
 
   // Nothing here is usable behind the start gate — rendering it anyway would

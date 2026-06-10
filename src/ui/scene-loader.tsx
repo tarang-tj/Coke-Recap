@@ -84,10 +84,12 @@ export function SceneLoader() {
         <p className="text-xs uppercase tracking-[0.3em] text-cream/40 font-body tabular-nums">
           Pouring&nbsp;·&nbsp;{pct}%
         </p>
-        {/* keyed so each tidbit replays the entrance fade */}
+        {/* keyed so each tidbit replays the entrance fade; fixed-height slot
+            so a two-line wrap on narrow phones doesn't bounce the bottle
+            every 2.8 s (the flex column is centered) */}
         <p
           key={tidbit}
-          className="coke-fade-in font-body text-[0.5rem] uppercase tracking-[0.45em] text-cream/25 select-none"
+          className="coke-fade-in h-10 px-6 text-center font-body text-[0.5rem] uppercase tracking-[0.45em] text-cream/25 select-none"
         >
           {TIDBITS[tidbit]}
         </p>
