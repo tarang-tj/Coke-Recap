@@ -18,30 +18,35 @@ export function MusicToggle() {
     return window.localStorage.getItem(KEY) !== 'off';
   });
 
-  // One looping audio element for the lifetime of the app.
-  useEffect(() => {
-    const audio = new Audio(SRC);
-    audio.loop = true;
-    audio.volume = 0.32;
-    audio.preload = 'auto';
-    audioRef.current = audio;
-    return () => {
-      audio.pause();
-      audioRef.current = null;
-    };
-  }, []);
-
   // Playback follows (started && on). The Press-Start gesture unlocks autoplay,
   // so play() is only attempted once the experience has begun.
+  //
+  // The Audio element is constructed LAZILY on the first play: with an eager
+  // `new Audio(SRC)` + preload the browser pulled the whole multi-MB track at
+  // page load — competing with three.js and the diorama GLB for first-paint
+  // bandwidth, even for visitors who had music toggled off.
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
     if (started && on) {
-      audio.play().catch(() => {});
+      if (!audioRef.current) {
+        const audio = new Audio(SRC);
+        audio.loop = true;
+        audio.volume = 0.32;
+        audioRef.current = audio;
+      }
+      audioRef.current.play().catch(() => {});
     } else {
-      audio.pause();
+      audioRef.current?.pause();
     }
   }, [started, on]);
+
+  // Stop playback if the toggle ever unmounts.
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     window.localStorage.setItem(KEY, on ? 'on' : 'off');
@@ -56,7 +61,7 @@ export function MusicToggle() {
       aria-pressed={on}
       aria-label={`Toggle music. Currently ${on ? 'on' : 'off'}.`}
       title="Music: “Fig Leaf Times Two” — Kevin MacLeod (incompetech.com), CC BY 3.0"
-      className="fixed bottom-16 left-4 z-40 rounded-full border border-cream/20 bg-coke-black/40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 backdrop-blur transition hover:border-cream/40 hover:text-cream"
+      className="fixed top-4 right-4 md:top-auto md:right-auto md:bottom-16 md:left-4 z-40 rounded-full border border-cream/20 bg-coke-black/40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 backdrop-blur transition hover:border-cream/40 hover:text-cream"
     >
       {on ? '♪ Music: On' : '♪ Music: Off'}
     </button>
