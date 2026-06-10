@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '../scene/experience-context';
+import { MUSIC_PREF_KEY as KEY } from '../audio/audio-prefs';
 
 // Background music + on/off toggle. The track ("Fig Leaf Times Two" by Kevin
 // MacLeod, CC BY 3.0 — attributed on the start gate) is a light old-timey
@@ -8,7 +9,6 @@ import { useExperience } from '../scene/experience-context';
 // Press Start; the toggle persists the listener's choice across visits.
 
 const SRC = '/assets/audio/ambient-ragtime.m4a';
-const KEY = 'coke-recap:music';
 
 export function MusicToggle() {
   const { started } = useExperience();

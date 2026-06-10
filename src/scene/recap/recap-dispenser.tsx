@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { useRecap } from './recap-context';
 import { CokeBottle } from './coke-bottle';
+import { playCoinClink, playBottleFizz } from '../../audio/recap-sfx';
 
 // In-canvas choreography for the recap entry sequence. Driven entirely by the
 // shared recap phase: a coin drops, then a Coca-Cola bottle rises from the tray
@@ -42,6 +43,13 @@ export function RecapDispenser() {
     const t = setTimeout(() => setPhase(next), ms);
     return () => clearTimeout(t);
   }, [phase, reduced, setPhase]);
+
+  // Synthesized sound cues riding the same phase machine (silent when the
+  // audio preference is off — the guard lives inside the sfx module).
+  useEffect(() => {
+    if (phase === 'coin') playCoinClink();
+    else if (phase === 'dispense') playBottleFizz();
+  }, [phase]);
 
   useFrame((_state, delta) => {
     const dt = Math.min(delta, 0.05);
