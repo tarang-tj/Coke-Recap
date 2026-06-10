@@ -79,15 +79,21 @@ export function CameraRig() {
     let down = false;
     const lastPt = { x: 0, y: 0 };
     const onDown = (e: PointerEvent) => {
+      // Primary pointer only — a second finger would rewrite lastPt and the
+      // interleaved moves would compute deltas ACROSS fingers (look target
+      // slams to the clamp on any pinch attempt).
+      if (!e.isPrimary) return;
       if (!startedRef.current || recapActiveRef.current) return;
       down = true;
       lastPt.x = e.clientX;
       lastPt.y = e.clientY;
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       down = false;
     };
     const onMove = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       if (!down || reduced) return;
       const dx = e.clientX - lastPt.x;
       const dy = e.clientY - lastPt.y;

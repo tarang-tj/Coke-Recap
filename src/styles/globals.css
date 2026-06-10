@@ -48,7 +48,10 @@ body {
 /* Disable text selection on the persistent canvas overlay to avoid double-touch issues. */
 canvas {
   outline: none;
-  touch-action: pan-y;
+  /* The app is a fixed single-viewport experience — there is nothing to pan.
+     pan-y let the browser claim vertical swipes and fire pointercancel,
+     truncating vertical free-look drags on touch. */
+  touch-action: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

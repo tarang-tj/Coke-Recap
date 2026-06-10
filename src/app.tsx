@@ -43,21 +43,25 @@ export function App() {
       <NavigationProvider>
         <RecapProvider>
           <div className="relative h-screen w-screen overflow-hidden bg-coke-black text-cream font-body">
+            {/* ALL experience chrome lives inside the boundary: if the canvas
+                (or anything else) fails to mount, the whole interactive shell
+                unmounts with it — no invisible StartGate listeners arming the
+                music over the fallback, no loader masking it. */}
             <WebglFallbackBoundary>
               <div className="fixed inset-0 z-0">
                 <SceneRoot>
                   <SceneContent />
                 </SceneRoot>
               </div>
-            </WebglFallbackBoundary>
 
-            <ChapterOverlay />
-            <RecapPanel />
-            <StartGate />
-            <ReducedMotionToggle />
-            <MusicToggle />
-            <CreditHud />
-            <SceneLoader />
+              <ChapterOverlay />
+              <RecapPanel />
+              <StartGate />
+              <ReducedMotionToggle />
+              <MusicToggle />
+              <CreditHud />
+              <SceneLoader />
+            </WebglFallbackBoundary>
           </div>
         </RecapProvider>
       </NavigationProvider>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRecap } from '../../scene/recap/recap-context';
 import { CHAPTERS } from '../../scene/navigation-context';
 import {
@@ -31,6 +31,7 @@ export function RecapPanel() {
   const { phase, reset } = useRecap();
   const open = phase === 'reveal';
   const [page, setPage] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Every fresh reveal starts the story from the intro card.
   useEffect(() => {
@@ -51,6 +52,14 @@ export function RecapPanel() {
       if (e.key === 'Escape' || e.key === 'Backspace') {
         swallow();
         reset();
+      } else if (
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        scrollRef.current?.contains(e.target as Node)
+      ) {
+        // Focus is inside the scrollable page body: let the browser scroll it
+        // natively (no preventDefault, no paging) — but still keep the key
+        // away from NavigationProvider.
+        e.stopPropagation();
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         swallow();
         if (open) setPage((p) => Math.min(PAGES.length - 1, p + 1));
@@ -92,10 +101,13 @@ export function RecapPanel() {
             {PAGE_LABELS[pageId]}
           </p>
 
-          {/* Page body — keyed so each page replays the fade */}
+          {/* Page body — keyed so each page replays the fade; focusable so
+              keyboard users can scroll overflowed copy on short viewports */}
           <div
             key={pageId}
-            className="coke-fade-in pointer-events-auto max-h-[58vh] overflow-y-auto pr-2"
+            ref={scrollRef}
+            tabIndex={0}
+            className="coke-fade-in pointer-events-auto max-h-[58vh] overflow-y-auto pr-2 focus:outline-none"
           >
             {Section ? (
               <Section />
@@ -127,13 +139,12 @@ export function RecapPanel() {
               {page === 0 ? '◂ The machine' : '◂ Back'}
             </button>
 
-            <div className="flex items-center gap-2" role="tablist" aria-label="Recap pages">
+            <div className="flex items-center gap-2" aria-label="Recap pages">
               {PAGES.map((id, i) => (
                 <button
                   key={id}
                   onClick={() => setPage(i)}
-                  role="tab"
-                  aria-selected={i === page}
+                  aria-current={i === page ? 'step' : undefined}
                   aria-label={id === 'intro' ? 'Intro' : CHAPTER_LABELS[id as ChapterId]}
                   className={[
                     'h-2 rounded-full transition-all duration-300',

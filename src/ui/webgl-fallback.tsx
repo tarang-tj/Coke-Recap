@@ -2,11 +2,11 @@ import { Component, type ReactNode } from 'react';
 import { hero, learnings, contact } from '../data/portfolio-content';
 import { Logo } from './brand/logo';
 
-// Error boundary around the canvas layer. If WebGL can't initialise (blocked
-// in the browser, ancient GPU, headless crawler) or the 3-D tree throws while
-// mounting, visitors get a readable one-page summary instead of a blank red
-// void. Sits above the start gate (z-60 > z-50) so the broken experience's
-// chrome never shows over it.
+// Error boundary around the whole experience shell (canvas + chrome). If
+// WebGL can't initialise (blocked in the browser, ancient GPU, headless
+// crawler) or the 3-D tree throws while mounting, the broken experience's
+// chrome unmounts with it — no invisible StartGate listeners, no loader —
+// and visitors get a readable one-page summary instead of a blank red void.
 
 type Props = { children: ReactNode };
 type State = { failed: boolean };
@@ -60,15 +60,15 @@ export class WebglFallbackBoundary extends Component<Props, State> {
 
           <div className="flex items-center gap-6">
             {[
-              { label: 'GitHub', href: contact.github },
-              { label: 'LinkedIn', href: contact.linkedin },
-              { label: 'Email', href: `mailto:${contact.email}` },
-            ].map(({ label, href }) => (
+              { label: 'GitHub', href: contact.github, external: true },
+              { label: 'LinkedIn', href: contact.linkedin, external: true },
+              { label: 'Email', href: `mailto:${contact.email}`, external: false },
+            ].map(({ label, href, external }) => (
               <a
                 key={label}
                 href={href}
-                target="_blank"
-                rel="noreferrer"
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noreferrer' : undefined}
                 className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-off-white/70 underline-offset-4 hover:underline hover:text-off-white transition-colors"
               >
                 {label}
