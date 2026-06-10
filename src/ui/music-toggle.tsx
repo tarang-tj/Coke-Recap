@@ -36,6 +36,20 @@ export function MusicToggle() {
     }
   }, [started, on]);
 
+  // Pause when the tab is hidden; resume on return if still enabled. Audio
+  // elements are exempt from the browser's background-tab throttling, so
+  // without this the ragtime keeps playing over whatever tab you switch to.
+  useEffect(() => {
+    const onVisibility = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (document.hidden) audio.pause();
+      else if (started && on) audio.play().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [started, on]);
+
   // Stop playback if the toggle ever unmounts.
   useEffect(
     () => () => {
@@ -62,7 +76,7 @@ export function MusicToggle() {
       aria-pressed={on}
       aria-label={`Toggle music. Currently ${on ? 'on' : 'off'}.`}
       title="Music: “Fig Leaf Times Two” — Kevin MacLeod (incompetech.com), CC BY 3.0"
-      className="fixed top-4 right-4 md:top-auto md:right-auto md:bottom-16 md:left-4 z-40 rounded-full border border-cream/20 bg-coke-black/40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 backdrop-blur transition hover:border-cream/40 hover:text-cream"
+      className="fixed top-[max(1rem,env(safe-area-inset-top))] right-4 md:top-auto md:right-auto md:bottom-16 md:left-4 z-40 rounded-full border border-cream/20 bg-coke-black/40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 backdrop-blur transition hover:border-cream/40 hover:text-cream"
     >
       {on ? '♪ Music: On' : '♪ Music: Off'}
     </button>

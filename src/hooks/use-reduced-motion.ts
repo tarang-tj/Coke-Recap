@@ -1,25 +1,61 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
-// Honor system-level reduced-motion preference. Used by:
-//   - camera-rig.tsx: hard-cuts between act keyframes instead of dollying
-//   - fluid-environment.tsx: freezes bubble rise + slows curl noise
-//   - acts/*: dampens or skips secondary motion
-//
-// Re-renders are fine here: this value rarely changes.
+// Effective reduced-motion = user override, falling back to the OS setting.
+// One module-level store merges both sources so EVERY consumer — camera-rig
+// glide/snap, diorama smoke + vehicles, street-lamp flicker, recap dispenser
+// timing, machine beacon, start-gate fade — reacts the moment either changes.
+// (Before this store the Motion toggle only wrote a body attribute nothing
+// consumed: the visible control did not actually affect the 3-D scene.)
+
+export type MotionPref = 'system' | 'reduced' | 'full';
+
+const KEY = 'coke-recap:motion';
+
+function readStoredPref(): MotionPref {
+  if (typeof window === 'undefined') return 'system';
+  try {
+    const v = window.localStorage.getItem(KEY);
+    return v === 'reduced' || v === 'full' ? v : 'system';
+  } catch {
+    return 'system'; // storage blocked
+  }
+}
+
+let override: MotionPref = readStoredPref();
+const listeners = new Set<() => void>();
+
+const mq =
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+// App-lifetime subscription — the module lives as long as the page.
+mq?.addEventListener('change', () => listeners.forEach((l) => l()));
+
+export function getMotionPref(): MotionPref {
+  return override;
+}
+
+export function setMotionPref(pref: MotionPref): void {
+  override = pref;
+  try {
+    window.localStorage.setItem(KEY, pref);
+  } catch {
+    /* storage blocked — preference just won't persist */
+  }
+  listeners.forEach((l) => l());
+}
+
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+function snapshot(): boolean {
+  if (override === 'reduced') return true;
+  if (override === 'full') return false;
+  return !!mq?.matches;
+}
 
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
-
-  useEffect(() => {
-    if (!window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
-  return reduced;
+  return useSyncExternalStore(subscribe, snapshot, () => false);
 }

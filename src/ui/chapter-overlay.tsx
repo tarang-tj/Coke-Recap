@@ -98,7 +98,9 @@ export function ChapterOverlay() {
       {(!isMachine || phase === 'idle') && (
         <nav
           aria-label="Chapters"
-          className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex flex-wrap items-center justify-center gap-1.5 md:gap-3 px-3"
+          // max(1.5rem, safe-area) keeps the pills clear of the iPhone home
+          // indicator with viewport-fit=cover; desktop env() is 0 → 1.5rem.
+          className="pointer-events-auto fixed inset-x-0 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-40 flex flex-wrap items-center justify-center gap-1.5 md:gap-3 px-3"
         >
           {CHAPTERS.map((id, i) => {
             const active = view === id;

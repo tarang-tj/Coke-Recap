@@ -5,7 +5,7 @@ import { useReducedMotion } from '../hooks/use-reduced-motion';
 // Full-screen intro gate. The 3-D world renders behind the translucent scrim.
 // Dismissible by: button click, Enter/Space keydown, or wheel/touchmove.
 // Fades out on start then unmounts after the transition completes.
-// Scroll-locks the page while active so Lenis/window.scrollY stays at 0.
+// Scroll-locks the page while active so window.scrollY stays at 0.
 
 export function StartGate() {
   const { started, start } = useExperience();

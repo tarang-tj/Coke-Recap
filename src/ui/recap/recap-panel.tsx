@@ -45,6 +45,39 @@ export function RecapPanel() {
     if (open) scrollRef.current?.focus({ preventScroll: true });
   }, [open, page]);
 
+  // Touch swipe turns pages (touch pointers only: a mouse drag would fight
+  // text selection on desktop). Horizontal-dominant 60 px threshold; the
+  // camera rig already ignores drags while the recap is active.
+  useEffect(() => {
+    if (!open) return;
+    let startX = 0;
+    let startY = 0;
+    let activeId = -1;
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      activeId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch' || e.pointerId !== activeId) return;
+      activeId = -1;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > 2 * Math.abs(dy)) {
+        setPage((p) =>
+          dx < 0 ? Math.min(PAGES.length - 1, p + 1) : Math.max(0, p - 1),
+        );
+      }
+    };
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [open]);
+
   // Capture-phase key handling for the whole active sequence — including the
   // coin/dispense beats, where a stray arrow key would otherwise fly the
   // camera away mid-animation.
