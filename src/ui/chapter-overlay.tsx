@@ -81,7 +81,7 @@ export function ChapterOverlay() {
         <div className="absolute inset-x-0 bottom-24 flex flex-col items-center gap-2 text-center">
           <button
             onClick={activate}
-            aria-label="Insert 5 cents — start the vending-machine recap"
+            aria-label="Click the Coca-Cola machine — insert 5 cents to start the recap"
             className="pointer-events-auto font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white/80 transition-colors hover:text-off-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-off-white/60 rounded-sm px-2 py-1"
           >
             Click the Coca-Cola machine

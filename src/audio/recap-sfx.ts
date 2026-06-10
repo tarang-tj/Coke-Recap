@@ -14,7 +14,7 @@ function ensureContext(): AudioContext | null {
     ctx ??= new AudioContext();
     // The recap starts from a click, so we're inside a user-activation window
     // and resume() is allowed.
-    if (ctx.state === 'suspended') void ctx.resume();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     return ctx;
   } catch {
     return null; // no WebAudio (ancient browser / autoplay policy) — stay silent

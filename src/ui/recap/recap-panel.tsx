@@ -82,21 +82,23 @@ export function RecapPanel() {
     return () => window.removeEventListener('keydown', onKey, true);
   }, [phase, open, reset]);
 
-  if (!open) return null;
-
   const pageId = PAGES[page];
   const last = page === PAGES.length - 1;
   const Section = pageId === 'intro' ? null : CHAPTER_SECTIONS[pageId];
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-40">
-      {/* SR narration for page turns (the global LiveAnnouncer stays silent
-          during reveal so this is the single voice). aria-live fires on text
-          change, so rendering the label is all it takes. */}
+    <>
+      {/* SR narration for open + page turns (the global LiveAnnouncer stays
+          silent during reveal so this is the single voice). The region is
+          ALWAYS mounted — a live region inserted together with its first
+          message is the classic silent case in NVDA/VoiceOver; only text
+          changes in an existing region announce reliably. */}
       <div aria-live="polite" role="status" className="sr-only">
-        {`${PAGE_LABELS[pageId]} — page ${page + 1} of ${PAGES.length}`}
+        {open ? `${PAGE_LABELS[pageId]} — page ${page + 1} of ${PAGES.length}` : ''}
       </div>
 
+      {open && (
+    <div className="pointer-events-none fixed inset-0 z-40">
       {/* Left readability scrim — bottle shows through on the right */}
       <div
         className="coke-fade-in absolute inset-0"
@@ -184,5 +186,7 @@ export function RecapPanel() {
         </div>
       </div>
     </div>
+      )}
+    </>
   );
 }

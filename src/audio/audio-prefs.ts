@@ -7,5 +7,9 @@ export const MUSIC_PREF_KEY = 'coke-recap:music';
 
 export function audioPrefOn(): boolean {
   if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(MUSIC_PREF_KEY) !== 'off';
+  try {
+    return window.localStorage.getItem(MUSIC_PREF_KEY) !== 'off';
+  } catch {
+    return true; // storage blocked (cookie settings / sandboxed iframe) — default on
+  }
 }

@@ -52,7 +52,16 @@ export function StreetLamps() {
   }, [scene]);
 
   useFrame(({ clock }) => {
-    if (reduced) return;
+    if (reduced) {
+      // Hold the steady BASE level — a bare return would strand the shared
+      // material/lights at whatever mid-flicker sample was last written if
+      // the OS preference flips on mid-session.
+      lights.current.forEach((light) => {
+        if (light) light.intensity = LIGHT_BASE;
+      });
+      if (bulbMaterial) bulbMaterial.emissiveIntensity = EMISSIVE_BASE;
+      return;
+    }
     const t = clock.elapsedTime;
     lights.current.forEach((light, i) => {
       if (light) light.intensity = LIGHT_BASE * waver(t, i * 2.1);

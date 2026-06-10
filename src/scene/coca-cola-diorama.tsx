@@ -12,10 +12,11 @@
  * world coordinates.
  *
  * ANIMATION. Smoke clips (16, position-only) always play. The wagon/car RIG
- * clips (position-only, x-axis street runs, 9.9 s loops) play on the wide
- * views (home + takeaways) so the street reads alive, but stay parked in the
- * street-level chapters — the agent chapter's camera sits IN the vehicle
- * corridor and the motorcar would clip through the lens. The 12 WHEEL-spin
+ * clips (position-only, x-axis street runs, 9.9 s loops) play on the HOME
+ * view so the street reads alive, but stay parked everywhere else — the
+ * agent chapter's camera sits IN the vehicle corridor (the motorcar would
+ * clip through the lens) and the takeaways pull-back sees the whole street,
+ * so the loop-seam teleports would pop in plain sight. The 12 WHEEL-spin
  * clips are never played: each wheel pivot was baked at the rig ORIGIN (not
  * its axle), so the rotation orbits the whole wheel around the rig — that is
  * the long-standing "wheels spin off-axis" breakage. Worse, the pivots' rest
@@ -129,7 +130,11 @@ export function CocaColaDiorama() {
   const { actions } = useAnimations(animations, group);
   const reduced = useReducedMotion();
   const { view } = useNavigation();
-  const vehiclesOn = !reduced && (view === 'machine' || view === 'takeaways');
+  // Home view only: from the takeaways pull-back the whole street corridor is
+  // on screen, so the clips' loop-seam teleports (wagon x 36 -> -29 and back)
+  // would pop in plain sight. From the home pose both seam endpoints sit
+  // outside the visible corridor.
+  const vehiclesOn = !reduced && view === 'machine';
 
   // Drop every wheel onto its axle: the baked rest pose carried the spin
   // clip's first (origin-orbiting) keyframe. Runs once per loaded scene.

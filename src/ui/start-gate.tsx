@@ -90,7 +90,11 @@ export function StartGate() {
           pointerEvents: started ? 'none' : 'auto',
           transition: reduced ? 'none' : 'opacity 0.5s ease',
         }}
-        aria-hidden={started}
+        // inert (not aria-hidden): it removes the fading gate from the a11y
+        // tree AND blurs/blocks the still-focused Press Start button — with
+        // aria-hidden, focus lived inside a hidden subtree for the 600 ms
+        // fade (axe: aria-hidden-focus).
+        inert={started}
         role="dialog"
         aria-modal="true"
         aria-label="Experience start gate"

@@ -1,5 +1,6 @@
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
+import { useExperience } from '../scene/experience-context';
 import { CHAPTER_LABELS, type ChapterId } from './sections/section-registry';
 
 // Screen-reader narration for a no-page-reload experience. The whole site is
@@ -11,9 +12,15 @@ import { CHAPTER_LABELS, type ChapterId } from './sections/section-registry';
 export function LiveAnnouncer() {
   const { view } = useNavigation();
   const { phase } = useRecap();
+  const { started } = useExperience();
 
   let message: string;
-  if (phase === 'reveal') {
+  if (!started) {
+    // Empty until Press Start: live regions only announce text CHANGES, so
+    // the orientation message must flip '' -> text at the moment it becomes
+    // true — content present at mount is never spoken.
+    message = '';
+  } else if (phase === 'reveal') {
     // Silent: the recap panel narrates its own pages — two live regions
     // announcing the same moment would double-speak.
     message = '';
