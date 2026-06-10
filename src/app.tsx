@@ -13,6 +13,7 @@ import { SceneLoader } from './ui/scene-loader';
 import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
 import { MusicToggle } from './ui/music-toggle';
 import { CreditHud } from './ui/credit-hud';
+import { WebglFallbackBoundary } from './ui/webgl-fallback';
 
 // Root shell — a single-viewport spatial experience (no scroll).
 //   - persistent <Canvas> holds the one 1886 Atlanta diorama
@@ -42,11 +43,13 @@ export function App() {
       <NavigationProvider>
         <RecapProvider>
           <div className="relative h-screen w-screen overflow-hidden bg-coke-black text-cream font-body">
-            <div className="fixed inset-0 z-0">
-              <SceneRoot>
-                <SceneContent />
-              </SceneRoot>
-            </div>
+            <WebglFallbackBoundary>
+              <div className="fixed inset-0 z-0">
+                <SceneRoot>
+                  <SceneContent />
+                </SceneRoot>
+              </div>
+            </WebglFallbackBoundary>
 
             <ChapterOverlay />
             <RecapPanel />
