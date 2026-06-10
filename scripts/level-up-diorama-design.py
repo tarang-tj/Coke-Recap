@@ -4,7 +4,11 @@ PASTE-AND-RUN in Blender's Scripting tab (Blender 4.2+ / 5.x), or headless:
   /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/level-up-diorama-design.py
 
 What it does (everything survives glTF export — no live procedural shaders):
-  1. Imports the source diorama GLB (SRC below).
+  1. Imports the source diorama GLB (SRC below), then fix_layout(): raises the
+     corner Coca-Cola button sign clear of the lamp post / tree sightline,
+     seats the four storefront awnings at header height against the facades,
+     and mixes brick variants across the street at the object level (hero
+     pharmacy stays cream).
   2. Bakes small tileable detail textures ONCE on a throwaway plane (Cycles
      EMIT/NORMAL bakes, seconds total — never the per-object bake that OOMs):
        - 4 brick albedos (one per Brick/Brick2/Brick3/Brick4, each derived from
@@ -44,6 +48,16 @@ TEX = 512                                  # tile resolution (px)
 # Per-pattern physical tile size in metres (UV repeats every TILE metres).
 SCALE_M = {"brick": 1.0, "stone": 1.8, "cobble": 1.4, "plank": 1.2,
            "pavers": 2.4, "dirt": 3.0, "stripe": 0.9}
+
+# 1886 Five Points was predominantly red/brown brick with cast-iron storefronts.
+# Per-variant brick albedos (linear RGB). "Brick" stays cream — it clads Jacobs'
+# Pharmacy / the Coca-Cola corner, the iconic hero of the scene.
+BRICK_BASE = {
+    "Brick":  (0.92, 0.87, 0.78, 1),   # cream — hero pharmacy block
+    "Brick2": (0.36, 0.10, 0.06, 1),   # Victorian red
+    "Brick3": (0.30, 0.14, 0.08, 1),   # red-brown
+    "Brick4": (0.65, 0.48, 0.32, 1),   # warm buff
+}
 
 # material name -> (pattern, roughness). Colours are read from the materials.
 RETEXTURE = {
@@ -92,23 +106,32 @@ def brick_pattern(nt, base):
     uv = nt.nodes.new("ShaderNodeTexCoord")
     br = nt.nodes.new("ShaderNodeTexBrick")
     br.inputs["Scale"].default_value = 1.0
-    br.inputs["Color1"].default_value = shade(base, 1.00)
-    br.inputs["Color2"].default_value = shade(base, 0.72)   # per-brick variety
-    br.inputs["Mortar"].default_value = (0.82, 0.78, 0.70, 1)  # warm cream
-    br.inputs["Mortar Size"].default_value = 0.006
-    br.inputs["Mortar Smooth"].default_value = 0.6
+    br.inputs["Color1"].default_value = shade(base, 1.06)
+    br.inputs["Color2"].default_value = shade(base, 0.58)   # strong per-brick variety
+    br.inputs["Mortar"].default_value = (0.55, 0.52, 0.46, 1)  # aged lime mortar
+    br.inputs["Mortar Size"].default_value = 0.007
+    br.inputs["Mortar Smooth"].default_value = 0.25            # crisp, deep joints
     br.inputs["Bias"].default_value = 0.0
     # ~6 bricks x 12 courses per metre tile -> real-world ~17x8 cm bricks
     br.inputs["Brick Width"].default_value = 0.167
     br.inputs["Row Height"].default_value = 0.083
     nt.links.new(uv.outputs["UV"], br.inputs["Vector"])
-    # large soft weathering: multiply slow noise over the brick colour
+    # low-frequency weathering mottle: damp, slightly desaturated patches
     nz = nt.nodes.new("ShaderNodeTexNoise")
-    nz.inputs["Scale"].default_value = 2.0
+    nz.inputs["Scale"].default_value = 1.7
     nt.links.new(uv.outputs["UV"], nz.inputs["Vector"])
     wear = srgb_ramp(nt, nz.outputs["Fac"],
-                     [(0.0, (0.86, 0.84, 0.82, 1)), (1.0, (1, 1, 1, 1))])
+                     [(0.0, (0.72, 0.70, 0.68, 1)), (0.55, (0.96, 0.94, 0.91, 1)),
+                      (1.0, (1.06, 1.03, 0.99, 1))])
     col = vmul(nt, br.outputs["Color"], wear.outputs["Color"])
+    # fine age grain (soot/dust speckle), subtle
+    nz2 = nt.nodes.new("ShaderNodeTexNoise")
+    nz2.inputs["Scale"].default_value = 13.0
+    nz2.inputs["Detail"].default_value = 4.0
+    nt.links.new(uv.outputs["UV"], nz2.inputs["Vector"])
+    grain = srgb_ramp(nt, nz2.outputs["Fac"],
+                      [(0.0, (0.90, 0.90, 0.90, 1)), (1.0, (1.04, 1.04, 1.04, 1))])
+    col = vmul(nt, col, grain.outputs["Color"])
     # height: bricks high (1), mortar recessed (0)
     h = srgb_ramp(nt, br.outputs["Fac"], [(0.0, (1, 1, 1, 1)), (1.0, (0, 0, 0, 1))])
     return col, h.outputs["Color"]
@@ -250,7 +273,8 @@ def bake_pattern(plane, pattern, base, albedo_img, normal_img=None):
     if normal_img is not None:
         bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
         bump = nt.nodes.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.35
+        # deeper mortar shadow for brick; default elsewhere
+        bump.inputs["Strength"].default_value = 0.5 if pattern == "brick" else 0.35
         bump.inputs["Distance"].default_value = 0.02
         nt.links.new(height, bump.inputs["Height"])
         nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
@@ -317,6 +341,72 @@ G2B = lambda p: (p[0], -p[2], p[1])
 WIDE_POS, WIDE_LOOK = G2B((-8, 7, -34)), G2B((0, 5.5, -2))
 CLOSE_POS, CLOSE_LOOK = G2B((7, 2.4, -12.5)), G2B((3.7, 1.0, -5.9))
 
+# ------------------------------------------------------- LAYOUT FIXES -------
+# Geometry fixes for user-reported defects, keyed by object names from the
+# pristine source GLB. Plain object-location edits only (no transform_apply,
+# so animated nodes stay intact). Blender coords: z = up, +y = main street.
+SIGN_RAISE = 1.5    # Btn disc sign sat at z 6.6 where LampPost_6/Globe_6 cross
+                    # its face from street views and a back-street tree
+                    # (Tree_leaf.050) pokes through the cross-street gap at its
+                    # lower rim. +1.5 clears both (rim r=1.55 vs projected
+                    # tree-top dist 1.8) and stays under the cornice (z 11.4).
+AWNING_DY = -0.55   # slabs floated 0.6 m off the facade (back edge y 3.71)
+AWNING_DZ = 1.97    # ...and lay at ankle height (z 0.41). Back-top edge goes
+                    # (3.71, 0.75) -> (3.16, 2.72): snug to the storefront,
+                    # tucked just under the fascia bottom (z 2.74).
+VALANCE_DZ = 0.11   # valance top edge 1.94 -> 2.05 = relocated slab lip.
+AWNING_SHOPS = ("Pharmacy", "Annex", "East1", "West4")
+
+# Object-level brick-variant mix for a historically richer 1886 street.
+# Jacobs' Pharmacy ("Brick", cream) and its flanking neighbours stay light so
+# the hero corner pops; deeper-street buildings turn red/brown (~44% of the
+# nine main-street facades), mixing all four variants.
+BRICK_SWAP = {
+    "Annex_shell": "Brick4", "Annex_pil": "Brick4", "Annex_pil.001": "Brick4",
+    "West3_shell": "Brick2", "West3_pil": "Brick2", "West3_pil.001": "Brick2",
+    "East3_shell": "Brick4", "East3_pil": "Brick4", "East3_pil.001": "Brick4",
+}
+
+def fix_layout():
+    objs = bpy.data.objects
+
+    def shift(name, dy=0.0, dz=0.0):
+        ob = objs.get(name)
+        if not ob:
+            print(f"  !! fix_layout: {name} not found"); return
+        if ob.parent:
+            print(f"  !! fix_layout: {name} unexpectedly parented to {ob.parent.name}")
+        ob.location.y += dy
+        ob.location.z += dz
+
+    # 1. corner button sign: raise disc + its mounting arm together
+    for n in ("Btn_disc", "Btn_rim", "Btn_logo", "CornerArm"):
+        shift(n, dz=SIGN_RAISE)
+
+    # 2. awnings: slab + both brackets up to storefront-header height and snug
+    #    to the facade; valance rises to meet the relocated lip. The
+    #    Coke_fascia_m decal is deliberately untouched: its bottom edge
+    #    (z 2.64) lands exactly on the relocated awning's top surface, so the
+    #    logo stays seated. SignBG/SignTx fascias (z >= 2.74) clear the new
+    #    awning top (z 2.72) by design.
+    for shop in AWNING_SHOPS:
+        for suffix in ("_awn", "_awnbr", "_awnbr.001"):
+            shift(shop + suffix, dy=AWNING_DY, dz=AWNING_DZ)
+        shift(shop + "_val", dz=VALANCE_DZ)
+
+    # 3. brick-variant mix at the OBJECT level (materials themselves untouched
+    #    here — names/datablocks preserved for the React app)
+    for name, mat_name in BRICK_SWAP.items():
+        ob, mat = objs.get(name), bpy.data.materials.get(mat_name)
+        if not ob or not mat:
+            print(f"  !! fix_layout: swap target {name} / {mat_name} missing"); continue
+        if ob.data.users > 1:
+            print(f"  !! fix_layout: {name} shares mesh data with others, skipped"); continue
+        for slot in ob.material_slots:
+            if slot.material and slot.material.name.startswith("Brick"):
+                slot.material = mat
+    print("  fix_layout: sign raised, awnings seated, brick mix applied")
+
 # ------------------------------------------------------------------ MAIN ----
 def main():
     os.makedirs(TILE_DIR, exist_ok=True)
@@ -324,6 +414,8 @@ def main():
     bpy.ops.import_scene.gltf(filepath=SRC)
     print(f"imported {len(bpy.data.objects)} objects, "
           f"{len(bpy.data.materials)} materials, {len(bpy.data.actions)} actions")
+
+    fix_layout()
 
     if RENDER_PREVIEWS:
         render_preview("/tmp/diorama-before.png", WIDE_POS, WIDE_LOOK)
@@ -339,7 +431,7 @@ def main():
         mat = bpy.data.materials.get(mat_name)
         if not mat:
             print(f"  !! material {mat_name} not found, skipping"); continue
-        base = base_color_of(mat)
+        base = BRICK_BASE.get(mat_name) or base_color_of(mat)
         albedo = new_image(f"tile_{mat_name}_albedo", srgb=True)
         need_norm = pattern in NORMAL_FOR and pattern not in norm_cache
         normal = new_image(f"tile_{pattern}_normal", srgb=False) if need_norm else None
@@ -390,7 +482,7 @@ def main():
         if normal is not None:
             ntex = nt.nodes.new("ShaderNodeTexImage"); ntex.image = normal
             nmap = nt.nodes.new("ShaderNodeNormalMap")
-            nmap.inputs["Strength"].default_value = 0.8
+            nmap.inputs["Strength"].default_value = 1.0 if pattern == "brick" else 0.8
             nt.links.new(ntex.outputs["Color"], nmap.inputs["Color"])
             nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
         nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
@@ -413,5 +505,9 @@ def main():
     if RENDER_PREVIEWS:
         render_preview("/tmp/diorama-after-wide.png", WIDE_POS, WIDE_LOOK)
         render_preview("/tmp/diorama-after-close.png", CLOSE_POS, CLOSE_LOOK)
+        # defect-fix verification close-ups (Blender coords)
+        render_preview("/tmp/diorama-after-sign.png", (0.5, 11.5, 9.2), (5.1, 4.7, 8.1))
+        render_preview("/tmp/diorama-after-awning.png", (-3.0, 12.0, 2.8), (0.0, 3.5, 2.4))
+        render_preview("/tmp/diorama-after-brickwall.png", (19.0, 13.0, 4.0), (26.5, 3.0, 4.2))
 
 main()
