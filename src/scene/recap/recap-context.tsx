@@ -17,11 +17,14 @@ import { useNavigation } from '../navigation-context';
 //   dispense  a Coca-Cola contour bottle rises out of the tray
 //   reveal    the bottle floats to a hero pose and the internship recap panel
 //             materializes beside it ("the bottle turns into internship stuff")
+//   closing   finished reading (Done / back-to-machine): the bottle returns
+//             to the tray before the camera releases — a finish, not a cut.
+//             (ESC stays an instant reset: escape means NOW.)
 //
 // The phase is shared by the in-canvas dispenser (3-D animation) and the DOM
 // recap panel, so it lives above both trees alongside NavigationProvider.
 
-export type RecapPhase = 'idle' | 'coin' | 'dispense' | 'reveal';
+export type RecapPhase = 'idle' | 'coin' | 'dispense' | 'reveal' | 'closing';
 
 export interface RecapState {
   phase: RecapPhase;

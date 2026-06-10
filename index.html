@@ -39,6 +39,31 @@
     <meta name="twitter:title" content="Coke-Recap — Tarang Jammalamadaka" />
     <meta name="twitter:description" content="An interactive 3D recap of a Global Human Insights internship at Coca-Cola — step into 1886 Atlanta where it all began." />
     <meta name="twitter:image" content="https://coke-recap.vercel.app/og-image.jpg" />
+
+    <!-- Structured data — Person + WebSite for rich results -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "name": "Tarang Jammalamadaka",
+            "jobTitle": "Global Human Insights Intern",
+            "worksFor": { "@type": "Organization", "name": "The Coca-Cola Company" },
+            "url": "https://coke-recap.vercel.app/",
+            "sameAs": [
+              "https://github.com/tarang-tj",
+              "https://www.linkedin.com/in/tarang-jammalamadaka/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "name": "Coke-Recap",
+            "url": "https://coke-recap.vercel.app/"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <noscript>

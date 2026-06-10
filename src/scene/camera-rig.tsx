@@ -9,8 +9,9 @@ import { useRecap } from './recap/recap-context';
 
 // Camera rig — ALL camera motion lives here. View-driven (no scroll): the camera
 // flies between the home scene (machine view) and each chapter "stage" as the
-// nav view changes. Before PRESS START it holds the home pose; clicking the gate
-// simply removes it (no entry dolly animation needed).
+// nav view changes. Before PRESS START it holds INTRO_POSE (the target pose
+// pulled back); clicking the gate releases the rig toward the real pose — the
+// "arrival breath".
 //
 // Two overrides layer on top of the nav poses:
 //   - recap focus: while the vending-machine recap is running, the camera holds
@@ -45,6 +46,27 @@ const POSES: Record<ViewId, Pose> = {
 // Close focus on the vending machine — frames the coin slot + the bottle's hero
 // pose (≈ 4.35, 0.74, -7.8) on the right so the recap panel reads on the left.
 const RECAP_POSE: Pose = { pos: [3.4, 1.6, -11.6], look: [3.95, 1.55, -8.4] };
+
+// Pre-start hold: the home pose pulled back ~12% along its view axis and
+// lifted slightly. Press Start releases the rig toward the real pose, so
+// entering reads as a slow arrival breath instead of starting parked.
+// (Deep links get the same breath into their chapter pose.)
+const INTRO_POSE: Pose = { pos: [-9, 7.8, -37.8], look: POSES.machine.look };
+
+// Slow incommensurate-period sway — the anti-freeze-frame. Seeded per view so
+// no two vantage points breathe in sync; chapters run at roughly half the
+// home amplitude (desktop already gets mouse parallax there; on touch this
+// drift is the only motion a parked chapter has).
+function applyIdleDrift(t: number, seed: number, posAmp: number, lookAmp: number) {
+  _targetPos.x += Math.sin(t * 0.31 + seed) * posAmp;
+  _targetPos.y += Math.sin(t * 0.47 + 1.3 + seed) * posAmp * 0.5;
+  _targetLook.x += Math.sin(t * 0.23 + 0.6 + seed * 2) * lookAmp;
+  _targetLook.y += Math.sin(t * 0.37 + 2.1 + seed) * lookAmp * 0.45;
+}
+
+const DRIFT_SEED: Record<ViewId, number> = {
+  machine: 0, role: 1.7, tools: 3.4, agent: 5.1, takeaways: 6.8,
+};
 
 // How far a full drag pans the look target (world units).
 const FREE_LOOK_X = 2.6;
@@ -133,26 +155,24 @@ export function CameraRig() {
     const isStarted = startedRef.current;
     const recapActive = recapActiveRef.current;
 
-    const pose = recapActive ? RECAP_POSE : POSES[currentView];
+    const pose = !isStarted
+      ? INTRO_POSE
+      : recapActive
+        ? RECAP_POSE
+        : POSES[currentView];
 
     _targetPos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
     _targetLook.set(pose.look[0], pose.look[1], pose.look[2]);
 
     if (isStarted && !reduced && !recapActive) {
-      // Mouse parallax — chapter views only (home stays locked for the CTA).
+      const t = clock.elapsedTime;
       if (currentView !== 'machine') {
+        // Mouse parallax — chapter views only (home stays locked for the CTA).
         _targetPos.x += pointer.x * 1.4;
         _targetPos.y += pointer.y * 0.9;
+        applyIdleDrift(t, DRIFT_SEED[currentView], 0.22, 0.16);
       } else {
-        // Idle drift — the home establishing shot was a freeze-frame (no
-        // parallax there). A slow incommensurate-period sway keeps the
-        // diorama feeling alive while never wandering far from the
-        // composition; the 3.2 s damp below low-passes it even smoother.
-        const t = clock.elapsedTime;
-        _targetPos.x += Math.sin(t * 0.31) * 0.45;
-        _targetPos.y += Math.sin(t * 0.47 + 1.3) * 0.22;
-        _targetLook.x += Math.sin(t * 0.23 + 0.6) * 0.4;
-        _targetLook.y += Math.sin(t * 0.37 + 2.1) * 0.18;
+        applyIdleDrift(t, DRIFT_SEED.machine, 0.45, 0.4);
       }
       // Free-look pan — drag to glance around the diorama.
       _targetLook.x += drag.current.x * FREE_LOOK_X;
