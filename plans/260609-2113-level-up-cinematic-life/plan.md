@@ -1,7 +1,12 @@
 # Level-up 7: cinematic life + sensory polish + reach
 
-**Status:** in progress · **Branch:** `polish-pass-7` (stacked on `polish-pass-6`/PR #8)
+**Status:** ✅ complete — PR #9 open (stacked on PR #8), awaiting user merges
 **Mode:** ultracode (workflow discovery + adversarial review panel)
+
+All 8 phases shipped. Bonus finds: wheels sat off-axle even in the still
+tableau (identity-quaternion fix); both live regions had the mount-with-content
+silent-announce bug. 19/19 prod-preview checks; panel findings fixed
+(`plans/reports/code-review-260609-2216-level-up-7.md`).
 
 ## Why
 
