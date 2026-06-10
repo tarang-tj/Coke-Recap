@@ -88,6 +88,12 @@ const WHITE_LETTER_DECALS = [
 function applyAlphaCutout(m: THREE.MeshStandardMaterial) {
   m.alphaTest = 0.5;
   m.transparent = false;
+  // The coplanar decal planes z-fight with the panels behind them (a shimmer
+  // the camera's idle drift amplifies); a negative polygon offset pulls the
+  // decal toward the camera in depth so it wins the depth test cleanly.
+  m.polygonOffset = true;
+  m.polygonOffsetFactor = -1;
+  m.polygonOffsetUnits = -1;
   if (m.emissive) m.emissive.set(0, 0, 0);
   m.needsUpdate = true;
 }
