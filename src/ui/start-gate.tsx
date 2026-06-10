@@ -95,9 +95,12 @@ export function StartGate() {
         aria-modal="true"
         aria-label="Experience start gate"
       >
-        {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo) */}
+        {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo).
+            autoFocus: the gate is a modal dialog, so focus must land inside it
+            on mount — otherwise keyboard/SR users start in a void. */}
         <button
           onClick={start}
+          autoFocus
           className={[
             reduced ? '' : 'gate-press-start',
             'rounded-full border-2 border-off-white/70 px-12 py-4',

@@ -1,5 +1,6 @@
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
+import { useExperience } from '../scene/experience-context';
 import { Logo } from './brand/logo';
 import {
   CHAPTER_LABELS as LABELS,
@@ -15,8 +16,13 @@ import {
 
 export function ChapterOverlay() {
   const { view, setView, goHome } = useNavigation();
-  const { phase } = useRecap();
+  const { phase, activate } = useRecap();
+  const { started } = useExperience();
   const isMachine = view === 'machine';
+
+  // Nothing here is usable behind the start gate — rendering it anyway would
+  // leave invisible tab stops underneath the gate's modal.
+  if (!started) return null;
   const Section = isMachine ? null : SECTIONS[view as ChapterId];
   const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
 
@@ -68,12 +74,18 @@ export function ChapterOverlay() {
         </div>
       )}
 
-      {/* Machine-view prompt — hidden once the recap sequence is running */}
+      {/* Machine-view prompt — hidden once the recap sequence is running.
+          The prompt is a real button: the 3-D hotspot is the mouse path into
+          the recap, this is the keyboard/switch/screen-reader path. */}
       {isMachine && phase === 'idle' && (
         <div className="absolute inset-x-0 bottom-24 flex flex-col items-center gap-2 text-center">
-          <p className="font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white/80">
+          <button
+            onClick={activate}
+            aria-label="Insert 5 cents — start the vending-machine recap"
+            className="pointer-events-auto font-body text-[0.65rem] uppercase tracking-[0.55em] text-off-white/80 transition-colors hover:text-off-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-off-white/60 rounded-sm px-2 py-1"
+          >
             Click the Coca-Cola machine
-          </p>
+          </button>
           <p className="font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45">
             drag to look around · or jump straight to a chapter
           </p>
@@ -84,7 +96,10 @@ export function ChapterOverlay() {
           the ONLY pointer path into the chapters on touch devices), except
           while the recap sequence is running so the reveal stays clean. */}
       {(!isMachine || phase === 'idle') && (
-        <nav className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex flex-wrap items-center justify-center gap-1.5 md:gap-3 px-3">
+        <nav
+          aria-label="Chapters"
+          className="pointer-events-auto fixed inset-x-0 bottom-6 z-40 flex flex-wrap items-center justify-center gap-1.5 md:gap-3 px-3"
+        >
           {CHAPTERS.map((id, i) => {
             const active = view === id;
             return (

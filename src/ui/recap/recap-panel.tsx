@@ -38,6 +38,13 @@ export function RecapPanel() {
     if (open) setPage(0);
   }, [open]);
 
+  // Move focus into the page body on open and on every page turn — keyboard
+  // users can immediately scroll overflowed copy, and screen readers land on
+  // the new page's content instead of staying lost on the canvas.
+  useEffect(() => {
+    if (open) scrollRef.current?.focus({ preventScroll: true });
+  }, [open, page]);
+
   // Capture-phase key handling for the whole active sequence — including the
   // coin/dispense beats, where a stray arrow key would otherwise fly the
   // camera away mid-animation.
@@ -83,6 +90,13 @@ export function RecapPanel() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
+      {/* SR narration for page turns (the global LiveAnnouncer stays silent
+          during reveal so this is the single voice). aria-live fires on text
+          change, so rendering the label is all it takes. */}
+      <div aria-live="polite" role="status" className="sr-only">
+        {`${PAGE_LABELS[pageId]} — page ${page + 1} of ${PAGES.length}`}
+      </div>
+
       {/* Left readability scrim — bottle shows through on the right */}
       <div
         className="coke-fade-in absolute inset-0"
@@ -139,7 +153,7 @@ export function RecapPanel() {
               {page === 0 ? '◂ The machine' : '◂ Back'}
             </button>
 
-            <div className="flex items-center gap-2" aria-label="Recap pages">
+            <div className="flex items-center gap-2" role="group" aria-label="Recap pages">
               {PAGES.map((id, i) => (
                 <button
                   key={id}
