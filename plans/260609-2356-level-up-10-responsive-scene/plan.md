@@ -1,6 +1,11 @@
 # Level-up 10: the scene answers the chapter
 
-**Status:** ✅ complete — PR pending · **Branch:** `polish-pass-10` (stacked on 9)
+**Status:** ✅ complete — PR #14 open, CI green (26 s), cache header VERIFIED on
+the Vercel preview (`max-age=3600, stale-while-revalidate=86400` on the GLB;
+prod still serves the old `immutable` until merge) · **Branch:** `polish-pass-10`
+
+⚠️ Durable note: caches poisoned by the old immutable header can't be reached —
+any future in-place GLB/m4a content change must RENAME the file.
 
 ## Shipped
 
