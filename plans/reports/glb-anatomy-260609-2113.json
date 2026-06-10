@@ -1,0 +1,3622 @@
+{
+  "lamps": [
+    {
+      "name": "Pharmacy_glow",
+      "type": "Mesh",
+      "position": [
+        0,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "Fount_glow",
+      "type": "Mesh",
+      "position": [
+        2.6,
+        1.4,
+        -1.1
+      ],
+      "materials": [
+        "FountGlow"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffe5b3",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "Annex_glow",
+      "type": "Mesh",
+      "position": [
+        -10,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "Books_glow",
+      "type": "Mesh",
+      "position": [
+        -19.5,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "Across_glow",
+      "type": "Mesh",
+      "position": [
+        17,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "West3_glow",
+      "type": "Mesh",
+      "position": [
+        -29,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "West4_glow",
+      "type": "Mesh",
+      "position": [
+        -38.5,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "East1_glow",
+      "type": "Mesh",
+      "position": [
+        26.5,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "East2_glow",
+      "type": "Mesh",
+      "position": [
+        36,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "East3_glow",
+      "type": "Mesh",
+      "position": [
+        45.5,
+        1.6,
+        -2.45
+      ],
+      "materials": [
+        "Warm"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffd49e",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "LampBase_-15",
+      "type": "Mesh",
+      "position": [
+        -15,
+        0.2,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampPost_-15",
+      "type": "Mesh",
+      "position": [
+        -15,
+        2.4,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampArm_-15",
+      "type": "Mesh",
+      "position": [
+        -15,
+        4.5,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampHat_-15",
+      "type": "Mesh",
+      "position": [
+        -15,
+        5.05,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "Globe_-15",
+      "type": "Mesh",
+      "position": [
+        -15,
+        4.75,
+        -5.7
+      ],
+      "materials": [
+        "Lamp"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffdda6",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "LampBase_-3",
+      "type": "Mesh",
+      "position": [
+        -3.5,
+        0.2,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampPost_-3",
+      "type": "Mesh",
+      "position": [
+        -3.5,
+        2.4,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampArm_-3",
+      "type": "Mesh",
+      "position": [
+        -3.5,
+        4.5,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampHat_-3",
+      "type": "Mesh",
+      "position": [
+        -3.5,
+        5.05,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "Globe_-3",
+      "type": "Mesh",
+      "position": [
+        -3.5,
+        4.75,
+        -5.7
+      ],
+      "materials": [
+        "Lamp"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffdda6",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "LampBase_6",
+      "type": "Mesh",
+      "position": [
+        6.8,
+        0.2,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampPost_6",
+      "type": "Mesh",
+      "position": [
+        6.8,
+        2.4,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampArm_6",
+      "type": "Mesh",
+      "position": [
+        6.8,
+        4.5,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampHat_6",
+      "type": "Mesh",
+      "position": [
+        6.8,
+        5.05,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "Globe_6",
+      "type": "Mesh",
+      "position": [
+        6.8,
+        4.75,
+        -5.7
+      ],
+      "materials": [
+        "Lamp"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffdda6",
+          "intensity": 2.200000047683716
+        }
+      ]
+    },
+    {
+      "name": "LampBase_14",
+      "type": "Mesh",
+      "position": [
+        14,
+        0.2,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampPost_14",
+      "type": "Mesh",
+      "position": [
+        14,
+        2.4,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampArm_14",
+      "type": "Mesh",
+      "position": [
+        14,
+        4.5,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "LampHat_14",
+      "type": "Mesh",
+      "position": [
+        14,
+        5.05,
+        -5.7
+      ],
+      "materials": [
+        "Metal"
+      ],
+      "emissive": [
+        {
+          "hex": "#000000",
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "name": "Globe_14",
+      "type": "Mesh",
+      "position": [
+        14,
+        4.75,
+        -5.7
+      ],
+      "materials": [
+        "Lamp"
+      ],
+      "emissive": [
+        {
+          "hex": "#ffdda6",
+          "intensity": 2.200000047683716
+        }
+      ]
+    }
+  ],
+  "clips": [
+    {
+      "name": "Smoke_-24_0Action.007",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_0"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_0",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_1Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_1"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_1",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_2Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_2"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_2",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_3Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_3"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_3",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_4Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_4"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_4",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_5Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_5"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_5",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_6Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_6"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_6",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_7Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_7"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_7",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_-24_8Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_-24_8"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_-24_8",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_0Action.006",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_0"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_0",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_1Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_1"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_1",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_2Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_2"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_2",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_3Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_3"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_3",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_4Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_4"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_4",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_5Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_5"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_5",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Smoke_146_6Action.005",
+      "duration": 10.042,
+      "targets": [
+        "Smoke_146_6"
+      ],
+      "trackTypes": [
+        {
+          "node": "Smoke_146_6",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "WagonRigAction.005",
+      "duration": 9.917,
+      "targets": [
+        "WagonRig"
+      ],
+      "trackTypes": [
+        {
+          "node": "WagonRig",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Wheel_-9_-7Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Wheel_-9_-7"
+      ],
+      "trackTypes": [
+        {
+          "node": "Wheel_-9_-7",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Wheel_-9_7Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Wheel_-9_7"
+      ],
+      "trackTypes": [
+        {
+          "node": "Wheel_-9_7",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Wheel_9_-7Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Wheel_9_-7"
+      ],
+      "trackTypes": [
+        {
+          "node": "Wheel_9_-7",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Wheel_9_7Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Wheel_9_7"
+      ],
+      "trackTypes": [
+        {
+          "node": "Wheel_9_7",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "CarRigAction.004",
+      "duration": 9.917,
+      "targets": [
+        "CarRig"
+      ],
+      "trackTypes": [
+        {
+          "node": "CarRig",
+          "prop": "position"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheelAction.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.001Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel001"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel001",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.002Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel002"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel002",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.003Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel003"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel003",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.004Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel004"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel004",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.005Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel005"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel005",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.006Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel006"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel006",
+          "prop": "quaternion"
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel.007Action.004",
+      "duration": 9.917,
+      "targets": [
+        "Car_wheel007"
+      ],
+      "trackTypes": [
+        {
+          "node": "Car_wheel007",
+          "prop": "quaternion"
+        }
+      ]
+    }
+  ],
+  "vehicles": [
+    {
+      "name": "WagonRig",
+      "type": "Object3D",
+      "position": [
+        36,
+        0,
+        0
+      ],
+      "parent": "3d",
+      "children": [
+        {
+          "name": "Horse_body",
+          "type": "Mesh",
+          "position": [
+            29.3,
+            1.28,
+            -13.5
+          ]
+        },
+        {
+          "name": "Horse_chest",
+          "type": "Mesh",
+          "position": [
+            28.35,
+            1.22,
+            -13.5
+          ]
+        },
+        {
+          "name": "Horse_head",
+          "type": "Mesh",
+          "position": [
+            27.65,
+            2.1,
+            -13.5
+          ]
+        },
+        {
+          "name": "Horse_leg",
+          "type": "Mesh",
+          "position": [
+            28.68,
+            0.57,
+            -13.3
+          ]
+        },
+        {
+          "name": "Horse_leg001",
+          "type": "Mesh",
+          "position": [
+            28.68,
+            0.57,
+            -13.7
+          ]
+        },
+        {
+          "name": "Horse_leg002",
+          "type": "Mesh",
+          "position": [
+            29.92,
+            0.57,
+            -13.3
+          ]
+        },
+        {
+          "name": "Horse_leg003",
+          "type": "Mesh",
+          "position": [
+            29.92,
+            0.57,
+            -13.7
+          ]
+        },
+        {
+          "name": "Horse_neck",
+          "type": "Mesh",
+          "position": [
+            28.566,
+            -3.069,
+            -13.5
+          ]
+        },
+        {
+          "name": "Shaft_-3",
+          "type": "Mesh",
+          "position": [
+            30.7,
+            0.98,
+            -13.15
+          ]
+        },
+        {
+          "name": "Shaft_3",
+          "type": "Mesh",
+          "position": [
+            30.7,
+            0.98,
+            -13.85
+          ]
+        },
+        {
+          "name": "Wagon_bed",
+          "type": "Mesh",
+          "position": [
+            33,
+            0.98,
+            -13.5
+          ]
+        },
+        {
+          "name": "Wagon_railF",
+          "type": "Mesh",
+          "position": [
+            31.7,
+            1.28,
+            -13.5
+          ]
+        },
+        {
+          "name": "Wagon_railL",
+          "type": "Mesh",
+          "position": [
+            33,
+            1.28,
+            -12.9
+          ]
+        },
+        {
+          "name": "Wagon_railR",
+          "type": "Mesh",
+          "position": [
+            33,
+            1.28,
+            -14.1
+          ]
+        },
+        {
+          "name": "WCrate_0",
+          "type": "Mesh",
+          "position": [
+            32.3,
+            1.4,
+            -13.5
+          ]
+        },
+        {
+          "name": "WCrate_1",
+          "type": "Mesh",
+          "position": [
+            33,
+            1.4,
+            -13.5
+          ]
+        },
+        {
+          "name": "WCrate_2",
+          "type": "Mesh",
+          "position": [
+            33.7,
+            1.4,
+            -13.5
+          ]
+        },
+        {
+          "name": "WCrate_3",
+          "type": "Mesh",
+          "position": [
+            32.65,
+            1.85,
+            -13.5
+          ]
+        },
+        {
+          "name": "WCrate_4",
+          "type": "Mesh",
+          "position": [
+            33.35,
+            1.85,
+            -13.5
+          ]
+        },
+        {
+          "name": "Wheel_-9_-7",
+          "type": "Object3D",
+          "position": [
+            36,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Wheel_-9_7",
+          "type": "Object3D",
+          "position": [
+            36,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Wheel_9_-7",
+          "type": "Object3D",
+          "position": [
+            36,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Wheel_9_7",
+          "type": "Object3D",
+          "position": [
+            36,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Horse_body",
+      "type": "Mesh",
+      "position": [
+        29.3,
+        1.28,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_chest",
+      "type": "Mesh",
+      "position": [
+        28.35,
+        1.22,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_head",
+      "type": "Mesh",
+      "position": [
+        27.65,
+        2.1,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_leg",
+      "type": "Mesh",
+      "position": [
+        28.68,
+        0.57,
+        -13.3
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_leg001",
+      "type": "Mesh",
+      "position": [
+        28.68,
+        0.57,
+        -13.7
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_leg002",
+      "type": "Mesh",
+      "position": [
+        29.92,
+        0.57,
+        -13.3
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_leg003",
+      "type": "Mesh",
+      "position": [
+        29.92,
+        0.57,
+        -13.7
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Horse_neck",
+      "type": "Mesh",
+      "position": [
+        28.566,
+        -3.069,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Wagon_bed",
+      "type": "Mesh",
+      "position": [
+        33,
+        0.98,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Wagon_railF",
+      "type": "Mesh",
+      "position": [
+        31.7,
+        1.28,
+        -13.5
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Wagon_railL",
+      "type": "Mesh",
+      "position": [
+        33,
+        1.28,
+        -12.9
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Wagon_railR",
+      "type": "Mesh",
+      "position": [
+        33,
+        1.28,
+        -14.1
+      ],
+      "parent": "WagonRig",
+      "children": []
+    },
+    {
+      "name": "Wheel_-9_-7",
+      "type": "Object3D",
+      "position": [
+        36,
+        0,
+        0
+      ],
+      "parent": "WagonRig",
+      "children": [
+        {
+          "name": "Cylinder051",
+          "type": "Mesh",
+          "position": [
+            32.413,
+            1.774,
+            -12.78
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wheel_-9_7",
+      "type": "Object3D",
+      "position": [
+        36,
+        0,
+        0
+      ],
+      "parent": "WagonRig",
+      "children": [
+        {
+          "name": "Cylinder052",
+          "type": "Mesh",
+          "position": [
+            32.413,
+            1.774,
+            -14.22
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wheel_9_-7",
+      "type": "Object3D",
+      "position": [
+        36,
+        0,
+        0
+      ],
+      "parent": "WagonRig",
+      "children": [
+        {
+          "name": "Cylinder053",
+          "type": "Mesh",
+          "position": [
+            34.229,
+            1.215,
+            -12.78
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wheel_9_7",
+      "type": "Object3D",
+      "position": [
+        36,
+        0,
+        0
+      ],
+      "parent": "WagonRig",
+      "children": [
+        {
+          "name": "Cylinder054",
+          "type": "Mesh",
+          "position": [
+            34.229,
+            1.215,
+            -14.22
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CarRig",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "3d",
+      "children": [
+        {
+          "name": "Car_ad",
+          "type": "Mesh",
+          "position": [
+            -35,
+            1.72,
+            -17.25
+          ]
+        },
+        {
+          "name": "Car_adbg",
+          "type": "Mesh",
+          "position": [
+            -35,
+            1.72,
+            -17.22
+          ]
+        },
+        {
+          "name": "Car_belt",
+          "type": "Mesh",
+          "position": [
+            -35,
+            1.3,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_body",
+          "type": "Mesh",
+          "position": [
+            -35,
+            1.72,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_clere",
+          "type": "Mesh",
+          "position": [
+            -35,
+            2.85,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_plat",
+          "type": "Mesh",
+          "position": [
+            -37.85,
+            1.4,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_plat001",
+          "type": "Mesh",
+          "position": [
+            -32.15,
+            1.4,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_roof",
+          "type": "Mesh",
+          "position": [
+            -35,
+            2.62,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_roof2",
+          "type": "Mesh",
+          "position": [
+            -35,
+            3.06,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_route",
+          "type": "Mesh",
+          "position": [
+            -34.999,
+            2.619,
+            -17.24
+          ]
+        },
+        {
+          "name": "Car_under",
+          "type": "Mesh",
+          "position": [
+            -35,
+            0.78,
+            -16.25
+          ]
+        },
+        {
+          "name": "Car_wheel",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel001",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel002",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel003",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel004",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel005",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel006",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_wheel007",
+          "type": "Object3D",
+          "position": [
+            -26,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Car_win",
+          "type": "Mesh",
+          "position": [
+            -35,
+            2.05,
+            -16.25
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_ad",
+      "type": "Mesh",
+      "position": [
+        -35,
+        1.72,
+        -17.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_adbg",
+      "type": "Mesh",
+      "position": [
+        -35,
+        1.72,
+        -17.22
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_belt",
+      "type": "Mesh",
+      "position": [
+        -35,
+        1.3,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_body",
+      "type": "Mesh",
+      "position": [
+        -35,
+        1.72,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_clere",
+      "type": "Mesh",
+      "position": [
+        -35,
+        2.85,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_plat",
+      "type": "Mesh",
+      "position": [
+        -37.85,
+        1.4,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_plat001",
+      "type": "Mesh",
+      "position": [
+        -32.15,
+        1.4,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_roof",
+      "type": "Mesh",
+      "position": [
+        -35,
+        2.62,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_roof2",
+      "type": "Mesh",
+      "position": [
+        -35,
+        3.06,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_route",
+      "type": "Mesh",
+      "position": [
+        -34.999,
+        2.619,
+        -17.24
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_under",
+      "type": "Mesh",
+      "position": [
+        -35,
+        0.78,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    },
+    {
+      "name": "Car_wheel",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder067",
+          "type": "Mesh",
+          "position": [
+            -32.926,
+            -8.431,
+            -15.6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel001",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder068",
+          "type": "Mesh",
+          "position": [
+            -32.926,
+            -8.431,
+            -16.9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel002",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder069",
+          "type": "Mesh",
+          "position": [
+            -32.146,
+            -7.391,
+            -15.6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel003",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder070",
+          "type": "Mesh",
+          "position": [
+            -32.146,
+            -7.391,
+            -16.9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel004",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder071",
+          "type": "Mesh",
+          "position": [
+            -31.425,
+            -6.431,
+            -15.6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel005",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder072",
+          "type": "Mesh",
+          "position": [
+            -31.425,
+            -6.431,
+            -16.9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel006",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder073",
+          "type": "Mesh",
+          "position": [
+            -30.645,
+            -5.391,
+            -15.6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_wheel007",
+      "type": "Object3D",
+      "position": [
+        -26,
+        0,
+        0
+      ],
+      "parent": "CarRig",
+      "children": [
+        {
+          "name": "Cylinder074",
+          "type": "Mesh",
+          "position": [
+            -30.645,
+            -5.391,
+            -16.9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Car_win",
+      "type": "Mesh",
+      "position": [
+        -35,
+        2.05,
+        -16.25
+      ],
+      "parent": "CarRig",
+      "children": []
+    }
+  ],
+  "meshCount": 1304,
+  "nodeCount": 1335,
+  "sceneChildren": [
+    "Pharmacy_shell",
+    "Pharmacy_pil",
+    "Pharmacy_pil001",
+    "Pharmacy_cornice",
+    "Pharmacy_corbel",
+    "Pharmacy_corbel001",
+    "Pharmacy_corbel002",
+    "Pharmacy_corbel003",
+    "Pharmacy_corbel004",
+    "Pharmacy_corbel005",
+    "Pharmacy_corbel006",
+    "Pharmacy_corbel007",
+    "Pharmacy_corbel008",
+    "Pharmacy_corbel009",
+    "Pharmacy_corbel010",
+    "Pharmacy_corbel011",
+    "Pharmacy_corbel012",
+    "Pharmacy_band1",
+    "Pharmacy_band2",
+    "Pharmacy_band3",
+    "Pharmacy_riser",
+    "Pharmacy_sfg-1",
+    "Pharmacy_sff-1",
+    "Pharmacy_sfg1",
+    "Pharmacy_sff1",
+    "Pharmacy_door",
+    "Pharmacy_doorg",
+    "Pharmacy_transom",
+    "Pharmacy_glow",
+    "Pharmacy_fascia",
+    "Pharmacy_fascia_t",
+    "Pharmacy_uwf",
+    "Pharmacy_uw",
+    "Pharmacy_uwmv",
+    "Pharmacy_uwmh",
+    "Pharmacy_sill",
+    "Pharmacy_key",
+    "Pharmacy_uwlit",
+    "Pharmacy_uwf001",
+    "Pharmacy_uw001",
+    "Pharmacy_uwmv001",
+    "Pharmacy_uwmh001",
+    "Pharmacy_sill001",
+    "Pharmacy_key001",
+    "Pharmacy_uwf002",
+    "Pharmacy_uw002",
+    "Pharmacy_uwmv002",
+    "Pharmacy_uwmh002",
+    "Pharmacy_sill002",
+    "Pharmacy_key002",
+    "Pharmacy_uwlit001",
+    "Pharmacy_uwf003",
+    "Pharmacy_uw003",
+    "Pharmacy_uwmv003",
+    "Pharmacy_uwmh003",
+    "Pharmacy_sill003",
+    "Pharmacy_key003",
+    "Pharmacy_uwf004",
+    "Pharmacy_uw004",
+    "Pharmacy_uwmv004",
+    "Pharmacy_uwmh004",
+    "Pharmacy_sill004",
+    "Pharmacy_key004",
+    "Pharmacy_uwlit002",
+    "Pharmacy_uwf005",
+    "Pharmacy_uw005",
+    "Pharmacy_uwmv005",
+    "Pharmacy_uwmh005",
+    "Pharmacy_sill005",
+    "Pharmacy_key005",
+    "Pharmacy_uwf006",
+    "Pharmacy_uw006",
+    "Pharmacy_uwmv006",
+    "Pharmacy_uwmh006",
+    "Pharmacy_sill006",
+    "Pharmacy_key006",
+    "Pharmacy_uwlit003",
+    "Pharmacy_uwf007",
+    "Pharmacy_uw007",
+    "Pharmacy_uwmv007",
+    "Pharmacy_uwmh007",
+    "Pharmacy_sill007",
+    "Pharmacy_key007",
+    "Pharmacy_uwf008",
+    "Pharmacy_uw008",
+    "Pharmacy_uwmv008",
+    "Pharmacy_uwmh008",
+    "Pharmacy_sill008",
+    "Pharmacy_key008",
+    "Pharmacy_uwlit004",
+    "Pharmacy_awn",
+    "Pharmacy_awnbr",
+    "Pharmacy_awnbr001",
+    "Pharmacy_val",
+    "Ph_post",
+    "Ph_post001",
+    "Ph_board",
+    "Ph_board_fr",
+    "Ph_roof1",
+    "Ph_roof2",
+    "Ph_corner",
+    "Coke_band",
+    "Coke_band_fr",
+    "Coke_fascia",
+    "CornerArm",
+    "Btn_rim",
+    "Btn_disc",
+    "Btn_logo",
+    "Blade_rim",
+    "Blade",
+    "Blade_tx",
+    "Coke_ghost",
+    "Win_poster_bg",
+    "Win_poster",
+    "Price_bg",
+    "Price_tx",
+    "Fount_bar",
+    "Fount_back",
+    "Fount_mirror",
+    "Urn_0",
+    "UrnTap_0",
+    "Stool_0",
+    "StoolTop_0",
+    "Urn_1",
+    "UrnTap_1",
+    "Stool_1",
+    "StoolTop_1",
+    "Urn_2",
+    "UrnTap_2",
+    "Stool_2",
+    "StoolTop_2",
+    "Fount_glow",
+    "Barrel",
+    "Hoop_18",
+    "Hoop_55",
+    "Hoop_92",
+    "Barrel_lbg",
+    "Barrel_lbl",
+    "Crate_0",
+    "Crate_1",
+    "Crate_2",
+    "Vend_body",
+    "Vend_logobg",
+    "Vend_logo",
+    "Vend_panel",
+    "Vend_cold",
+    "Vend_slot",
+    "Vend_leg",
+    "Vend_leg001",
+    "Annex_shell",
+    "Annex_pil",
+    "Annex_pil001",
+    "Annex_cornice",
+    "Annex_corbel",
+    "Annex_corbel001",
+    "Annex_corbel002",
+    "Annex_corbel003",
+    "Annex_corbel004",
+    "Annex_corbel005",
+    "Annex_corbel006",
+    "Annex_corbel007",
+    "Annex_corbel008",
+    "Annex_corbel009",
+    "Annex_corbel010",
+    "Annex_corbel011",
+    "Annex_band1",
+    "Annex_band2",
+    "Annex_riser",
+    "Annex_sfg-1",
+    "Annex_sff-1",
+    "Annex_sfg1",
+    "Annex_sff1",
+    "Annex_door",
+    "Annex_doorg",
+    "Annex_transom",
+    "Annex_glow",
+    "Annex_fascia",
+    "Annex_fascia_t",
+    "Annex_uwf",
+    "Annex_uw",
+    "Annex_uwmv",
+    "Annex_uwmh",
+    "Annex_sill",
+    "Annex_key",
+    "Annex_uwlit",
+    "Annex_uwf001",
+    "Annex_uw001",
+    "Annex_uwmv001",
+    "Annex_uwmh001",
+    "Annex_sill001",
+    "Annex_key001",
+    "Annex_uwf002",
+    "Annex_uw002",
+    "Annex_uwmv002",
+    "Annex_uwmh002",
+    "Annex_sill002",
+    "Annex_key002",
+    "Annex_uwlit001",
+    "Annex_uwf003",
+    "Annex_uw003",
+    "Annex_uwmv003",
+    "Annex_uwmh003",
+    "Annex_sill003",
+    "Annex_key003",
+    "Annex_uwf004",
+    "Annex_uw004",
+    "Annex_uwmv004",
+    "Annex_uwmh004",
+    "Annex_sill004",
+    "Annex_key004",
+    "Annex_uwlit002",
+    "Annex_uwf005",
+    "Annex_uw005",
+    "Annex_uwmv005",
+    "Annex_uwmh005",
+    "Annex_sill005",
+    "Annex_key005",
+    "Annex_awn",
+    "Annex_awnbr",
+    "Annex_awnbr001",
+    "Annex_val",
+    "Annex_tx",
+    "Books_shell",
+    "Books_pil",
+    "Books_pil001",
+    "Books_cornice",
+    "Books_corbel",
+    "Books_corbel001",
+    "Books_corbel002",
+    "Books_corbel003",
+    "Books_corbel004",
+    "Books_corbel005",
+    "Books_corbel006",
+    "Books_corbel007",
+    "Books_corbel008",
+    "Books_corbel009",
+    "Books_corbel010",
+    "Books_corbel011",
+    "Books_band1",
+    "Books_band2",
+    "Books_riser",
+    "Books_sfg-1",
+    "Books_sff-1",
+    "Books_sfg1",
+    "Books_sff1",
+    "Books_door",
+    "Books_doorg",
+    "Books_transom",
+    "Books_glow",
+    "Books_fascia",
+    "Books_fascia_t",
+    "Books_uwf",
+    "Books_uw",
+    "Books_uwmv",
+    "Books_uwmh",
+    "Books_sill",
+    "Books_key",
+    "Books_uwlit",
+    "Books_uwf001",
+    "Books_uw001",
+    "Books_uwmv001",
+    "Books_uwmh001",
+    "Books_sill001",
+    "Books_key001",
+    "Books_uwf002",
+    "Books_uw002",
+    "Books_uwmv002",
+    "Books_uwmh002",
+    "Books_sill002",
+    "Books_key002",
+    "Books_uwlit001",
+    "Books_uwf003",
+    "Books_uw003",
+    "Books_uwmv003",
+    "Books_uwmh003",
+    "Books_sill003",
+    "Books_key003",
+    "Books_uwf004",
+    "Books_uw004",
+    "Books_uwmv004",
+    "Books_uwmh004",
+    "Books_sill004",
+    "Books_key004",
+    "Books_uwlit002",
+    "Books_uwf005",
+    "Books_uw005",
+    "Books_uwmv005",
+    "Books_uwmh005",
+    "Books_sill005",
+    "Books_key005",
+    "Books_tx",
+    "Across_shell",
+    "Across_pil",
+    "Across_pil001",
+    "Across_cornice",
+    "Across_corbel",
+    "Across_corbel001",
+    "Across_corbel002",
+    "Across_corbel003",
+    "Across_corbel004",
+    "Across_corbel005",
+    "Across_corbel006",
+    "Across_corbel007",
+    "Across_corbel008",
+    "Across_corbel009",
+    "Across_corbel010",
+    "Across_corbel011",
+    "Across_band1",
+    "Across_band2",
+    "Across_band3",
+    "Across_riser",
+    "Across_sfg-1",
+    "Across_sff-1",
+    "Across_sfg1",
+    "Across_sff1",
+    "Across_door",
+    "Across_doorg",
+    "Across_transom",
+    "Across_glow",
+    "Across_fascia",
+    "Across_fascia_t",
+    "Across_uwf",
+    "Across_uw",
+    "Across_uwmv",
+    "Across_uwmh",
+    "Across_sill",
+    "Across_key",
+    "Across_uwlit",
+    "Across_uwf001",
+    "Across_uw001",
+    "Across_uwmv001",
+    "Across_uwmh001",
+    "Across_sill001",
+    "Across_key001",
+    "Across_uwf002",
+    "Across_uw002",
+    "Across_uwmv002",
+    "Across_uwmh002",
+    "Across_sill002",
+    "Across_key002",
+    "Across_uwlit001",
+    "Across_uwf003",
+    "Across_uw003",
+    "Across_uwmv003",
+    "Across_uwmh003",
+    "Across_sill003",
+    "Across_key003",
+    "Across_uwf004",
+    "Across_uw004",
+    "Across_uwmv004",
+    "Across_uwmh004",
+    "Across_sill004",
+    "Across_key004",
+    "Across_uwlit002",
+    "Across_uwf005",
+    "Across_uw005",
+    "Across_uwmv005",
+    "Across_uwmh005",
+    "Across_sill005",
+    "Across_key005",
+    "Across_uwf006",
+    "Across_uw006",
+    "Across_uwmv006",
+    "Across_uwmh006",
+    "Across_sill006",
+    "Across_key006",
+    "Across_uwlit003",
+    "Across_uwf007",
+    "Across_uw007",
+    "Across_uwmv007",
+    "Across_uwmh007",
+    "Across_sill007",
+    "Across_key007",
+    "Across_uwf008",
+    "Across_uw008",
+    "Across_uwmv008",
+    "Across_uwmh008",
+    "Across_sill008",
+    "Across_key008",
+    "Across_uwlit004",
+    "West3_shell",
+    "West3_pil",
+    "West3_pil001",
+    "West3_cornice",
+    "West3_corbel",
+    "West3_corbel001",
+    "West3_corbel002",
+    "West3_corbel003",
+    "West3_corbel004",
+    "West3_corbel005",
+    "West3_corbel006",
+    "West3_corbel007",
+    "West3_corbel008",
+    "West3_corbel009",
+    "West3_corbel010",
+    "West3_corbel011",
+    "West3_band1",
+    "West3_band2",
+    "West3_band3",
+    "West3_riser",
+    "West3_sfg-1",
+    "West3_sff-1",
+    "West3_sfg1",
+    "West3_sff1",
+    "West3_door",
+    "West3_doorg",
+    "West3_transom",
+    "West3_glow",
+    "West3_fascia",
+    "West3_fascia_t",
+    "West3_uwf",
+    "West3_uw",
+    "West3_uwmv",
+    "West3_uwmh",
+    "West3_sill",
+    "West3_key",
+    "West3_uwlit",
+    "West3_uwf001",
+    "West3_uw001",
+    "West3_uwmv001",
+    "West3_uwmh001",
+    "West3_sill001",
+    "West3_key001",
+    "West3_uwf002",
+    "West3_uw002",
+    "West3_uwmv002",
+    "West3_uwmh002",
+    "West3_sill002",
+    "West3_key002",
+    "West3_uwlit001",
+    "West3_uwf003",
+    "West3_uw003",
+    "West3_uwmv003",
+    "West3_uwmh003",
+    "West3_sill003",
+    "West3_key003",
+    "West3_uwf004",
+    "West3_uw004",
+    "West3_uwmv004",
+    "West3_uwmh004",
+    "West3_sill004",
+    "West3_key004",
+    "West3_uwlit002",
+    "West3_uwf005",
+    "West3_uw005",
+    "West3_uwmv005",
+    "West3_uwmh005",
+    "West3_sill005",
+    "West3_key005",
+    "West3_uwf006",
+    "West3_uw006",
+    "West3_uwmv006",
+    "West3_uwmh006",
+    "West3_sill006",
+    "West3_key006",
+    "West3_uwlit003",
+    "West3_uwf007",
+    "West3_uw007",
+    "West3_uwmv007",
+    "West3_uwmh007",
+    "West3_sill007",
+    "West3_key007",
+    "West3_uwf008",
+    "West3_uw008",
+    "West3_uwmv008",
+    "West3_uwmh008",
+    "West3_sill008",
+    "West3_key008",
+    "West3_uwlit004",
+    "West4_shell",
+    "West4_pil",
+    "West4_pil001",
+    "West4_cornice",
+    "West4_corbel",
+    "West4_corbel001",
+    "West4_corbel002",
+    "West4_corbel003",
+    "West4_corbel004",
+    "West4_corbel005",
+    "West4_corbel006",
+    "West4_corbel007",
+    "West4_corbel008",
+    "West4_corbel009",
+    "West4_corbel010",
+    "West4_corbel011",
+    "West4_band1",
+    "West4_band2",
+    "West4_riser",
+    "West4_sfg-1",
+    "West4_sff-1",
+    "West4_sfg1",
+    "West4_sff1",
+    "West4_door",
+    "West4_doorg",
+    "West4_transom",
+    "West4_glow",
+    "West4_fascia",
+    "West4_fascia_t",
+    "West4_uwf",
+    "West4_uw",
+    "West4_uwmv",
+    "West4_uwmh",
+    "West4_sill",
+    "West4_key",
+    "West4_uwlit",
+    "West4_uwf001",
+    "West4_uw001",
+    "West4_uwmv001",
+    "West4_uwmh001",
+    "West4_sill001",
+    "West4_key001",
+    "West4_uwf002",
+    "West4_uw002",
+    "West4_uwmv002",
+    "West4_uwmh002",
+    "West4_sill002",
+    "West4_key002",
+    "West4_uwlit001",
+    "West4_uwf003",
+    "West4_uw003",
+    "West4_uwmv003",
+    "West4_uwmh003",
+    "West4_sill003",
+    "West4_key003",
+    "West4_uwf004",
+    "West4_uw004",
+    "West4_uwmv004",
+    "West4_uwmh004",
+    "West4_sill004",
+    "West4_key004",
+    "West4_uwlit002",
+    "West4_uwf005",
+    "West4_uw005",
+    "West4_uwmv005",
+    "West4_uwmh005",
+    "West4_sill005",
+    "West4_key005",
+    "West4_awn",
+    "West4_awnbr",
+    "West4_awnbr001",
+    "West4_val",
+    "East1_shell",
+    "East1_pil",
+    "East1_pil001",
+    "East1_cornice",
+    "East1_corbel",
+    "East1_corbel001",
+    "East1_corbel002",
+    "East1_corbel003",
+    "East1_corbel004",
+    "East1_corbel005",
+    "East1_corbel006",
+    "East1_corbel007",
+    "East1_corbel008",
+    "East1_corbel009",
+    "East1_corbel010",
+    "East1_corbel011",
+    "East1_band1",
+    "East1_band2",
+    "East1_riser",
+    "East1_sfg-1",
+    "East1_sff-1",
+    "East1_sfg1",
+    "East1_sff1",
+    "East1_door",
+    "East1_doorg",
+    "East1_transom",
+    "East1_glow",
+    "East1_fascia",
+    "East1_fascia_t",
+    "East1_uwf",
+    "East1_uw",
+    "East1_uwmv",
+    "East1_uwmh",
+    "East1_sill",
+    "East1_key",
+    "East1_uwlit",
+    "East1_uwf001",
+    "East1_uw001",
+    "East1_uwmv001",
+    "East1_uwmh001",
+    "East1_sill001",
+    "East1_key001",
+    "East1_uwf002",
+    "East1_uw002",
+    "East1_uwmv002",
+    "East1_uwmh002",
+    "East1_sill002",
+    "East1_key002",
+    "East1_uwlit001",
+    "East1_uwf003",
+    "East1_uw003",
+    "East1_uwmv003",
+    "East1_uwmh003",
+    "East1_sill003",
+    "East1_key003",
+    "East1_uwf004",
+    "East1_uw004",
+    "East1_uwmv004",
+    "East1_uwmh004",
+    "East1_sill004",
+    "East1_key004",
+    "East1_uwlit002",
+    "East1_uwf005",
+    "East1_uw005",
+    "East1_uwmv005",
+    "East1_uwmh005",
+    "East1_sill005",
+    "East1_key005",
+    "East1_awn",
+    "East1_awnbr",
+    "East1_awnbr001",
+    "East1_val",
+    "East2_shell",
+    "East2_pil",
+    "East2_pil001",
+    "East2_cornice",
+    "East2_corbel",
+    "East2_corbel001",
+    "East2_corbel002",
+    "East2_corbel003",
+    "East2_corbel004",
+    "East2_corbel005",
+    "East2_corbel006",
+    "East2_corbel007",
+    "East2_corbel008",
+    "East2_corbel009",
+    "East2_corbel010",
+    "East2_corbel011",
+    "East2_band1",
+    "East2_band2",
+    "East2_band3",
+    "East2_riser",
+    "East2_sfg-1",
+    "East2_sff-1",
+    "East2_sfg1",
+    "East2_sff1",
+    "East2_door",
+    "East2_doorg",
+    "East2_transom",
+    "East2_glow",
+    "East2_fascia",
+    "East2_fascia_t",
+    "East2_uwf",
+    "East2_uw",
+    "East2_uwmv",
+    "East2_uwmh",
+    "East2_sill",
+    "East2_key",
+    "East2_uwlit",
+    "East2_uwf001",
+    "East2_uw001",
+    "East2_uwmv001",
+    "East2_uwmh001",
+    "East2_sill001",
+    "East2_key001",
+    "East2_uwf002",
+    "East2_uw002",
+    "East2_uwmv002",
+    "East2_uwmh002",
+    "East2_sill002",
+    "East2_key002",
+    "East2_uwlit001",
+    "East2_uwf003",
+    "East2_uw003",
+    "East2_uwmv003",
+    "East2_uwmh003",
+    "East2_sill003",
+    "East2_key003",
+    "East2_uwf004",
+    "East2_uw004",
+    "East2_uwmv004",
+    "East2_uwmh004",
+    "East2_sill004",
+    "East2_key004",
+    "East2_uwlit002",
+    "East2_uwf005",
+    "East2_uw005",
+    "East2_uwmv005",
+    "East2_uwmh005",
+    "East2_sill005",
+    "East2_key005",
+    "East2_uwf006",
+    "East2_uw006",
+    "East2_uwmv006",
+    "East2_uwmh006",
+    "East2_sill006",
+    "East2_key006",
+    "East2_uwlit003",
+    "East2_uwf007",
+    "East2_uw007",
+    "East2_uwmv007",
+    "East2_uwmh007",
+    "East2_sill007",
+    "East2_key007",
+    "East2_uwf008",
+    "East2_uw008",
+    "East2_uwmv008",
+    "East2_uwmh008",
+    "East2_sill008",
+    "East2_key008",
+    "East2_uwlit004",
+    "East3_shell",
+    "East3_pil",
+    "East3_pil001",
+    "East3_cornice",
+    "East3_corbel",
+    "East3_corbel001",
+    "East3_corbel002",
+    "East3_corbel003",
+    "East3_corbel004",
+    "East3_corbel005",
+    "East3_corbel006",
+    "East3_corbel007",
+    "East3_corbel008",
+    "East3_corbel009",
+    "East3_corbel010",
+    "East3_corbel011",
+    "East3_band1",
+    "East3_band2",
+    "East3_riser",
+    "East3_sfg-1",
+    "East3_sff-1",
+    "East3_sfg1",
+    "East3_sff1",
+    "East3_door",
+    "East3_doorg",
+    "East3_transom",
+    "East3_glow",
+    "East3_fascia",
+    "East3_fascia_t",
+    "East3_uwf",
+    "East3_uw",
+    "East3_uwmv",
+    "East3_uwmh",
+    "East3_sill",
+    "East3_key",
+    "East3_uwlit",
+    "East3_uwf001",
+    "East3_uw001",
+    "East3_uwmv001",
+    "East3_uwmh001",
+    "East3_sill001",
+    "East3_key001",
+    "East3_uwf002",
+    "East3_uw002",
+    "East3_uwmv002",
+    "East3_uwmh002",
+    "East3_sill002",
+    "East3_key002",
+    "East3_uwlit001",
+    "East3_uwf003",
+    "East3_uw003",
+    "East3_uwmv003",
+    "East3_uwmh003",
+    "East3_sill003",
+    "East3_key003",
+    "East3_uwf004",
+    "East3_uw004",
+    "East3_uwmv004",
+    "East3_uwmh004",
+    "East3_sill004",
+    "East3_key004",
+    "East3_uwlit002",
+    "East3_uwf005",
+    "East3_uw005",
+    "East3_uwmv005",
+    "East3_uwmh005",
+    "East3_sill005",
+    "East3_key005",
+    "BGb_-26_-17",
+    "BGcor_-26_-17",
+    "BGcr2_-26_-17",
+    "BGwin",
+    "BGwinf",
+    "BGwin001",
+    "BGwinf001",
+    "BGwin002",
+    "BGwinf002",
+    "BGwin003",
+    "BGwinf003",
+    "BGwin004",
+    "BGwinf004",
+    "BGwin005",
+    "BGwinf005",
+    "BGwin006",
+    "BGwinf006",
+    "BGwin007",
+    "BGwinf007",
+    "BGwin008",
+    "BGwinf008",
+    "BGwin009",
+    "BGwinf009",
+    "BGwin010",
+    "BGwinf010",
+    "BGwin011",
+    "BGwinf011",
+    "BGwin012",
+    "BGwinf012",
+    "BGwin013",
+    "BGwinf013",
+    "BGwin014",
+    "BGwinf014",
+    "BGb_-14_-18",
+    "BGcor_-14_-18",
+    "BGcr2_-14_-18",
+    "BGwin015",
+    "BGwinf015",
+    "BGwin016",
+    "BGwinf016",
+    "BGwin017",
+    "BGwinf017",
+    "BGwin018",
+    "BGwinf018",
+    "BGwin019",
+    "BGwinf019",
+    "BGwin020",
+    "BGwinf020",
+    "BGwin021",
+    "BGwinf021",
+    "BGwin022",
+    "BGwinf022",
+    "BGb_-3_-19",
+    "BGcor_-3_-19",
+    "BGcr2_-3_-19",
+    "BGwin023",
+    "BGwinf023",
+    "BGwin024",
+    "BGwinf024",
+    "BGwin025",
+    "BGwinf025",
+    "BGwin026",
+    "BGwinf026",
+    "BGwin027",
+    "BGwinf027",
+    "BGwin028",
+    "BGwinf028",
+    "BGwin029",
+    "BGwinf029",
+    "BGwin030",
+    "BGwinf030",
+    "BGwin031",
+    "BGwinf031",
+    "BGwin032",
+    "BGwinf032",
+    "BGwin033",
+    "BGwinf033",
+    "BGwin034",
+    "BGwinf034",
+    "BGwin035",
+    "BGwinf035",
+    "BGwin036",
+    "BGwinf036",
+    "BGwin037",
+    "BGwinf037",
+    "BGwin038",
+    "BGwinf038",
+    "BGwin039",
+    "BGwinf039",
+    "BGwin040",
+    "BGwinf040",
+    "BGwin041",
+    "BGwinf041",
+    "BGwin042",
+    "BGwinf042",
+    "BGb_9_-18",
+    "BGcor_9_-18",
+    "BGcr2_9_-18",
+    "BGwin043",
+    "BGwinf043",
+    "BGwin044",
+    "BGwinf044",
+    "BGwin045",
+    "BGwinf045",
+    "BGwin046",
+    "BGwinf046",
+    "BGwin047",
+    "BGwinf047",
+    "BGwin048",
+    "BGwinf048",
+    "BGwin049",
+    "BGwinf049",
+    "BGwin050",
+    "BGwinf050",
+    "BGwin051",
+    "BGwinf051",
+    "BGwin052",
+    "BGwinf052",
+    "BGwin053",
+    "BGwinf053",
+    "BGwin054",
+    "BGwinf054",
+    "BGb_20_-17",
+    "BGcor_20_-17",
+    "BGcr2_20_-17",
+    "BGwin055",
+    "BGwinf055",
+    "BGwin056",
+    "BGwinf056",
+    "BGwin057",
+    "BGwinf057",
+    "BGwin058",
+    "BGwinf058",
+    "BGwin059",
+    "BGwinf059",
+    "BGwin060",
+    "BGwinf060",
+    "BGwin061",
+    "BGwinf061",
+    "BGwin062",
+    "BGwinf062",
+    "BGwin063",
+    "BGwinf063",
+    "BGwin064",
+    "BGwinf064",
+    "BGwin065",
+    "BGwinf065",
+    "BGwin066",
+    "BGwinf066",
+    "BGwin067",
+    "BGwinf067",
+    "BGwin068",
+    "BGwinf068",
+    "BGwin069",
+    "BGwinf069",
+    "BGb_31_-19",
+    "BGcor_31_-19",
+    "BGcr2_31_-19",
+    "BGwin070",
+    "BGwinf070",
+    "BGwin071",
+    "BGwinf071",
+    "BGwin072",
+    "BGwinf072",
+    "BGwin073",
+    "BGwinf073",
+    "BGwin074",
+    "BGwinf074",
+    "BGwin075",
+    "BGwinf075",
+    "BGwin076",
+    "BGwinf076",
+    "BGwin077",
+    "BGwinf077",
+    "BGb_-37_-19",
+    "BGcor_-37_-19",
+    "BGcr2_-37_-19",
+    "BGwin078",
+    "BGwinf078",
+    "BGwin079",
+    "BGwinf079",
+    "BGwin080",
+    "BGwinf080",
+    "BGwin081",
+    "BGwinf081",
+    "BGwin082",
+    "BGwinf082",
+    "BGwin083",
+    "BGwinf083",
+    "BGwin084",
+    "BGwinf084",
+    "BGwin085",
+    "BGwinf085",
+    "BGwin086",
+    "BGwinf086",
+    "BGwin087",
+    "BGwinf087",
+    "BGwin088",
+    "BGwinf088",
+    "BGwin089",
+    "BGwinf089",
+    "BGwin090",
+    "BGwinf090",
+    "BGwin091",
+    "BGwinf091",
+    "BGwin092",
+    "BGwinf092",
+    "BGb_42_-18",
+    "BGcor_42_-18",
+    "BGcr2_42_-18",
+    "BGwin093",
+    "BGwinf093",
+    "BGwin094",
+    "BGwinf094",
+    "BGwin095",
+    "BGwinf095",
+    "BGwin096",
+    "BGwinf096",
+    "BGwin097",
+    "BGwinf097",
+    "BGwin098",
+    "BGwinf098",
+    "BGwin099",
+    "BGwinf099",
+    "BGwin100",
+    "BGwinf100",
+    "BGwin101",
+    "BGwinf101",
+    "BGwin102",
+    "BGwinf102",
+    "BGwin103",
+    "BGwinf103",
+    "BGwin104",
+    "BGwinf104",
+    "BGwin105",
+    "BGwinf105",
+    "BGwin106",
+    "BGwinf106",
+    "BGwin107",
+    "BGwinf107",
+    "BGwin108",
+    "BGwinf108",
+    "BGwin109",
+    "BGwinf109",
+    "BGwin110",
+    "BGwinf110",
+    "BGwin111",
+    "BGwinf111",
+    "BGwin112",
+    "BGwinf112",
+    "BGhaze",
+    "BGhazc",
+    "BGhaze001",
+    "BGhazc001",
+    "BGhaze002",
+    "BGhazc002",
+    "BGhaze003",
+    "BGhazc003",
+    "BGhaze004",
+    "BGhazc004",
+    "BGhaze005",
+    "BGhazc005",
+    "Church_body",
+    "Church_belf",
+    "Church_louv",
+    "Church_louv2",
+    "Church_louv001",
+    "Church_louv2001",
+    "Church_spire",
+    "Church_crossV",
+    "Church_crossH",
+    "WT_leg",
+    "WT_leg001",
+    "WT_leg002",
+    "WT_leg003",
+    "WT_brace",
+    "WT_tank",
+    "WT_cap",
+    "WT_leg004",
+    "WT_leg005",
+    "WT_leg006",
+    "WT_leg007",
+    "WT_brace001",
+    "WT_tank001",
+    "WT_cap001",
+    "Tree_trunk",
+    "Tree_leaf",
+    "Tree_leaf001",
+    "Tree_leaf002",
+    "Tree_leaf003",
+    "Tree_leaf004",
+    "Tree_trunk001",
+    "Tree_leaf005",
+    "Tree_leaf006",
+    "Tree_leaf007",
+    "Tree_leaf008",
+    "Tree_leaf009",
+    "Tree_trunk002",
+    "Tree_leaf010",
+    "Tree_leaf011",
+    "Tree_leaf012",
+    "Tree_leaf013",
+    "Tree_leaf014",
+    "Tree_trunk003",
+    "Tree_leaf015",
+    "Tree_leaf016",
+    "Tree_leaf017",
+    "Tree_leaf018",
+    "Tree_leaf019",
+    "Tree_trunk004",
+    "Tree_leaf020",
+    "Tree_leaf021",
+    "Tree_leaf022",
+    "Tree_leaf023",
+    "Tree_leaf024",
+    "Tree_trunk005",
+    "Tree_leaf025",
+    "Tree_leaf026",
+    "Tree_leaf027",
+    "Tree_leaf028",
+    "Tree_leaf029",
+    "Tree_trunk006",
+    "Tree_leaf030",
+    "Tree_leaf031",
+    "Tree_leaf032",
+    "Tree_leaf033",
+    "Tree_leaf034",
+    "Tree_trunk007",
+    "Tree_leaf035",
+    "Tree_leaf036",
+    "Tree_leaf037",
+    "Tree_leaf038",
+    "Tree_leaf039",
+    "Tree_trunk008",
+    "Tree_leaf040",
+    "Tree_leaf041",
+    "Tree_leaf042",
+    "Tree_leaf043",
+    "Tree_leaf044",
+    "Tree_trunk009",
+    "Tree_leaf045",
+    "Tree_leaf046",
+    "Tree_leaf047",
+    "Tree_leaf048",
+    "Tree_leaf049",
+    "Tree_trunk010",
+    "Tree_leaf050",
+    "Tree_leaf051",
+    "Tree_leaf052",
+    "Tree_leaf053",
+    "Tree_leaf054",
+    "Tree_trunk011",
+    "Tree_leaf055",
+    "Tree_leaf056",
+    "Tree_leaf057",
+    "Tree_leaf058",
+    "Tree_leaf059",
+    "Tree_trunk012",
+    "Tree_leaf060",
+    "Tree_leaf061",
+    "Tree_leaf062",
+    "Tree_leaf063",
+    "Tree_leaf064",
+    "Tree_trunk013",
+    "Tree_leaf065",
+    "Tree_leaf066",
+    "Tree_leaf067",
+    "Tree_leaf068",
+    "Tree_leaf069",
+    "Tree_trunk014",
+    "Tree_leaf070",
+    "Tree_leaf071",
+    "Tree_leaf072",
+    "Tree_leaf073",
+    "Tree_leaf074",
+    "Skyline_-60",
+    "Skyline_-44",
+    "Skyline_-28",
+    "Skyline_-12",
+    "Skyline_4",
+    "Skyline_20",
+    "Skyline_36",
+    "Skyline_52",
+    "Skyline_68",
+    "BG_ground",
+    "BackStreet",
+    "BackStreet2",
+    "BGcross_-31",
+    "BGcross_-20",
+    "BGcross_-9",
+    "BGcross_3",
+    "BGcross_15",
+    "BGcross_26",
+    "BGcross_37",
+    "BGcross_-44",
+    "BGcross_49",
+    "Sidewalk",
+    "Curb",
+    "MainStreet",
+    "CrossStreet",
+    "CrossSidewalk",
+    "Rail",
+    "Rail001",
+    "LampBase_-15",
+    "LampPost_-15",
+    "LampArm_-15",
+    "LampHat_-15",
+    "Globe_-15",
+    "LampBase_-3",
+    "LampPost_-3",
+    "LampArm_-3",
+    "LampHat_-3",
+    "Globe_-3",
+    "LampBase_6",
+    "LampPost_6",
+    "LampArm_6",
+    "LampHat_6",
+    "Globe_6",
+    "LampBase_14",
+    "LampPost_14",
+    "LampArm_14",
+    "LampHat_14",
+    "Globe_14",
+    "Pole_-20",
+    "PoleArm_-20",
+    "Pole_-6",
+    "PoleArm_-6",
+    "Pole_11",
+    "PoleArm_11",
+    "Wire_0",
+    "Wire_1",
+    "Chim_0_-24",
+    "ChimCap_0_-24",
+    "Chim_0_22",
+    "ChimCap_0_22",
+    "Chim_-10_-24",
+    "ChimCap_-10_-24",
+    "Chim_-10_22",
+    "ChimCap_-10_22",
+    "Chim_-19_-24",
+    "ChimCap_-19_-24",
+    "Chim_-19_22",
+    "ChimCap_-19_22",
+    "Chim_17_-24",
+    "ChimCap_17_-24",
+    "Chim_17_22",
+    "ChimCap_17_22",
+    "Smoke_-24_0",
+    "Smoke_-24_1",
+    "Smoke_-24_2",
+    "Smoke_-24_3",
+    "Smoke_-24_4",
+    "Smoke_-24_5",
+    "Smoke_-24_6",
+    "Smoke_-24_7",
+    "Smoke_-24_8",
+    "Smoke_146_0",
+    "Smoke_146_1",
+    "Smoke_146_2",
+    "Smoke_146_3",
+    "Smoke_146_4",
+    "Smoke_146_5",
+    "Smoke_146_6",
+    "Ped_body",
+    "Ped_skirt",
+    "Ped_head",
+    "Ped_hat",
+    "Ped_body001",
+    "Ped_skirt001",
+    "Ped_head001",
+    "Ped_hat001",
+    "Ped_body002",
+    "Ped_skirt002",
+    "Ped_head002",
+    "Ped_hat002",
+    "Ped_body003",
+    "Ped_skirt003",
+    "Ped_head003",
+    "Ped_hat003",
+    "Bird",
+    "Bird001",
+    "Bird002",
+    "Bird003",
+    "Bird004",
+    "Bird005",
+    "Bird006",
+    "Bird007",
+    "Bird008",
+    "Bird009",
+    "Bird010",
+    "Bird011",
+    "WagonRig",
+    "CarRig"
+  ],
+  "wheelPivotAnalysis": [
+    {
+      "pivot": "Wheel_-9_-7",
+      "restQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "child": "Cylinder051",
+      "childLocalPos": [
+        -3.95,
+        0.64,
+        -12.78
+      ],
+      "childWorldRest": [
+        32.413,
+        1.774,
+        -12.78
+      ],
+      "childWorldIfIdentity": [
+        32.05,
+        0.64,
+        -12.78
+      ],
+      "clipName": "Wheel_-9_-7Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.849,
+        -0.528
+      ]
+    },
+    {
+      "pivot": "Wheel_-9_7",
+      "restQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "child": "Cylinder052",
+      "childLocalPos": [
+        -3.95,
+        0.64,
+        -14.22
+      ],
+      "childWorldRest": [
+        32.413,
+        1.774,
+        -14.22
+      ],
+      "childWorldIfIdentity": [
+        32.05,
+        0.64,
+        -14.22
+      ],
+      "clipName": "Wheel_-9_7Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.849,
+        -0.528
+      ]
+    },
+    {
+      "pivot": "Wheel_9_-7",
+      "restQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "child": "Cylinder053",
+      "childLocalPos": [
+        -2.05,
+        0.64,
+        -12.78
+      ],
+      "childWorldRest": [
+        34.229,
+        1.215,
+        -12.78
+      ],
+      "childWorldIfIdentity": [
+        33.95,
+        0.64,
+        -12.78
+      ],
+      "clipName": "Wheel_9_-7Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.849,
+        -0.528
+      ]
+    },
+    {
+      "pivot": "Wheel_9_7",
+      "restQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "child": "Cylinder054",
+      "childLocalPos": [
+        -2.05,
+        0.64,
+        -14.22
+      ],
+      "childWorldRest": [
+        34.229,
+        1.215,
+        -14.22
+      ],
+      "childWorldIfIdentity": [
+        33.95,
+        0.64,
+        -14.22
+      ],
+      "clipName": "Wheel_9_7Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        -0.149,
+        0.989
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.849,
+        -0.528
+      ]
+    },
+    {
+      "pivot": "Car_wheel",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder067",
+      "childLocalPos": [
+        -10.9,
+        0.48,
+        -15.6
+      ],
+      "childWorldRest": [
+        -32.926,
+        -8.431,
+        -15.6
+      ],
+      "childWorldIfIdentity": [
+        -36.9,
+        0.48,
+        -15.6
+      ],
+      "clipName": "Car_wheelAction.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel001",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder068",
+      "childLocalPos": [
+        -10.9,
+        0.48,
+        -16.9
+      ],
+      "childWorldRest": [
+        -32.926,
+        -8.431,
+        -16.9
+      ],
+      "childWorldIfIdentity": [
+        -36.9,
+        0.48,
+        -16.9
+      ],
+      "clipName": "Car_wheel.001Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel002",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder069",
+      "childLocalPos": [
+        -9.6,
+        0.48,
+        -15.6
+      ],
+      "childWorldRest": [
+        -32.146,
+        -7.391,
+        -15.6
+      ],
+      "childWorldIfIdentity": [
+        -35.6,
+        0.48,
+        -15.6
+      ],
+      "clipName": "Car_wheel.002Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel003",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder070",
+      "childLocalPos": [
+        -9.6,
+        0.48,
+        -16.9
+      ],
+      "childWorldRest": [
+        -32.146,
+        -7.391,
+        -16.9
+      ],
+      "childWorldIfIdentity": [
+        -35.6,
+        0.48,
+        -16.9
+      ],
+      "clipName": "Car_wheel.003Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel004",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder071",
+      "childLocalPos": [
+        -8.4,
+        0.48,
+        -15.6
+      ],
+      "childWorldRest": [
+        -31.425,
+        -6.431,
+        -15.6
+      ],
+      "childWorldIfIdentity": [
+        -34.4,
+        0.48,
+        -15.6
+      ],
+      "clipName": "Car_wheel.004Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel005",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder072",
+      "childLocalPos": [
+        -8.4,
+        0.48,
+        -16.9
+      ],
+      "childWorldRest": [
+        -31.425,
+        -6.431,
+        -16.9
+      ],
+      "childWorldIfIdentity": [
+        -34.4,
+        0.48,
+        -16.9
+      ],
+      "clipName": "Car_wheel.005Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel006",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder073",
+      "childLocalPos": [
+        -7.1,
+        0.48,
+        -15.6
+      ],
+      "childWorldRest": [
+        -30.645,
+        -5.391,
+        -15.6
+      ],
+      "childWorldIfIdentity": [
+        -33.1,
+        0.48,
+        -15.6
+      ],
+      "clipName": "Car_wheel.006Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    },
+    {
+      "pivot": "Car_wheel007",
+      "restQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "child": "Cylinder074",
+      "childLocalPos": [
+        -7.1,
+        0.48,
+        -16.9
+      ],
+      "childWorldRest": [
+        -30.645,
+        -5.391,
+        -16.9
+      ],
+      "childWorldIfIdentity": [
+        -33.1,
+        0.48,
+        -16.9
+      ],
+      "clipName": "Car_wheel.007Action.004",
+      "clipFirstKeyQuat": [
+        0,
+        0,
+        0.447,
+        0.894
+      ],
+      "clipLastKeyQuat": [
+        0,
+        0,
+        0.988,
+        0.152
+      ]
+    }
+  ],
+  "rigPositionTracks": [
+    {
+      "clip": "WagonRigAction.005",
+      "node": "WagonRig",
+      "first": [
+        36,
+        0,
+        0
+      ],
+      "last": [
+        -29.453,
+        0,
+        0
+      ],
+      "keyCount": 238
+    },
+    {
+      "clip": "CarRigAction.004",
+      "node": "CarRig",
+      "first": [
+        -26,
+        0,
+        0
+      ],
+      "last": [
+        43.406,
+        0,
+        0
+      ],
+      "keyCount": 238
+    }
+  ]
+}
