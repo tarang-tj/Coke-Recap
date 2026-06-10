@@ -4,11 +4,13 @@ PASTE-AND-RUN in Blender's Scripting tab (Blender 4.2+ / 5.x), or headless:
   /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/level-up-diorama-design.py
 
 What it does (everything survives glTF export — no live procedural shaders):
-  1. Imports the source diorama GLB (SRC below), then fix_layout(): raises the
-     corner Coca-Cola button sign clear of the lamp post / tree sightline,
-     seats the four storefront awnings at header height against the facades,
-     and mixes brick variants across the street at the object level (hero
-     pharmacy stays cream).
+  1. Imports the source diorama GLB (SRC below), then fix_layout(): removes
+     the leftover corner blade banner (Blade/Blade_rim/Blade_tx), keeps the
+     Coca-Cola button sign at natural bracket height and instead moves the
+     sightline occluders (corner lamp post 2 m down the street, back-street
+     tree 3 m along its row), seats the four storefront awnings at header
+     height against the facades, and mixes brick variants across the street
+     at the object level (hero pharmacy stays cream).
   2. Bakes small tileable detail textures ONCE on a throwaway plane (Cycles
      EMIT/NORMAL bakes, seconds total — never the per-object bake that OOMs):
        - 4 brick albedos (one per Brick/Brick2/Brick3/Brick4, each derived from
@@ -345,11 +347,28 @@ CLOSE_POS, CLOSE_LOOK = G2B((7, 2.4, -12.5)), G2B((3.7, 1.0, -5.9))
 # Geometry fixes for user-reported defects, keyed by object names from the
 # pristine source GLB. Plain object-location edits only (no transform_apply,
 # so animated nodes stay intact). Blender coords: z = up, +y = main street.
-SIGN_RAISE = 1.5    # Btn disc sign sat at z 6.6 where LampPost_6/Globe_6 cross
-                    # its face from street views and a back-street tree
-                    # (Tree_leaf.050) pokes through the cross-street gap at its
-                    # lower rim. +1.5 clears both (rim r=1.55 vs projected
-                    # tree-top dist 1.8) and stays under the cornice (z 11.4).
+# Corner button-sign redesign. A leftover vertical blade banner hung on the
+# corner pillar below the disc (white rim + red blade + white text strip,
+# z 2.8-5.8) and an earlier +1.5 raise left the disc floating oddly high.
+# New approach: delete the banner, keep the disc at natural bracket height,
+# and move the two sightline occluders out of the home-camera ray instead.
+BLADE_REMOVE = ("Blade", "Blade_rim", "Blade_tx")
+SIGN_RAISE = 0.2    # near-original disc height (ctr z 6.6 -> 6.8). +0.2 puts
+                    # the rim bottom (z 5.05 -> 5.25) above every lamp-hat top
+                    # (z 5.14), so no street lamp can cross the disc face from
+                    # any camera at z > 5.25; cornice (z 11.4) stays far above.
+LAMP6_DX = 2.0      # corner lamp (x 6.5-7.1) projected to within 0.3 m of the
+                    # rim's right edge from the home cam; +2 m along the main
+                    # street gives > 2 m of projected clearance.
+LAMP6_PARTS = ("LampPost_6", "Globe_6", "LampArm_6", "LampHat_6", "LampBase_6")
+TREE_DX = 4.5       # back-street tree at (15,-14): its canopy projected onto
+                    # the disc plane overlapped the lower-right rim. Shift the
+                    # WHOLE tree (trunk + 5 leaf balls, so the canopy stays
+                    # intact) +4.5 m along its row; every ball then clears the
+                    # rim circle numerically (see check_corner_sightline).
+TREE_PARTS = ("Tree_trunk.010", "Tree_leaf.050", "Tree_leaf.051",
+              "Tree_leaf.052", "Tree_leaf.053", "Tree_leaf.054")
+HOME_CAM_B = (-8.0, 34.0, 7.0)   # app home camera, Blender coords (= G2B)
 AWNING_DY = -0.55   # slabs floated 0.6 m off the facade (back edge y 3.71)
 AWNING_DZ = 1.97    # ...and lay at ankle height (z 0.41). Back-top edge goes
                     # (3.71, 0.75) -> (3.16, 2.72): snug to the storefront,
@@ -367,21 +386,67 @@ BRICK_SWAP = {
     "East3_shell": "Brick4", "East3_pil": "Brick4", "East3_pil.001": "Brick4",
 }
 
+def _seg_dist(p, a, b):
+    """2D distance from point p to segment a-b."""
+    ab = b - a
+    t = max(0.0, min(1.0, (p - a).dot(ab) / max(ab.length_squared, 1e-9)))
+    return (p - (a + ab * t)).length
+
+def check_corner_sightline(objs):
+    """Project occluder bboxes from the home camera onto the disc plane and
+    print rim clearance (negative = silhouette crosses the button sign)."""
+    bpy.context.view_layer.update()   # flush location edits into matrix_world
+    rim = objs.get("Btn_rim")
+    if not rim:
+        print("  !! sightline: Btn_rim missing, check skipped"); return
+    bb = [rim.matrix_world @ Vector(c) for c in rim.bound_box]
+    ctr = Vector((sum(v.x for v in bb) / 8, sum(v.z for v in bb) / 8))
+    rim_r = (max(v.x for v in bb) - min(v.x for v in bb)) / 2
+    plane_y = sum(v.y for v in bb) / 8
+    cam = Vector(HOME_CAM_B)
+
+    def proj(p):  # camera ray hit on the disc plane (y = plane_y)
+        t = (cam.y - plane_y) / (cam.y - p.y)
+        return Vector((cam.x + (p.x - cam.x) * t, cam.z + (p.z - cam.z) * t))
+
+    for name in LAMP6_PARTS + TREE_PARTS:
+        ob = objs.get(name)
+        if not ob:
+            print(f"  !! sightline: {name} missing"); continue
+        pts = [proj(ob.matrix_world @ Vector(c)) for c in ob.bound_box]
+        d = min(_seg_dist(ctr, pts[i], pts[j])
+                for i in range(8) for j in range(i + 1, 8))
+        flag = "OK " if d > rim_r else "HIT"
+        print(f"  sightline {flag} {name:16s} rim clearance {d - rim_r:+.2f} m")
+
 def fix_layout():
     objs = bpy.data.objects
 
-    def shift(name, dy=0.0, dz=0.0):
+    def shift(name, dx=0.0, dy=0.0, dz=0.0):
         ob = objs.get(name)
         if not ob:
             print(f"  !! fix_layout: {name} not found"); return
         if ob.parent:
             print(f"  !! fix_layout: {name} unexpectedly parented to {ob.parent.name}")
+        ob.location.x += dx
         ob.location.y += dy
         ob.location.z += dz
 
-    # 1. corner button sign: raise disc + its mounting arm together
+    # 1. corner button sign redesign: drop the blade banner, keep the disc at
+    #    natural bracket height, move the occluders out of the home sightline
+    for n in BLADE_REMOVE:
+        ob = objs.get(n)
+        if ob:
+            bpy.data.objects.remove(ob, do_unlink=True)
+        else:
+            print(f"  !! fix_layout: blade part {n} not found")
     for n in ("Btn_disc", "Btn_rim", "Btn_logo", "CornerArm"):
         shift(n, dz=SIGN_RAISE)
+    for n in LAMP6_PARTS:
+        shift(n, dx=LAMP6_DX)
+    for n in TREE_PARTS:
+        shift(n, dx=TREE_DX)
+    check_corner_sightline(objs)
 
     # 2. awnings: slab + both brackets up to storefront-header height and snug
     #    to the facade; valance rises to meet the relocated lip. The
@@ -405,7 +470,8 @@ def fix_layout():
         for slot in ob.material_slots:
             if slot.material and slot.material.name.startswith("Brick"):
                 slot.material = mat
-    print("  fix_layout: sign raised, awnings seated, brick mix applied")
+    print("  fix_layout: blade banner removed, sign at bracket height, "
+          "occluders moved, awnings seated, brick mix applied")
 
 # ------------------------------------------------------------------ MAIN ----
 def main():
@@ -505,8 +571,9 @@ def main():
     if RENDER_PREVIEWS:
         render_preview("/tmp/diorama-after-wide.png", WIDE_POS, WIDE_LOOK)
         render_preview("/tmp/diorama-after-close.png", CLOSE_POS, CLOSE_LOOK)
-        # defect-fix verification close-ups (Blender coords)
-        render_preview("/tmp/diorama-after-sign.png", (0.5, 11.5, 9.2), (5.1, 4.7, 8.1))
+        # defect-fix verification close-ups (Blender coords). Sign shot sits
+        # ON the home-camera ray, pulled in close to the corner.
+        render_preview("/tmp/diorama-after-sign.png", (-0.8, 17.9, 6.9), (5.1, 4.68, 6.8))
         render_preview("/tmp/diorama-after-awning.png", (-3.0, 12.0, 2.8), (0.0, 3.5, 2.4))
         render_preview("/tmp/diorama-after-brickwall.png", (19.0, 13.0, 4.0), (26.5, 3.0, 4.2))
 
