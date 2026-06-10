@@ -1,6 +1,11 @@
 # Level-up: recap story mode + nav reach + resilience
 
-**Status:** in progress · **Branch:** `polish-pass-6` · **Mode:** auto (user: "level up the hell out of the project")
+**Status:** ✅ complete — PR #8 open, awaiting user merge · **Branch:** `polish-pass-6` · **Mode:** auto (user: "level up the hell out of the project")
+
+All six phases shipped + a seventh found during verification: SSAO had been
+silently inactive in production (missing `enableNormalPass`) — fixed.
+16/16 prod-preview checks pass; code-review H1/H2/M1 findings fixed
+(`plans/reports/code-review-260609-2010-level-up.md`).
 
 ## Why
 
