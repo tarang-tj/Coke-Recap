@@ -8,6 +8,8 @@ import { ViewAccentLights } from './scene/view-accent-lights';
 import { RecapProvider } from './scene/recap/recap-context';
 import { VendingHotspot } from './scene/recap/vending-hotspot';
 import { RecapDispenser } from './scene/recap/recap-dispenser';
+import { MetricsDisplay } from './scene/metrics-display';
+import { DriftingClouds } from './scene/drifting-clouds';
 import { RecapPanel } from './ui/recap/recap-panel';
 import { ChapterOverlay } from './ui/chapter-overlay';
 import { StartGate } from './ui/start-gate';
@@ -35,6 +37,8 @@ function SceneContent() {
       <ViewAccentLights />
       <VendingHotspot />
       <RecapDispenser />
+      <MetricsDisplay />
+      <DriftingClouds />
     </>
   );
 }

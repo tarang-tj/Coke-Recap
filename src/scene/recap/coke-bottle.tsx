@@ -20,6 +20,22 @@ export function CokeBottle(props: Props) {
 
   const { object, scale } = useMemo(() => {
     const clone = scene.clone(true);
+
+    // The source GLB is a Sketchfab export that ships a backdrop/platform mesh
+    // (Cube_Background_0, material "Background"). Strip it BEFORE measuring the
+    // Box3 below, or it skews the recenter/foot/scale normalisation. Collect
+    // first, then remove — removing mid-traverse skips nodes.
+    const backdrop: THREE.Object3D[] = [];
+    clone.traverse((o) => {
+      if (!(o as THREE.Mesh).isMesh) return;
+      const mesh = o as THREE.Mesh;
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      if (/background/i.test(mesh.name) || materials.some((m) => m && /background/i.test(m.name))) {
+        backdrop.push(mesh);
+      }
+    });
+    for (const mesh of backdrop) mesh.removeFromParent();
+
     const box = new THREE.Box3().setFromObject(clone);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
