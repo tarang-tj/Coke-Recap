@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProgress } from '@react-three/drei';
+import { useReducedMotion } from '../hooks/use-reduced-motion';
+
+// Historical garnish for the longest dead moment of the visit — slow-4G
+// mobile spends 10 s+ here. Cycles unless reduced motion is on.
+const TIDBITS = [
+  'first served · jacobs’ pharmacy · may 8, 1886',
+  'sold for 5¢ from 1886 to 1959',
+  'invented by john s. pemberton · atlanta',
+];
 
 // Bottle-shaped loader that fills with Coke red as the real assets parse, then
 // fades away. Rendered outside the <Canvas> so it covers first paint.
@@ -12,7 +21,15 @@ export function SceneLoader() {
   const { active, progress } = useProgress(); // progress is 0..100
   const [hidden, setHidden] = useState(false);
   const [display, setDisplay] = useState(0);
+  const [tidbit, setTidbit] = useState(0);
   const everActive = useRef(false);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced || hidden) return;
+    const id = setInterval(() => setTidbit((t) => (t + 1) % TIDBITS.length), 2800);
+    return () => clearInterval(id);
+  }, [reduced, hidden]);
 
   // Monotonic display value — only ever climbs, so the pour never visibly snaps
   // backward when a new asset group registers and dilutes the percentage.
@@ -66,6 +83,15 @@ export function SceneLoader() {
         </div>
         <p className="text-xs uppercase tracking-[0.3em] text-cream/40 font-body tabular-nums">
           Pouring&nbsp;·&nbsp;{pct}%
+        </p>
+        {/* keyed so each tidbit replays the entrance fade; fixed-height slot
+            so a two-line wrap on narrow phones doesn't bounce the bottle
+            every 2.8 s (the flex column is centered) */}
+        <p
+          key={tidbit}
+          className="coke-fade-in h-10 px-6 text-center font-body text-[0.5rem] uppercase tracking-[0.45em] text-cream/25 select-none"
+        >
+          {TIDBITS[tidbit]}
         </p>
       </div>
     </div>

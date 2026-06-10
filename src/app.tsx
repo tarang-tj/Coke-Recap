@@ -4,6 +4,7 @@ import { NavigationProvider } from './scene/navigation-context';
 import { SceneRoot } from './scene/scene-root';
 import { CocaColaDiorama } from './scene/coca-cola-diorama';
 import { StreetLamps } from './scene/street-lamps';
+import { ViewAccentLights } from './scene/view-accent-lights';
 import { RecapProvider } from './scene/recap/recap-context';
 import { VendingHotspot } from './scene/recap/vending-hotspot';
 import { RecapDispenser } from './scene/recap/recap-dispenser';
@@ -31,6 +32,7 @@ function SceneContent() {
     <>
       <CocaColaDiorama />
       <StreetLamps />
+      <ViewAccentLights />
       <VendingHotspot />
       <RecapDispenser />
     </>
