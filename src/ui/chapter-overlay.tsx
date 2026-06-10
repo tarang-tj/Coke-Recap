@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
 import { useExperience } from '../scene/experience-context';
@@ -19,6 +20,19 @@ export function ChapterOverlay() {
   const { phase, activate } = useRecap();
   const { started } = useExperience();
   const isMachine = view === 'machine';
+
+  // Per-chapter tab title — distinct history entries + tab UX. Lives here
+  // (not NavigationProvider) because the labels do: importing the section
+  // registry into the provider would be a circular import.
+  useEffect(() => {
+    const base = 'Coke-Recap — Tarang Jammalamadaka';
+    document.title = isMachine ? base : `${LABELS[view as ChapterId]} — ${base}`;
+    // Reset on unmount: if the canvas dies mid-chapter the fallback page
+    // would otherwise keep the stale chapter title.
+    return () => {
+      document.title = base;
+    };
+  }, [view, isMachine]);
 
   // Nothing here is usable behind the start gate — rendering it anyway would
   // leave invisible tab stops underneath the gate's modal.
