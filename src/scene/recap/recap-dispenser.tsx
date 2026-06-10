@@ -35,12 +35,16 @@ export function RecapDispenser() {
   const scaleRef = useRef({ bottle: 0, coin: 1 });
   const spin = useRef(0);
 
-  // The user only triggers idle -> coin; the rest auto-advances on timers.
+  // The user triggers idle -> coin and reveal -> closing; the rest
+  // auto-advances on timers. The useFrame defaults already animate 'closing'
+  // (bottle damps back to the slot at scale 0) — only the timing lives here.
   useEffect(() => {
     if (phase === 'idle' || phase === 'reveal') return;
-    const ms = reduced ? 150 : phase === 'coin' ? 950 : 1500;
-    const next = phase === 'coin' ? 'dispense' : 'reveal';
-    const t = setTimeout(() => setPhase(next), ms);
+    const [next, ms]: ['dispense' | 'reveal' | 'idle', number] =
+      phase === 'coin' ? ['dispense', 950]
+      : phase === 'dispense' ? ['reveal', 1500]
+      : ['idle', 900]; // closing — bottle settles home, then the camera frees
+    const t = setTimeout(() => setPhase(next), reduced ? 150 : ms);
     return () => clearTimeout(t);
   }, [phase, reduced, setPhase]);
 
