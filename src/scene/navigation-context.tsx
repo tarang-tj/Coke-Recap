@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -52,15 +53,18 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const goHome = useCallback(() => setView('machine'), []);
 
   // view → URL. One history entry per view change so the browser back button
-  // walks the visit instead of exiting the site.
+  // walks the visit instead of exiting the site. The very first sync REPLACES
+  // instead of pushing: arriving with an unknown hash (/#foo) must normalize
+  // the URL without leaving the junk entry one Back-press away.
+  const firstUrlSync = useRef(true);
   useEffect(() => {
     const desired = view === 'machine' ? '' : `#${view}`;
+    const replace = firstUrlSync.current;
+    firstUrlSync.current = false;
     if (window.location.hash === desired) return; // popstate/deep-link already in sync
-    window.history.pushState(
-      null,
-      '',
-      desired || window.location.pathname + window.location.search,
-    );
+    const url = desired || window.location.pathname + window.location.search;
+    if (replace) window.history.replaceState(null, '', url);
+    else window.history.pushState(null, '', url);
   }, [view]);
 
   // URL → view (back/forward buttons, manual hash edits).
