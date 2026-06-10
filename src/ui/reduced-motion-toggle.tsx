@@ -35,7 +35,7 @@ export function ReducedMotionToggle() {
   return (
     <button
       onClick={cycle}
-      className="fixed bottom-4 left-4 z-40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 hover:text-cream border border-cream/20 hover:border-cream/40 rounded-full bg-coke-black/40 backdrop-blur transition"
+      className="fixed top-14 right-4 md:top-auto md:right-auto md:bottom-4 md:left-4 z-40 px-3 py-1.5 text-xs uppercase tracking-widest text-cream/70 hover:text-cream border border-cream/20 hover:border-cream/40 rounded-full bg-coke-black/40 backdrop-blur transition"
       aria-label={`Toggle motion preference. Current: ${label}`}
     >
       {label}
