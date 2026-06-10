@@ -17,7 +17,9 @@ Press **START** and the camera settles into a wide establishing shot. From there
 1. **The vending machine.** Click the glowing Coca-Cola machine: a 5-cent coin drops, a contour bottle is dispensed and floats up to a hero pose, and a story-mode panel pages through the whole internship — intro → The Role → The Stack → The Agent → Takeaways.
 2. **The chapter pills.** Click a pill (or press keys **1–4**) and the camera flies to a vantage point in the diorama for that chapter.
 
-Drag to look around. **ESC** returns home.
+Drag to look around (swipe pages the recap on touch). **ESC** returns home.
+Chapters are deep-linkable — share `/#tools` and the camera flies straight
+there — and the browser back button walks your visit.
 
 ### A note on content
 
@@ -41,7 +43,7 @@ Drag to look around. **ESC** returns home.
 - **Runtime decal re-tint.** The baked Coca-Cola script decals are re-tinted on a canvas at runtime to get crisp white lettering without shipping duplicate textures.
 - **Capture-phase key routing.** Keyboard input is routed at the capture phase so the recap panel and diorama navigation never steal each other's keys.
 - **Respectful by default.** `prefers-reduced-motion` support, a WebGL fallback, and lazy-loaded music — nothing autoplays at you.
-- **Shippable polish.** PWA manifest, SEO/OG tags, and a production-bundle screenshot verification loop (Puppeteer) that catches visual regressions before deploy.
+- **Shippable polish.** PWA manifest, SEO/OG tags, CI, and a production-bundle screenshot verification loop (Puppeteer) that catches visual regressions before deploy. Lighthouse: **100 / 100 / 100** accessibility / best-practices / SEO.
 
 ## Period details
 
