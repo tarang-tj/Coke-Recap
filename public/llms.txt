@@ -1,0 +1,43 @@
+# Coke-Recap — Tarang Jammalamadaka
+
+> Interactive 3-D portfolio recapping a Global Human Insights internship at
+> The Coca-Cola Company: a miniature diorama of Five Points, Atlanta, 1886 —
+> the Jacobs' Pharmacy block where Coca-Cola was first served — explored in
+> the browser. Built by an intern working at the intersection of AI marketing
+> technology and consumer marketing data (so yes, this file is on brand).
+
+The visual experience needs WebGL; this file is the text-readable version.
+
+## The story (deep links)
+
+- Home: https://coke-recap.vercel.app/ — click the vending machine: a nickel
+  drops, a contour bottle is dispensed, and a story panel pages through the
+  internship.
+- The Role: https://coke-recap.vercel.app/#role — translating signals from
+  real people into decisions brand teams can act on; consumer marketing
+  analytics, human-insight synthesis, AI martech tooling.
+- The Stack: https://coke-recap.vercel.app/#tools — NIQ, PowerBI, DAX, SQL,
+  Python, internal tooling.
+- The Agent: https://coke-recap.vercel.app/#agent — an AI agent for consumer
+  marketing metrics: Ingest / Analyze / Surface. Less time hunting for the
+  chart, more time building the brand.
+- Takeaways: https://coke-recap.vercel.app/#takeaways — insight has no impact
+  until it changes a decision; AI gives the analyst leverage; the best
+  marketing tools feel invisible.
+
+Content policy: zero specifics — no internal data, metrics, or campaign
+names; tools by name with generic blurbs; the agent described conceptually.
+
+## Author
+
+Tarang Jammalamadaka
+- GitHub: https://github.com/tarang-tj
+- LinkedIn: https://www.linkedin.com/in/tarang-jammalamadaka/
+- Email: tarangjammalamadaka9@gmail.com
+
+## Tech
+
+Vite + React 19 + TypeScript, @react-three/fiber, three.js,
+@react-three/postprocessing, Tailwind. Meshopt-compressed GLBs, WebAudio
+synthesized SFX, full keyboard/screen-reader paths, deep-linkable chapters.
+Source: https://github.com/tarang-tj/Coke-Recap
