@@ -1,7 +1,12 @@
 # Level-up 8: truthful controls, shareable URLs, guarded main
 
-**Status:** in progress · **Branch:** `polish-pass-8` (stacked on 7 → PR base `polish-pass-7`)
+**Status:** ✅ complete — PR #11 open against `main` (stack #8-#10 merged by user),
+first CI run GREEN (24 s), Vercel preview deployed · **Branch:** `polish-pass-8`
 **Mode:** ultracode
+
+26/26 prod-preview checks (motion-freeze pixel proof: on=143,287 / off=0
+differing pixels). Reviewer: no blockers; both lows fixed. Lighthouse recorded.
+Mid-pass ENOSPC outage (disk 100% full) — resolved by user clearing npm caches.
 
 ## Why (the ultrathink cut)
 
