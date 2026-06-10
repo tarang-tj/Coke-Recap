@@ -28,10 +28,14 @@ const PAGE_LABELS: Record<PageId, string> = {
 };
 
 export function RecapPanel() {
-  const { phase, reset } = useRecap();
+  const { phase, reset, setPhase } = useRecap();
   const open = phase === 'reveal';
   const [page, setPage] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Done / back-to-machine = graceful finish (bottle returns to the tray
+  // before the camera releases). ESC keeps using reset() — instant out.
+  const close = () => setPhase('closing');
 
   // Every fresh reveal starts the story from the intro card.
   useEffect(() => {
@@ -182,7 +186,7 @@ export function RecapPanel() {
           {/* Pager — prev / progress dots / next */}
           <div className="pointer-events-auto mt-8 flex items-center gap-4">
             <button
-              onClick={() => (page === 0 ? reset() : setPage(page - 1))}
+              onClick={() => (page === 0 ? close() : setPage(page - 1))}
               className="rounded-full border border-off-white/30 bg-coke-black/40 px-4 py-2.5 font-body text-[0.6rem] uppercase tracking-[0.25em] text-off-white/80 transition-colors hover:border-off-white/60 hover:text-off-white"
             >
               {page === 0 ? '◂ The machine' : '◂ Back'}
@@ -206,7 +210,7 @@ export function RecapPanel() {
             </div>
 
             <button
-              onClick={() => (last ? reset() : setPage(page + 1))}
+              onClick={() => (last ? close() : setPage(page + 1))}
               className="rounded-full bg-coke-red px-4 py-2.5 font-body text-[0.6rem] font-semibold uppercase tracking-[0.25em] text-off-white shadow-[0_0_18px_rgba(244,0,9,0.4)] transition-transform hover:scale-[1.03]"
             >
               {last ? 'Done ▸' : `${CHAPTER_LABELS[PAGES[page + 1] as ChapterId]} ▸`}
