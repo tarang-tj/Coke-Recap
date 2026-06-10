@@ -17,7 +17,7 @@ export function CreditHud() {
   return (
     <p
       aria-hidden="true"
-      className="pointer-events-none fixed bottom-6 right-7 z-30 font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45"
+      className="pointer-events-none fixed bottom-20 right-4 md:bottom-6 md:right-7 z-30 font-body text-[0.55rem] uppercase tracking-[0.4em] text-off-white/45"
       style={{
         opacity: show ? 1 : 0,
         transition: reducedMotion ? 'none' : 'opacity 200ms ease',

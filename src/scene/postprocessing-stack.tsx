@@ -38,7 +38,11 @@ export function PostprocessingStack({ performanceFactor = 1 }: Props) {
   }
 
   return (
-    <EffectComposer multisampling={4}>
+    // enableNormalPass is REQUIRED for SSAO: without it the effect logs
+    // "Please enable the NormalPass…" and silently does nothing — the AO was
+    // absent in production until this was added. (The low-end composer above
+    // has no SSAO, so it skips the extra normal render pass.)
+    <EffectComposer multisampling={4} enableNormalPass>
       {/* SSAO — darkens corners, crevices, and recesses for dimensionality.
           Carefully tuned for the low-poly cartoony aesthetic — too aggressive
           and it makes everything look dirty; too subtle and it adds nothing. */}

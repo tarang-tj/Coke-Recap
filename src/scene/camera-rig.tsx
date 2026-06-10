@@ -73,34 +73,51 @@ export function CameraRig() {
 
   // Pointer-drag free-look: only meaningful when exploring (recap idle). A plain
   // click (the hotspot) moves the pointer ~0px, so it won't perturb the view.
+  // Deltas come from clientX/Y, NOT movementX/Y — Safari reports movement as 0
+  // for touch pointers, which left mobile visitors with a dead drag.
   useEffect(() => {
     let down = false;
-    const onDown = () => {
+    const lastPt = { x: 0, y: 0 };
+    const onDown = (e: PointerEvent) => {
+      // Primary pointer only — a second finger would rewrite lastPt and the
+      // interleaved moves would compute deltas ACROSS fingers (look target
+      // slams to the clamp on any pinch attempt).
+      if (!e.isPrimary) return;
       if (!startedRef.current || recapActiveRef.current) return;
       down = true;
+      lastPt.x = e.clientX;
+      lastPt.y = e.clientY;
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       down = false;
     };
     const onMove = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       if (!down || reduced) return;
+      const dx = e.clientX - lastPt.x;
+      const dy = e.clientY - lastPt.y;
+      lastPt.x = e.clientX;
+      lastPt.y = e.clientY;
       drag.current.x = THREE.MathUtils.clamp(
-        drag.current.x + e.movementX / window.innerWidth,
+        drag.current.x + dx / window.innerWidth,
         -1,
         1,
       );
       drag.current.y = THREE.MathUtils.clamp(
-        drag.current.y + e.movementY / window.innerHeight,
+        drag.current.y + dy / window.innerHeight,
         -1,
         1,
       );
     };
     window.addEventListener('pointerdown', onDown);
     window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
     window.addEventListener('pointermove', onMove);
     return () => {
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
       window.removeEventListener('pointermove', onMove);
     };
   }, [reduced]);
