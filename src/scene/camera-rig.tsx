@@ -9,8 +9,9 @@ import { useRecap } from './recap/recap-context';
 
 // Camera rig — ALL camera motion lives here. View-driven (no scroll): the camera
 // flies between the home scene (machine view) and each chapter "stage" as the
-// nav view changes. Before PRESS START it holds the home pose; clicking the gate
-// simply removes it (no entry dolly animation needed).
+// nav view changes. Before PRESS START it holds INTRO_POSE (the target pose
+// pulled back); clicking the gate releases the rig toward the real pose — the
+// "arrival breath".
 //
 // Two overrides layer on top of the nav poses:
 //   - recap focus: while the vending-machine recap is running, the camera holds

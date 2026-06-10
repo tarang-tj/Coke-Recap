@@ -22,7 +22,10 @@ export function SceneRoot({ children }: Props) {
 
   return (
     <Canvas
-      camera={{ position: [-8, 7, -34], fov: 55, near: 0.5, far: 400 }}
+      // Initial position = the rig's INTRO_POSE (camera-rig.tsx), so the
+      // pre-start hold is a true hold — initializing at the home pose made
+      // the rig dolly BACKWARD to the intro pose behind the gate on load.
+      camera={{ position: [-9, 7.8, -37.8], fov: 55, near: 0.5, far: 400 }}
       dpr={[1, 1.5]}
       gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
       // ACES filmic + a touch under 1.0 exposure recovers the blown cream

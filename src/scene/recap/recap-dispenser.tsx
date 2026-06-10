@@ -88,7 +88,14 @@ export function RecapDispenser() {
         bottle.rotation.y = spin.current;
         bottle.position.y += Math.sin(spin.current * 1.6) * 0.025;
       } else {
+        // Wrap to [-π, π] FIRST: spin accumulates unbounded during reveal,
+        // and damping home from the raw angle is a strobing multi-rev
+        // backspin (k × accumulated radians per second on the first frames
+        // of the closing return). Wrapped, it's a ≤ half-turn settle.
+        bottle.rotation.y =
+          THREE.MathUtils.euclideanModulo(bottle.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
         bottle.rotation.y += (0 - bottle.rotation.y) * (1 - Math.exp(-k * dt));
+        spin.current = bottle.rotation.y;
       }
     }
   });

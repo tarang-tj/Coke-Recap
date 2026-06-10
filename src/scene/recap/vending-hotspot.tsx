@@ -3,6 +3,7 @@ import { Edges, Html, Billboard } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useRecap } from './recap-context';
+import { useExperience } from '../experience-context';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
 // Invisible click proxy wrapping the diorama's vending machine. Raycasting one
@@ -82,6 +83,7 @@ function MachineBeacon() {
 
 export function VendingHotspot() {
   const { phase, activate } = useRecap();
+  const { started } = useExperience();
   const [hovered, setHovered] = useState(false);
   const reduced = useReducedMotion();
 
@@ -94,8 +96,11 @@ export function VendingHotspot() {
     };
   }, [hovered]);
 
-  // Only interactive before the sequence begins.
-  if (phase !== 'idle') return null;
+  // Only interactive once the experience has begun (the gate blocks pointer
+  // events today, but the pose ternary pins the camera at INTRO_POSE while
+  // !started — a pre-start recap would play to a parked wide shot) and
+  // before the sequence begins.
+  if (!started || phase !== 'idle') return null;
 
   return (
     <>
