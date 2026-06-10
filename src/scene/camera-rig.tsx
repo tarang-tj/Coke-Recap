@@ -128,7 +128,7 @@ export function CameraRig() {
     POSES.machine.look[2],
   ));
 
-  useFrame(({ pointer }, dt) => {
+  useFrame(({ pointer, clock }, dt) => {
     const currentView = viewRef.current;
     const isStarted = startedRef.current;
     const recapActive = recapActiveRef.current;
@@ -143,6 +143,16 @@ export function CameraRig() {
       if (currentView !== 'machine') {
         _targetPos.x += pointer.x * 1.4;
         _targetPos.y += pointer.y * 0.9;
+      } else {
+        // Idle drift — the home establishing shot was a freeze-frame (no
+        // parallax there). A slow incommensurate-period sway keeps the
+        // diorama feeling alive while never wandering far from the
+        // composition; the 3.2 s damp below low-passes it even smoother.
+        const t = clock.elapsedTime;
+        _targetPos.x += Math.sin(t * 0.31) * 0.45;
+        _targetPos.y += Math.sin(t * 0.47 + 1.3) * 0.22;
+        _targetLook.x += Math.sin(t * 0.23 + 0.6) * 0.4;
+        _targetLook.y += Math.sin(t * 0.37 + 2.1) * 0.18;
       }
       // Free-look pan — drag to glance around the diorama.
       _targetLook.x += drag.current.x * FREE_LOOK_X;

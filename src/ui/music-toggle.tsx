@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '../scene/experience-context';
+import { MUSIC_PREF_KEY as KEY, audioPrefOn } from '../audio/audio-prefs';
 
 // Background music + on/off toggle. The track ("Fig Leaf Times Two" by Kevin
 // MacLeod, CC BY 3.0 — attributed on the start gate) is a light old-timey
@@ -8,15 +9,11 @@ import { useExperience } from '../scene/experience-context';
 // Press Start; the toggle persists the listener's choice across visits.
 
 const SRC = '/assets/audio/ambient-ragtime.m4a';
-const KEY = 'coke-recap:music';
 
 export function MusicToggle() {
   const { started } = useExperience();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [on, setOn] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    return window.localStorage.getItem(KEY) !== 'off';
-  });
+  const [on, setOn] = useState<boolean>(audioPrefOn); // throw-safe storage read
 
   // Playback follows (started && on). The Press-Start gesture unlocks autoplay,
   // so play() is only attempted once the experience has begun.
@@ -49,7 +46,11 @@ export function MusicToggle() {
   );
 
   useEffect(() => {
-    window.localStorage.setItem(KEY, on ? 'on' : 'off');
+    try {
+      window.localStorage.setItem(KEY, on ? 'on' : 'off');
+    } catch {
+      /* storage blocked — preference just won't persist */
+    }
   }, [on]);
 
   // The control only makes sense once you're in the experience.

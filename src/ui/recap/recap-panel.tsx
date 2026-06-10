@@ -38,6 +38,13 @@ export function RecapPanel() {
     if (open) setPage(0);
   }, [open]);
 
+  // Move focus into the page body on open and on every page turn — keyboard
+  // users can immediately scroll overflowed copy, and screen readers land on
+  // the new page's content instead of staying lost on the canvas.
+  useEffect(() => {
+    if (open) scrollRef.current?.focus({ preventScroll: true });
+  }, [open, page]);
+
   // Capture-phase key handling for the whole active sequence — including the
   // coin/dispense beats, where a stray arrow key would otherwise fly the
   // camera away mid-animation.
@@ -75,13 +82,22 @@ export function RecapPanel() {
     return () => window.removeEventListener('keydown', onKey, true);
   }, [phase, open, reset]);
 
-  if (!open) return null;
-
   const pageId = PAGES[page];
   const last = page === PAGES.length - 1;
   const Section = pageId === 'intro' ? null : CHAPTER_SECTIONS[pageId];
 
   return (
+    <>
+      {/* SR narration for open + page turns (the global LiveAnnouncer stays
+          silent during reveal so this is the single voice). The region is
+          ALWAYS mounted — a live region inserted together with its first
+          message is the classic silent case in NVDA/VoiceOver; only text
+          changes in an existing region announce reliably. */}
+      <div aria-live="polite" role="status" className="sr-only">
+        {open ? `${PAGE_LABELS[pageId]} — page ${page + 1} of ${PAGES.length}` : ''}
+      </div>
+
+      {open && (
     <div className="pointer-events-none fixed inset-0 z-40">
       {/* Left readability scrim — bottle shows through on the right */}
       <div
@@ -139,7 +155,7 @@ export function RecapPanel() {
               {page === 0 ? '◂ The machine' : '◂ Back'}
             </button>
 
-            <div className="flex items-center gap-2" aria-label="Recap pages">
+            <div className="flex items-center gap-2" role="group" aria-label="Recap pages">
               {PAGES.map((id, i) => (
                 <button
                   key={id}
@@ -170,5 +186,7 @@ export function RecapPanel() {
         </div>
       </div>
     </div>
+      )}
+    </>
   );
 }

@@ -8,11 +8,20 @@
     <link rel="canonical" href="https://coke-recap.vercel.app/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#1B1B1B" />
+    <meta name="color-scheme" content="dark" />
     <meta name="description" content="Tarang Jammalamadaka — Global Human Insights Intern @ Coca-Cola. Interactive 3D portfolio." />
     <meta name="author" content="Tarang Jammalamadaka" />
     <meta name="apple-mobile-web-app-title" content="Coke-Recap" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Coke-Recap — Tarang Jammalamadaka</title>
+
+    <!-- Start the big GLB downloads at HTML parse instead of after the JS
+         chunk arrives. crossorigin matches three's FileLoader fetch mode
+         (cors + same-origin credentials) so the preload cache HITS — a
+         mismatch would double-download; the screenshot suite asserts one
+         fetch per model. -->
+    <link rel="preload" href="/assets/models/coca-cola-diorama.glb" as="fetch" crossorigin />
+    <link rel="preload" href="/assets/models/cocacola-bottle.glb" as="fetch" crossorigin />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
@@ -32,6 +41,16 @@
     <meta name="twitter:image" content="https://coke-recap.vercel.app/og-image.jpg" />
   </head>
   <body>
+    <noscript>
+      <p style="font-family: system-ui; color: #fffef6; padding: 2rem; max-width: 36rem">
+        Coke-Recap is an interactive 3-D portfolio by Tarang Jammalamadaka —
+        Global Human Insights Intern at The Coca-Cola Company. It needs
+        JavaScript to run; in the meantime, say hello at
+        <a href="mailto:tarangjammalamadaka9@gmail.com" style="color: #f40009">
+          tarangjammalamadaka9@gmail.com</a
+        >.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

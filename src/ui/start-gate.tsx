@@ -90,14 +90,21 @@ export function StartGate() {
           pointerEvents: started ? 'none' : 'auto',
           transition: reduced ? 'none' : 'opacity 0.5s ease',
         }}
-        aria-hidden={started}
+        // inert (not aria-hidden): it removes the fading gate from the a11y
+        // tree AND blurs/blocks the still-focused Press Start button — with
+        // aria-hidden, focus lived inside a hidden subtree for the 600 ms
+        // fade (axe: aria-hidden-focus).
+        inert={started}
         role="dialog"
         aria-modal="true"
         aria-label="Experience start gate"
       >
-        {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo) */}
+        {/* PRESS START — arcade-pill CTA (sits below the centered 3-D logo).
+            autoFocus: the gate is a modal dialog, so focus must land inside it
+            on mount — otherwise keyboard/SR users start in a void. */}
         <button
           onClick={start}
+          autoFocus
           className={[
             reduced ? '' : 'gate-press-start',
             'rounded-full border-2 border-off-white/70 px-12 py-4',
