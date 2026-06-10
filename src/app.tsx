@@ -9,6 +9,9 @@ import { RecapProvider } from './scene/recap/recap-context';
 import { VendingHotspot } from './scene/recap/vending-hotspot';
 import { RecapDispenser } from './scene/recap/recap-dispenser';
 import { MetricsDisplay } from './scene/metrics-display';
+import { MartechPipeline } from './scene/martech-pipeline';
+import { ConsumerFunnel } from './scene/consumer-funnel';
+import { GrowthRibbon } from './scene/growth-ribbon';
 import { DriftingClouds } from './scene/drifting-clouds';
 import { RecapPanel } from './ui/recap/recap-panel';
 import { ChapterOverlay } from './ui/chapter-overlay';
@@ -38,6 +41,9 @@ function SceneContent() {
       <VendingHotspot />
       <RecapDispenser />
       <MetricsDisplay />
+      <MartechPipeline />
+      <ConsumerFunnel />
+      <GrowthRibbon />
       <DriftingClouds />
     </>
   );
