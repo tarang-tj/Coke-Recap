@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Diegetic "MARTECH PIPELINE" exhibit for THE STACK chapter: a low dark-wood
 // apothecary bench holding three brass-and-glass apparatus stations (DATA IN
@@ -107,8 +108,19 @@ export function MartechPipeline() {
     placed.current = true;
   });
 
+  // Bench bbox: width 1.3, height ~0 to ~0.85 (vessel tops at ~0.72+0.1=0.82).
+  // Centre y = 0.41, depth 0.55. Mount only in tools view.
+  const hotspot = inTools ? (
+    <ExhibitHotspot
+      size={[1.3, 0.82, 0.55]}
+      position={[0, 0.41, 0]}
+      label="Martech Pipeline exhibit — click to focus"
+    />
+  ) : null;
+
   return (
     <group position={POS} rotation={[0, ROT_Y, 0]} raycast={NO_RAYCAST}>
+      {hotspot}
       {/* Bench — plinth, body, top, brass front trim (dark apothecary wood) */}
       <mesh position={[0, 0.04, 0]} raycast={NO_RAYCAST}>
         <boxGeometry args={[1.3, 0.08, 0.55]} />

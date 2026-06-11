@@ -39,6 +39,23 @@ body {
   animation: coke-fade-in 0.5s var(--ease-out-expo, ease) both;
 }
 
+/* Collapse-tab one-time attention pulse — museum-toned, 3 gentle glows. */
+@keyframes tab-pulse {
+  0%   { box-shadow: 0 0 0   0px rgba(255,255,255,0.0); border-color: rgba(255,255,255,0.25); }
+  30%  { box-shadow: 0 0 10px 3px rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.55); }
+  60%  { box-shadow: 0 0 0   0px rgba(255,255,255,0.0); border-color: rgba(255,255,255,0.25); }
+  80%  { box-shadow: 0 0 8px  2px rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.45); }
+  100% { box-shadow: 0 0 0   0px rgba(255,255,255,0.0); border-color: rgba(255,255,255,0.25); }
+}
+.tab-pulse-once {
+  animation: tab-pulse 2s ease-in-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-pulse-once {
+    animation: none;
+  }
+}
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

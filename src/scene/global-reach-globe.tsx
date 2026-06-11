@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Diegetic "GLOBAL REACH" exhibit for THE TOOLS/STACK chapter: a Victorian
 // brass-stand globe showing Coca-Cola's reach from Atlanta to world markets.
@@ -199,8 +200,21 @@ export function GlobalReachGlobe() {
   // Atlanta marker position on the globe surface (local to globe group).
   const atlantaPos = useMemo(() => latLonToV3(ATLANTA.lat, ATLANTA.lon, GLOBE_R + 0.01), []);
 
+  // Globe bbox: pedestal base (0.56 wide, ~0.67 tall) + support column + globe.
+  // Globe centre = GLOBE_CY (1.32), radius 0.45 → top at 1.77.
+  // Proxy: width = diameter+slight margin (1.1), height full (~1.8), depth 1.1.
+  // Centre y = 0.9.
+  const hotspot = inTools ? (
+    <ExhibitHotspot
+      size={[1.1, 1.8, 1.1]}
+      position={[0, 0.9, 0]}
+      label="Global Reach globe exhibit — click to focus"
+    />
+  ) : null;
+
   return (
     <group position={POS} rotation={[0, ROT_Y, 0]} raycast={NO_RAYCAST}>
+      {hotspot}
       {/* ── Pedestal: plinth, body, column, tabletop (dark Victorian wood) ── */}
       <mesh position={[0, 0.05, 0]} raycast={NO_RAYCAST}>
         <boxGeometry args={[0.56, 0.1, 0.56]} />

@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Diegetic "MARKET INSIGHTS" stand for THE ROLE chapter: a period wood-and-
 // brass display holding a stylized 3-D bar chart of consumer-marketing
@@ -120,8 +121,20 @@ export function MetricsDisplay() {
     if (a.t > BARS.length * STAGGER + 1.5) settled.current = true;
   });
 
+  // Hotspot proxy covers stand plinth through header: local coords centred on
+  // the stand. Width ~1.95, height from plinth base (~0) to header top (~1.65),
+  // depth ~0.8. Centre y = 0.825.
+  const hotspot = inRole ? (
+    <ExhibitHotspot
+      size={[1.95, 1.65, 0.8]}
+      position={[0, 0.825, 0]}
+      label="Market Insights exhibit — click to focus"
+    />
+  ) : null;
+
   return (
     <group position={POS} rotation={[0, ROT_Y, 0]}>
+      {hotspot}
       {/* Plinth + pedestal + tabletop — dark wood */}
       <mesh position={[0, 0.05, 0]}>
         <boxGeometry args={[1.95, 0.1, 0.8]} />

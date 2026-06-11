@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Diegetic "CONSUMER PULSE" stand for THE ROLE chapter.
 // Two mini-charts share a single wood-and-brass display stand:
@@ -174,8 +175,19 @@ export function ConsumerPulse() {
     if (a.t > N_BARS * STAGGER + 1.5) settled.current = true;
   });
 
+  // Proxy spans full stand width (2.1) × height (~1.65) × depth (0.8).
+  // Centre y = 0.825 (ground=0, header top≈1.65).
+  const hotspot = inRole ? (
+    <ExhibitHotspot
+      size={[2.1, 1.65, 0.8]}
+      position={[0, 0.825, 0]}
+      label="Consumer Pulse exhibit — click to focus"
+    />
+  ) : null;
+
   return (
     <group position={POS} rotation={[0, ROT_Y, 0]}>
+      {hotspot}
       {/* ---- Stand structure (same proportions as MetricsDisplay) ---- */}
 
       {/* Plinth */}
