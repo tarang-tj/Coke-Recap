@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
-import { useExperience } from '../scene/experience-context';
+import { useExperience, usePanelCollapsed } from '../scene/experience-context';
 import { Logo } from './brand/logo';
 import {
   CHAPTER_LABELS as LABELS,
@@ -20,6 +20,11 @@ export function ChapterOverlay() {
   const { phase, activate } = useRecap();
   const { started } = useExperience();
   const isMachine = view === 'machine';
+
+  // Panel-collapsed state lives in the external store (experience-context) so
+  // CameraRig can read the same value without a provider change. Default =
+  // expanded (false), persists across chapter switches.
+  const [collapsed, toggle] = usePanelCollapsed();
 
   // Per-chapter tab title — distinct history entries + tab UX. Lives here
   // (not NavigationProvider) because the labels do: importing the section
@@ -40,15 +45,26 @@ export function ChapterOverlay() {
   const Section = isMachine ? null : SECTIONS[view as ChapterId];
   const chapterIndex = isMachine ? -1 : CHAPTERS.indexOf(view as ChapterId);
 
+  // Collapsed: scrim + content column slide left and fade out.
+  // The re-expand tab stays visible at the left edge.
+  const collapseStyle: React.CSSProperties = {
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
+    opacity: collapsed ? 0 : 1,
+    transform: collapsed ? 'translateX(-2rem)' : 'translateX(0)',
+    // Prevent hidden content from intercepting pointer events
+    pointerEvents: collapsed ? 'none' : undefined,
+  };
+
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
       {/* Left readability scrim — only in chapter views */}
       {!isMachine && (
         <div
-          className="coke-fade-in absolute inset-0"
+          className="absolute inset-0"
           style={{
             background:
               'linear-gradient(90deg, rgba(18,3,5,0.94) 0%, rgba(18,3,5,0.88) 30%, rgba(18,3,5,0.45) 52%, rgba(18,3,5,0) 68%)',
+            ...collapseStyle,
           }}
         />
       )}
@@ -59,6 +75,7 @@ export function ChapterOverlay() {
           onClick={goHome}
           aria-label="Back to the machine"
           className="pointer-events-auto fixed top-6 left-7 z-40 transition-opacity hover:opacity-80"
+          style={collapseStyle}
         >
           <Logo variant="white" className="w-24 md:w-28" />
         </button>
@@ -67,10 +84,13 @@ export function ChapterOverlay() {
       {/* Chapter content — left column, high contrast */}
       {Section && (
         <div
-          key={view}
-          className="coke-fade-in absolute inset-y-0 left-0 flex items-center"
+          className="absolute inset-y-0 left-0 flex items-center"
+          style={collapseStyle}
         >
-          <div className="w-[min(92vw,34rem)] px-8 md:px-16 [&_a]:pointer-events-auto">
+          <div
+            key={view}
+            className="coke-fade-in w-[min(92vw,34rem)] px-8 md:px-16 [&_a]:pointer-events-auto"
+          >
             <p className="mb-5 flex items-center gap-3 font-body text-[0.7rem] uppercase tracking-[0.4em] text-off-white">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-coke-red text-off-white text-[0.7rem] font-semibold">
                 {chapterIndex + 1}
@@ -86,6 +106,59 @@ export function ChapterOverlay() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Collapse / expand toggle — only on chapter views (not machine) */}
+      {!isMachine && Section && (
+        <button
+          onClick={toggle}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand story panel' : 'Collapse story panel'}
+          className={[
+            'pointer-events-auto fixed z-40',
+            // Vertical slim tab at left edge — shifts right when expanded so
+            // it clears the home logo; anchors at left:0 when collapsed.
+            'top-1/2 -translate-y-1/2',
+            collapsed
+              ? 'left-0 rounded-r-md border-r border-t border-b'
+              : 'left-1 rounded-md border',
+            'flex flex-col items-center justify-center gap-1',
+            'border-off-white/25 bg-coke-black/60 backdrop-blur-sm',
+            'px-1.5 py-3',
+            'font-body text-[0.55rem] uppercase tracking-[0.25em] text-off-white/70',
+            'transition-all duration-300 ease-out',
+            'hover:text-off-white hover:border-off-white/50 hover:bg-coke-black/80',
+            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-off-white/60 focus-visible:rounded-md',
+            'motion-reduce:transition-none',
+          ].join(' ')}
+          style={{
+            writingMode: 'vertical-rl',
+            textOrientation: 'mixed',
+          }}
+        >
+          {/* Chevron indicator */}
+          <svg
+            width="8"
+            height="10"
+            viewBox="0 0 8 10"
+            fill="none"
+            aria-hidden="true"
+            className="shrink-0"
+            style={{
+              transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+              transition: 'transform 0.3s ease',
+            }}
+          >
+            <path
+              d="M2 2 L6 5 L2 8"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="select-none">{collapsed ? 'story' : 'hide'}</span>
+        </button>
       )}
 
       {/* Machine-view prompt — hidden once the recap sequence is running.

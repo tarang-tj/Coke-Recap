@@ -16,14 +16,15 @@ const CREAM = '#FFF2DC';
 const WOOD = '#3A2618';
 const WOOD_DARK = '#2B1B10';
 const BRASS = '#B08D57';
+const GOLD = '#FFB953';
 
 // Stylized heights (world metres above the tabletop) — NOT to a shared scale.
 const BARS = [
-  { value: '~1.9B', label: 'Daily servings', h: 0.62, color: RED },
-  { value: '200+', label: 'Countries', h: 0.46, color: CREAM },
-  { value: '~94%', label: 'Logo recognition', h: 0.58, color: RED },
-  { value: '~$4B', label: 'Annual ad spend', h: 0.4, color: CREAM },
-  { value: '5¢', label: 'Price 1886–1959', h: 0.3, color: RED },
+  { value: '~1.9B', label: 'Daily servings', h: 0.74, color: RED },
+  { value: '200+', label: 'Countries', h: 0.56, color: CREAM },
+  { value: '~94%', label: 'Logo recognition', h: 0.70, color: RED },
+  { value: '~$4B', label: 'Annual ad spend', h: 0.48, color: CREAM },
+  { value: '5¢', label: 'Price 1886–1959', h: 0.38, color: RED },
 ];
 
 // Role camera sits at [2.6,2.4,-12] looking +Z — camera-right is world -X, so
@@ -33,21 +34,22 @@ const BARS = [
 const POS: [number, number, number] = [1.1, 0.05, -6.8];
 const ROT_Y = 2.62;
 const BAR_GAP = 0.375; // bar pitch along the tabletop
-const LABEL_DF = 5.5; // Html distanceFactor for bar pills
+const LABEL_DF = 4.8; // Html distanceFactor for bar pills — slightly closer = bigger pills
 const TOP_Y = 0.6; // tabletop surface height
-const BAR_W = 0.15;
-const CAP_H = 0.035;
+const BAR_W = 0.20; // wider bars for better visibility
+const CAP_H = 0.045; // taller caps to catch more bloom
 const STAGGER = 0.14; // s between bar starts
 
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '4px 11px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
-  color: '#FFF6E9',
+  background: 'rgba(12,6,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.70)',
+  color: '#FFFAF0',
   fontSize: size,
+  fontWeight: 600,
   letterSpacing: '0.16em',
   textTransform: 'uppercase',
   userSelect: 'none',
@@ -151,7 +153,7 @@ export function MetricsDisplay() {
       </mesh>
       <mesh position={[0, 1.63, -0.3]}>
         <boxGeometry args={[1.99, 0.025, 0.07]} />
-        <meshStandardMaterial color={BRASS} metalness={0.85} roughness={0.3} />
+        <meshStandardMaterial color={GOLD} metalness={0.85} roughness={0.25} emissive={GOLD} emissiveIntensity={0.5} />
       </mesh>
       {/* Caption plate (brass) on the pedestal front */}
       <mesh position={[0, 0.38, 0.305]}>
@@ -174,7 +176,13 @@ export function MetricsDisplay() {
               position={[x, TOP_Y + b.h / 2, 0]}
             >
               <boxGeometry args={[BAR_W, 1, BAR_W]} />
-              <meshStandardMaterial color={b.color} roughness={0.45} metalness={0.05} />
+              <meshStandardMaterial
+                color={b.color}
+                roughness={0.40}
+                metalness={0.08}
+                emissive={b.color}
+                emissiveIntensity={b.color === RED ? 0.55 : 0.30}
+              />
             </mesh>
             <mesh
               ref={(m) => {
@@ -182,19 +190,19 @@ export function MetricsDisplay() {
               }}
               position={[x, TOP_Y + b.h + CAP_H / 2, 0]}
             >
-              <boxGeometry args={[BAR_W + 0.04, CAP_H, BAR_W + 0.04]} />
+              <boxGeometry args={[BAR_W + 0.05, CAP_H, BAR_W + 0.05]} />
               <meshStandardMaterial
-                color={BRASS}
+                color={GOLD}
                 metalness={0.85}
-                roughness={0.3}
-                emissive={BRASS}
-                emissiveIntensity={0.18}
+                roughness={0.25}
+                emissive={GOLD}
+                emissiveIntensity={0.65}
               />
             </mesh>
             {inRole && (
               <Html position={[x, labelY, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-                <div style={pillStyle(6)}>
-                  <span style={{ fontSize: 11, fontWeight: 700, display: 'block' }}>{b.value}</span>
+                <div style={pillStyle(7)}>
+                  <span style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>{b.value}</span>
                   {b.label}
                 </div>
               </Html>
@@ -206,13 +214,13 @@ export function MetricsDisplay() {
       {/* Header + caption labels — ROLE view only (no label clutter elsewhere) */}
       {inRole && (
         <>
-          <Html position={[0, 1.74, -0.3]} center distanceFactor={7} occlude={false}>
-            <div style={{ ...pillStyle(10), fontWeight: 700, letterSpacing: '0.24em' }}>
+          <Html position={[0, 1.74, -0.3]} center distanceFactor={6} occlude={false}>
+            <div style={{ ...pillStyle(12), fontWeight: 700, letterSpacing: '0.24em', background: 'rgba(12,6,4,0.95)', border: '1.5px solid rgba(255,185,83,0.85)' }}>
               Market Insights
             </div>
           </Html>
           <Html position={[0, 0.38, 0.33]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={pillStyle(5.5)}>Illustrative &mdash; public figures</div>
+            <div style={{ ...pillStyle(6), color: 'rgba(255,245,220,0.75)' }}>Illustrative &mdash; public figures</div>
           </Html>
         </>
       )}

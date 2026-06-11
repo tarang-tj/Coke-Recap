@@ -25,7 +25,7 @@ const POS: [number, number, number] = [7.2, 0, -9.8];
 const ROT_Y = -0.5;
 const GLOBE_R = 0.45;
 const GLOBE_CY = 1.32; // globe centre height (local)
-const LABEL_DF = 5.5;
+const LABEL_DF = 4.0;
 
 // Total pulse instances across all arcs (6 arcs × 3 pulses).
 const TOTAL_PULSES = 18;
@@ -59,17 +59,17 @@ const PULSE_SPEED = 0.18; // arc-fraction per second
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '4px 12px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
+  background: 'rgba(18,8,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.7)',
   color: '#FFF6E9',
   fontSize: size,
-  letterSpacing: '0.16em',
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   userSelect: 'none',
   pointerEvents: 'none',
-  lineHeight: 1.45,
+  lineHeight: 1.5,
 });
 
 // ── Animated inner: arcs + pulses — mounted ONLY in tools view ──────────────
@@ -128,7 +128,7 @@ function GlobeArcs({
           <meshBasicMaterial
             color={GOLD}
             transparent
-            opacity={0.72}
+            opacity={0.9}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
@@ -176,7 +176,7 @@ export function GlobalReachGlobe() {
         .normalize()
         .multiplyScalar(GLOBE_R + ARC_LIFT);
       const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
-      arcGeoms.push(new THREE.TubeGeometry(curve, ARC_SEGMENTS, 0.006, 5, false));
+      arcGeoms.push(new THREE.TubeGeometry(curve, ARC_SEGMENTS, 0.010, 5, false));
       pulseCurves.push(curve);
     }
     return { arcGeoms, pulseCurves };
@@ -238,10 +238,10 @@ export function GlobalReachGlobe() {
 
       {/* ── Globe group (rotates independently) ── */}
       <group ref={globeRef} position={[0, GLOBE_CY, 0]}>
-        {/* Ocean sphere — deep navy */}
+        {/* Ocean sphere — slightly lighter navy for better contrast with gold arcs */}
         <mesh raycast={NO_RAYCAST}>
           <sphereGeometry args={[GLOBE_R, 32, 24]} />
-          <meshStandardMaterial color={OCEAN} roughness={0.55} metalness={0.0} />
+          <meshStandardMaterial color={'#1f2d47'} roughness={0.45} metalness={0.05} />
         </mesh>
         {/* Continent suggestion — faint additive wireframe shell */}
         <mesh geometry={wireGeom} raycast={NO_RAYCAST}>
@@ -249,15 +249,15 @@ export function GlobalReachGlobe() {
             color={GOLD}
             wireframe
             transparent
-            opacity={0.07}
+            opacity={0.14}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
         </mesh>
 
-        {/* Atlanta origin marker — small gold sphere; basic mat, no PBR needed */}
+        {/* Atlanta origin marker — gold sphere; basic mat, no PBR needed */}
         <mesh position={atlantaPos} raycast={NO_RAYCAST}>
-          <sphereGeometry args={[0.018, 8, 8]} />
+          <sphereGeometry args={[0.028, 8, 8]} />
           <meshBasicMaterial
             color={GOLD}
             toneMapped={false}
@@ -278,21 +278,21 @@ export function GlobalReachGlobe() {
       {inTools && (
         <>
           {/* Header pill — floats above the globe */}
-          <Html position={[0, GLOBE_CY + GLOBE_R + 0.22, 0]} center distanceFactor={7} occlude={false}>
-            <div style={{ ...pillStyle(10), fontWeight: 700, letterSpacing: '0.24em' }}>
+          <Html position={[0, GLOBE_CY + GLOBE_R + 0.28, 0]} center distanceFactor={5} occlude={false}>
+            <div style={{ ...pillStyle(12), fontWeight: 700, letterSpacing: '0.24em' }}>
               Global Reach
             </div>
           </Html>
           {/* Stat pill */}
           <Html position={[0, GLOBE_CY + GLOBE_R + 0.06, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={pillStyle(6)}>
-              <span style={{ fontSize: 9.5, fontWeight: 700, display: 'block' }}>200+ countries</span>
+            <div style={pillStyle(8)}>
+              <span style={{ fontSize: 12, fontWeight: 700, display: 'block' }}>200+ countries</span>
               ~1.9B servings / day
             </div>
           </Html>
           {/* Provenance pill on the caption plate */}
           <Html position={[0, 0.38, 0.26]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={pillStyle(5.5)}>Illustrative &mdash; public figures</div>
+            <div style={pillStyle(7)}>Illustrative &mdash; public figures</div>
           </Html>
         </>
       )}

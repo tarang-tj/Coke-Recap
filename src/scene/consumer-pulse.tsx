@@ -34,23 +34,23 @@ const GOLD = '#FFB953';
 // Shared material instances — avoids one material object per bar/cap mesh.
 // These are module-level singletons; R3F disposes them on unmount of the last
 // user, so no manual cleanup needed while the component is always-mounted.
-const matRed   = new THREE.MeshStandardMaterial({ color: '#C8102E', roughness: 0.45, metalness: 0.05 });
-const matCream = new THREE.MeshStandardMaterial({ color: '#FFF2DC', roughness: 0.45, metalness: 0.05 });
-const matGold  = new THREE.MeshStandardMaterial({ color: '#FFB953', roughness: 0.40, metalness: 0.15 });
-const matCap   = new THREE.MeshStandardMaterial({ color: '#B08D57', metalness: 0.85, roughness: 0.3, emissive: '#B08D57', emissiveIntensity: 0.18 });
+const matRed   = new THREE.MeshStandardMaterial({ color: '#C8102E', roughness: 0.40, metalness: 0.08, emissive: '#C8102E', emissiveIntensity: 0.55 });
+const matCream = new THREE.MeshStandardMaterial({ color: '#FFF2DC', roughness: 0.40, metalness: 0.08, emissive: '#FFF2DC', emissiveIntensity: 0.28 });
+const matGold  = new THREE.MeshStandardMaterial({ color: '#FFB953', roughness: 0.35, metalness: 0.18, emissive: '#FFB953', emissiveIntensity: 0.50 });
+const matCap   = new THREE.MeshStandardMaterial({ color: '#FFB953', metalness: 0.85, roughness: 0.25, emissive: '#FFB953', emissiveIntensity: 0.65 });
 
 const OCCASIONS = [
-  { label: 'MORNING',    h: 0.38, color: RED  },
-  { label: 'WITH MEALS', h: 0.55, color: CREAM },
-  { label: 'ON THE GO',  h: 0.46, color: RED  },
-  { label: 'EVENING',    h: 0.30, color: CREAM },
+  { label: 'MORNING',    h: 0.46, color: RED  },
+  { label: 'WITH MEALS', h: 0.64, color: CREAM },
+  { label: 'ON THE GO',  h: 0.54, color: RED  },
+  { label: 'EVENING',    h: 0.36, color: CREAM },
 ];
 
 const CATEGORIES = [
-  { label: 'SPARKLING',    vol: 0.50, val: 0.58 },
-  { label: 'WATER',        vol: 0.38, val: 0.30 },
-  { label: 'JUICE',        vol: 0.28, val: 0.36 },
-  { label: 'TEA & COFFEE', vol: 0.22, val: 0.28 },
+  { label: 'SPARKLING',    vol: 0.58, val: 0.68 },
+  { label: 'WATER',        vol: 0.44, val: 0.36 },
+  { label: 'JUICE',        vol: 0.34, val: 0.42 },
+  { label: 'TEA & COFFEE', vol: 0.26, val: 0.34 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -61,10 +61,10 @@ const POS: [number, number, number] = [4.6, 0.05, -7.6];
 const ROT_Y = -2.65;
 
 const TOP_Y    = 0.6;   // tabletop surface
-const BAR_W    = 0.11;
-const CAP_H    = 0.03;
+const BAR_W    = 0.15; // wider for visibility
+const CAP_H    = 0.04; // taller caps
 const STAGGER  = 0.13;  // seconds between bar starts
-const LABEL_DF = 5.5;   // Html distanceFactor (~5 m from role camera)
+const LABEL_DF = 4.8;   // slightly closer distanceFactor → bigger pills on screen
 
 // Hoisted here so it isn't rebuilt on every render.
 const FULL_HEIGHTS: number[] = [
@@ -88,12 +88,13 @@ const PAIR_DELTA =  0.09; // vol bar offset from row centre; val bar is +PAIR_DE
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '4px 11px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
-  color: '#FFF6E9',
+  background: 'rgba(12,6,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.70)',
+  color: '#FFFAF0',
   fontSize: size,
+  fontWeight: 600,
   letterSpacing: '0.16em',
   textTransform: 'uppercase',
   userSelect: 'none',
@@ -218,7 +219,7 @@ export function ConsumerPulse() {
       </mesh>
       <mesh raycast={() => null} position={[0, 1.63, -0.3]}>
         <boxGeometry args={[2.14, 0.025, 0.07]} />
-        <meshStandardMaterial color={BRASS} metalness={0.85} roughness={0.3} />
+        <meshStandardMaterial color={GOLD} metalness={0.85} roughness={0.25} emissive={GOLD} emissiveIntensity={0.5} />
       </mesh>
       {/* Caption / provenance plate */}
       <mesh raycast={() => null} position={[0, 0.38, 0.305]}>
@@ -254,7 +255,7 @@ export function ConsumerPulse() {
                 position={[x, labelY, 0]}
                 center distanceFactor={LABEL_DF} occlude={false}
               >
-                <div style={pillStyle(5)}>{occ.label}</div>
+                <div style={pillStyle(6.5)}>{occ.label}</div>
               </Html>
             )}
           </group>
@@ -310,7 +311,7 @@ export function ConsumerPulse() {
                 position={[x, labelY, 0]}
                 center distanceFactor={LABEL_DF} occlude={false}
               >
-                <div style={pillStyle(4.5)}>{cat.label}</div>
+                <div style={pillStyle(6)}>{cat.label}</div>
               </Html>
             )}
           </group>
@@ -321,30 +322,30 @@ export function ConsumerPulse() {
       {inRole && (
         <>
           {/* Header */}
-          <Html position={[0, 1.74, -0.3]} center distanceFactor={7} occlude={false}>
-            <div style={{ ...pillStyle(10), fontWeight: 700, letterSpacing: '0.24em' }}>
+          <Html position={[0, 1.74, -0.3]} center distanceFactor={6} occlude={false}>
+            <div style={{ ...pillStyle(12), fontWeight: 700, letterSpacing: '0.24em', background: 'rgba(12,6,4,0.95)', border: '1.5px solid rgba(255,185,83,0.85)' }}>
               Consumer Pulse
             </div>
           </Html>
 
           {/* Chart A sub-label */}
-          <Html position={[OCC_X0 + 1.5 * OCC_PITCH, TOP_Y + 0.76, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={{ ...pillStyle(6), borderColor: 'rgba(200,16,46,0.5)' }}>
+          <Html position={[OCC_X0 + 1.5 * OCC_PITCH, TOP_Y + 0.82, 0]} center distanceFactor={LABEL_DF} occlude={false}>
+            <div style={{ ...pillStyle(7), borderColor: 'rgba(200,16,46,0.65)' }}>
               A Day of Drinks
             </div>
           </Html>
 
           {/* Chart B sub-label + legend — merged into one Html to halve DOM roots */}
-          <Html position={[CAT_X0 + 1.5 * CAT_PITCH, TOP_Y + 0.67, 0]} center distanceFactor={LABEL_DF} occlude={false}>
+          <Html position={[CAT_X0 + 1.5 * CAT_PITCH, TOP_Y + 0.82, 0]} center distanceFactor={LABEL_DF} occlude={false}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, pointerEvents: 'none' }}>
-              <div style={{ ...pillStyle(6), borderColor: 'rgba(255,185,83,0.55)' }}>
+              <div style={{ ...pillStyle(7), borderColor: 'rgba(255,185,83,0.70)' }}>
                 Volume&nbsp;&times;&nbsp;Value
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <span style={{ ...pillStyle(4.5), borderColor: 'rgba(200,16,46,0.5)' }}>
+                <span style={{ ...pillStyle(5.5), borderColor: 'rgba(200,16,46,0.65)' }}>
                   <span style={{ color: RED }}>&#9646;</span> Vol
                 </span>
-                <span style={{ ...pillStyle(4.5), borderColor: 'rgba(255,185,83,0.55)' }}>
+                <span style={{ ...pillStyle(5.5), borderColor: 'rgba(255,185,83,0.70)' }}>
                   <span style={{ color: GOLD }}>&#9646;</span> Val
                 </span>
               </div>
@@ -353,7 +354,7 @@ export function ConsumerPulse() {
 
           {/* Provenance plate */}
           <Html position={[0, 0.38, 0.33]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={pillStyle(5)}>Illustrative &mdash; indexed, not actual data</div>
+            <div style={{ ...pillStyle(6), color: 'rgba(255,245,220,0.75)' }}>Illustrative &mdash; indexed, not actual data</div>
           </Html>
         </>
       )}

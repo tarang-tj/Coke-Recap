@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { damp3 } from 'maath/easing';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
-import { useExperience } from './experience-context';
+import { useExperience, panelCollapsedStore } from './experience-context';
 import { useNavigation, type ViewId } from './navigation-context';
 import { useRecap } from './recap/recap-context';
 
@@ -31,16 +31,27 @@ const POSES: Record<ViewId, Pose> = {
   // traffic (wagon at z≈-14) reading as foreground depth. The recap machine is
   // a small part of the wider scene — the pulsing beacon (see VendingHotspot)
   // is what draws the eye to it, not the camera framing.
-  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]    },
-  // Role: intimate storefront — look toward the glowing soda fountain where
-  // Coca-Cola was first served.
-  role:      { pos: [2.6, 2.4, -12], look: [2.6, 1.6, -2]  },
-  // Stack: the Coca-Cola vending machine + delivery crates on the sidewalk.
-  tools:     { pos: [7, 2.4, -12.5], look: [3.7, 1.0, -5.9] },
-  // Agent: a low axial view straight down the street past the lamp-lined facades.
-  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.3, -15.5] },
-  // Takeaways: grand pull-back over the whole block at golden hour.
-  takeaways: { pos: [0, 17, -50],    look: [0, 6, -4]      },
+  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]     },
+  // Role: intimate storefront — look toward the exhibit cluster (MetricsDisplay
+  // at [1.1,0,-6.8] and ConsumerPulse at [4.6,0,-7.6]) so the stands fill the
+  // right frame once the DOM column scrim fades out. lookAt pulled to z≈-6
+  // (was -2) to seat the exhibits on-screen rather than framing the distant
+  // facade as the primary subject.
+  role:      { pos: [2.6, 2.4, -12], look: [3.0, 1.4, -6.0] },
+  // Stack: the MartechPipeline bench ([5.23,0,-9.06]) and GlobalReach globe
+  // ([7.2,0,-9.8]) sit to camera-right. Nudging pos.x +0.5 and shifting look
+  // target right (+0.6 x) frames the globe stand into the right half without
+  // losing the vending machine anchor.
+  tools:     { pos: [7.5, 2.4, -12.5], look: [4.3, 1.0, -7.2] },
+  // Agent: low axial view straight down the street past the lamp-lined facades.
+  // ConsumerFunnel at [32,0,-20.2] reads at far right, InsightsNetwork at
+  // [14,3.4,-15] reads mid-right. Raising lookAt.y slightly (1.3→1.6) keeps
+  // the constellation in frame without disturbing the corridor depth read.
+  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.6, -15.5] },
+  // Takeaways: grand pull-back over the whole block. The growth ribbon arc
+  // spans [4,9,-8] → [-26,20,-10]. Lifting lookAt.y (6→7.5) brings the lower
+  // ribbon arc slightly higher in frame so the rooftop glow reads better.
+  takeaways: { pos: [0, 17, -50],    look: [0, 7.5, -4]    },
 };
 
 // Close focus on the vending machine — frames the coin slot + the bottle's hero
@@ -74,6 +85,8 @@ const FREE_LOOK_Y = 1.3;
 
 const _targetPos  = new THREE.Vector3();
 const _targetLook = new THREE.Vector3();
+// Scratch vector for push-in direction — reused per frame, no allocation.
+const _pushDir    = new THREE.Vector3();
 
 export function CameraRig() {
   const { camera } = useThree();
@@ -89,6 +102,15 @@ export function CameraRig() {
   viewRef.current = view;
   const recapActiveRef = useRef(phase !== 'idle');
   recapActiveRef.current = phase !== 'idle';
+  // Panel-collapsed: read directly from the external store's snapshot inside
+  // useFrame — zero React re-renders in the render loop.
+  const collapsedRef = useRef(panelCollapsedStore.getSnapshot());
+  // Keep the ref fresh whenever the store changes. Subscribe once.
+  useEffect(() => {
+    return panelCollapsedStore.subscribe(() => {
+      collapsedRef.current = panelCollapsedStore.getSnapshot();
+    });
+  }, []);
 
   // Accumulated, clamped free-look offset in [-1, 1] per axis.
   const drag = useRef({ x: 0, y: 0 });
@@ -163,6 +185,27 @@ export function CameraRig() {
 
     _targetPos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
     _targetLook.set(pose.look[0], pose.look[1], pose.look[2]);
+
+    // Exhibit focus: when a chapter view is active AND the story panel is
+    // collapsed, push the camera ~30% of the way toward the look target so
+    // the now-unobstructed 3-D exhibit fills more of the frame. Machine view,
+    // recap, and pre-start are all unaffected. The offset is applied to the
+    // pose target BEFORE damp3 so it blends into the single existing damp —
+    // no second competing spring.
+    const isChapterView = isStarted && !recapActive && currentView !== 'machine';
+    if (isChapterView && collapsedRef.current) {
+      // Direction from camera-pose position toward look target.
+      _pushDir.set(
+        _targetLook.x - _targetPos.x,
+        _targetLook.y - _targetPos.y,
+        _targetLook.z - _targetPos.z,
+      );
+      const PUSH_FRACTION = 0.30;
+      _targetPos.x += _pushDir.x * PUSH_FRACTION;
+      _targetPos.z += _pushDir.z * PUSH_FRACTION;
+      // Clamp y so the camera never sinks into the street (min 1.2 world units).
+      _targetPos.y = Math.max(1.2, _targetPos.y + _pushDir.y * PUSH_FRACTION);
+    }
 
     if (isStarted && !reduced && !recapActive) {
       const t = clock.elapsedTime;

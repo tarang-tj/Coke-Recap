@@ -18,8 +18,8 @@ const CREAM = '#FFF6E9';
 const BRASS = '#B08D57';
 
 // Home camera: pos [-8,7,-34] looking [0,5.5,-2] — roughly 30-40 m away.
-// distanceFactor 38 makes pills read small but legible at that distance.
-const LABEL_DF = 38;
+// distanceFactor 30 (down from 38) makes pills larger at that distance.
+const LABEL_DF = 30;
 
 // Vertical hairline: a pair of points [top, landmark-surface]
 // The dot sits at the top (pin head); the line goes down to the landmark.
@@ -35,7 +35,7 @@ const PINS = [
     year: "1886",
     stat: "9 drinks sold / day — year one",
     // Pill offset above the dot so it doesn't overlap the hairline
-    pillDy: 1.6,
+    pillDy: 2.2,
   },
   {
     id: 'wagon',
@@ -44,7 +44,7 @@ const PINS = [
     lineBottom: [32, -0.4, -13.5] as [number, number, number],
     year: "1890s",
     stat: "Horse-drawn distribution era",
-    pillDy: 1.4,
+    pillDy: 1.8,
   },
   {
     id: 'button-sign',
@@ -54,7 +54,7 @@ const PINS = [
     lineBottom: [-12, 2.0, -1.5] as [number, number, number],
     year: "1894",
     stat: "First painted wall-ad era",
-    pillDy: 1.4,
+    pillDy: 1.8,
   },
   {
     id: 'gaslamps',
@@ -63,7 +63,7 @@ const PINS = [
     lineBottom: [-3.5, 1.2, 0.2] as [number, number, number],
     year: "1886",
     stat: "Gas-lit Atlanta streetscape",
-    pillDy: 1.4,
+    pillDy: 1.8,
   },
 ] as const;
 
@@ -72,21 +72,21 @@ const PINS = [
 const pillStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '5px 13px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.82)',
-  border: `1px solid rgba(176,141,87,0.45)`,
+  background: 'rgba(18,8,4,0.92)',
+  border: `1.5px solid rgba(255,185,83,0.75)`,
   color: CREAM,
-  fontSize: 7,
-  letterSpacing: '0.16em',
+  fontSize: 9,
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   userSelect: 'none',
   pointerEvents: 'none',
-  lineHeight: 1.45,
+  lineHeight: 1.5,
 };
 
 const yearStyle: React.CSSProperties = {
-  fontSize: 10.5,
+  fontSize: 13,
   fontWeight: 700,
   display: 'block',
   color: GOLD,
@@ -142,9 +142,9 @@ function Pin({ data, reduced }: PinProps) {
       new THREE.Vector3(...data.lineBottom),
     ]);
     const mat = new THREE.LineBasicMaterial({
-      color: BRASS,
+      color: GOLD,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.75,
       depthWrite: false,
       toneMapped: false,
     });
@@ -171,18 +171,18 @@ function Pin({ data, reduced }: PinProps) {
       {/* Billboarded pin head at landmark position */}
       <group position={data.pos}>
         <Billboard>
-          {/* Gold dot */}
+          {/* Gold dot — larger for home camera distance */}
           <mesh ref={dotRef} raycast={() => null}>
-            <circleGeometry args={[0.22, 18]} />
+            <circleGeometry args={[0.42, 20]} />
             <meshBasicMaterial color={GOLD} toneMapped={false} />
           </mesh>
           {/* Soft halo ring */}
           <mesh ref={haloRef} position={[0, 0, -0.01]} raycast={() => null}>
-            <ringGeometry args={[0.24, 0.52, 22]} />
+            <ringGeometry args={[0.46, 0.9, 24]} />
             <meshBasicMaterial
               color={GOLD}
               transparent
-              opacity={0.28}
+              opacity={0.45}
               toneMapped={false}
               blending={THREE.AdditiveBlending}
               depthWrite={false}

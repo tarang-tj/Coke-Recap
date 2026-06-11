@@ -40,25 +40,25 @@ const MILESTONES = [
   { t: 1, year: 'Today', label: '~1.9B servings daily', pillDy: 1.9 },
 ];
 
-const TUBE_RADIUS = 0.18;
-const BASE_OPACITY = 0.85;
+const TUBE_RADIUS = 0.24;
+const BASE_OPACITY = 0.92;
 const PULSE_SPEED = 7; // world units/s the bright dashes travel (1886 -> today)
-const LABEL_DF = 45; // Html distanceFactor — takeaways cam sits ~45-55 m away
+const LABEL_DF = 35; // Html distanceFactor — reduced from 45 for larger pills at takeaways distance
 
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '5px 13px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
+  background: 'rgba(18,8,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.75)',
   color: CREAM,
   fontSize: size,
-  letterSpacing: '0.16em',
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   userSelect: 'none',
   pointerEvents: 'none',
-  lineHeight: 1.45,
+  lineHeight: 1.5,
 });
 
 // Inner component so curve/geometry/labels mount only in takeaways (geometry
@@ -124,12 +124,12 @@ function Ribbon() {
           ref={runner}
           points={linePoints}
           color={GOLD_BRIGHT}
-          lineWidth={3.5}
+          lineWidth={5}
           dashed
           dashSize={3}
-          gapSize={10}
+          gapSize={8}
           transparent
-          opacity={0.9}
+          opacity={0.95}
           toneMapped={false}
           depthWrite={false}
         />
@@ -140,15 +140,15 @@ function Ribbon() {
         <group key={m.year} position={m.pos}>
           <Billboard>
             <mesh>
-              <circleGeometry args={[0.28, 20]} />
+              <circleGeometry args={[0.38, 20]} />
               <meshBasicMaterial color={CREAM} toneMapped={false} />
             </mesh>
             <mesh position={[0, 0, -0.01]}>
-              <circleGeometry args={[0.55, 20]} />
+              <ringGeometry args={[0.42, 0.78, 22]} />
               <meshBasicMaterial
                 color={GOLD}
                 transparent
-                opacity={0.4}
+                opacity={0.55}
                 toneMapped={false}
                 blending={THREE.AdditiveBlending}
                 depthWrite={false}
@@ -161,8 +161,8 @@ function Ribbon() {
             distanceFactor={LABEL_DF}
             occlude={false}
           >
-            <div style={pillStyle(7)}>
-              <span style={{ fontSize: 10.5, fontWeight: 700, display: 'block' }}>{m.year}</span>
+            <div style={pillStyle(9)}>
+              <span style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>{m.year}</span>
               {m.label}
             </div>
           </Html>
@@ -175,11 +175,11 @@ function Ribbon() {
         <Billboard>
           {/* Bright inner halo — larger + more opaque than the standard marker halo */}
           <mesh position={[0, 0, -0.02]}>
-            <circleGeometry args={[0.85, 24]} />
+            <circleGeometry args={[1.0, 24]} />
             <meshBasicMaterial
               color={GOLD_BRIGHT}
               transparent
-              opacity={0.5}
+              opacity={0.65}
               toneMapped={false}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
@@ -187,11 +187,11 @@ function Ribbon() {
           </mesh>
           {/* Pulsing outer ring (scale + opacity animated in useFrame when !reduced) */}
           <mesh ref={pulseRingRef} position={[0, 0, -0.03]}>
-            <ringGeometry args={[0.9, 1.3, 32]} />
+            <ringGeometry args={[1.05, 1.55, 32]} />
             <meshBasicMaterial
               color={GOLD}
               transparent
-              opacity={0.35}
+              opacity={0.45}
               toneMapped={false}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
@@ -207,7 +207,7 @@ function Ribbon() {
         distanceFactor={LABEL_DF}
         occlude={false}
       >
-        <div style={pillStyle(6)}>Illustrative &mdash; public milestones</div>
+        <div style={pillStyle(8)}>Illustrative &mdash; public milestones</div>
       </Html>
     </group>
   );

@@ -20,14 +20,14 @@ const WOOD_DARK = '#2B1B10';
 const BRASS = '#B08D57';
 
 // Top-to-bottom tiers — widest (AWARENESS) at the top, narrowing down.
-const TIER_H = 0.18;
+const TIER_H = 0.22; // taller tiers for visibility
 const TIER_GAP = 0.09;
 const STACK_BASE = 0.61; // top surface of the plinth cap
 const TIERS = [
-  { label: 'Awareness', value: '100%', top: 0.44, bottom: 0.34, color: CREAM, emissive: 0 },
-  { label: 'Consideration', value: '38%', top: 0.32, bottom: 0.23, color: BUFF, emissive: 0 },
-  { label: 'Purchase', value: '12%', top: 0.21, bottom: 0.13, color: COKE_RED, emissive: 0 },
-  { label: 'Loyalty', value: '5%', top: 0.115, bottom: 0.05, color: DEEP_RED, emissive: 0.45 },
+  { label: 'Awareness', value: '100%', top: 0.52, bottom: 0.42, color: CREAM, emissive: 0.20 },
+  { label: 'Consideration', value: '38%', top: 0.40, bottom: 0.29, color: BUFF, emissive: 0.25 },
+  { label: 'Purchase', value: '12%', top: 0.27, bottom: 0.17, color: COKE_RED, emissive: 0.55 },
+  { label: 'Loyalty', value: '5%', top: 0.145, bottom: 0.06, color: DEEP_RED, emissive: 0.75 },
 ];
 // Centre Y of tier i (i = 0 is the TOP tier).
 const tierY = (i: number) => STACK_BASE + (TIERS.length - 1 - i) * (TIER_H + TIER_GAP) + TIER_H / 2;
@@ -43,7 +43,7 @@ const tierY = (i: number) => STACK_BASE + (TIERS.length - 1 - i) * (TIER_H + TIE
 const POS: [number, number, number] = [32, 0, -20.2];
 const ROT_Y = 1.14;
 const SPIN_SPEED = 0.15; // rad/s — slow display-case turntable
-const LABEL_DF = 8; // Html distanceFactor (camera is ~8.5 m out)
+const LABEL_DF = 6.5; // smaller distanceFactor = bigger pills at this camera distance
 
 // Droplets — one InstancedMesh, 3 per inter-tier gap, phase-offset loop.
 const DROP_COUNT = 9;
@@ -56,12 +56,13 @@ const NO_RAYCAST = () => null;
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '4px 11px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
-  color: '#FFF6E9',
+  background: 'rgba(12,6,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.70)',
+  color: '#FFFAF0',
   fontSize: size,
+  fontWeight: 600,
   letterSpacing: '0.16em',
   textTransform: 'uppercase',
   userSelect: 'none',
@@ -166,7 +167,7 @@ export function ConsumerFunnel() {
       {/* Caption plate (brass) on the plinth front */}
       <mesh position={[0, 0.36, 0.47]} raycast={NO_RAYCAST}>
         <boxGeometry args={[0.66, 0.11, 0.02]} />
-        <meshStandardMaterial color={BRASS} metalness={0.8} roughness={0.35} />
+        <meshStandardMaterial color={BRASS} metalness={0.8} roughness={0.30} emissive={BRASS} emissiveIntensity={0.25} />
       </mesh>
 
       {/* Funnel stack — slow turntable spin (static under reduced motion) */}
@@ -185,14 +186,14 @@ export function ConsumerFunnel() {
         ))}
       </group>
 
-      {/* Drip loop — tiny emissive droplets falling tier to tier */}
+      {/* Drip loop — emissive droplets falling tier to tier */}
       <instancedMesh ref={dropsRef} args={[undefined, undefined, DROP_COUNT]} raycast={NO_RAYCAST}>
-        <sphereGeometry args={[0.03, 6, 5]} />
+        <sphereGeometry args={[0.045, 8, 6]} />
         <meshStandardMaterial
-          color={'#e8201a'}
-          emissive={'#ff5040'}
-          emissiveIntensity={2.8}
-          roughness={0.25}
+          color={'#ff2020'}
+          emissive={'#ff6040'}
+          emissiveIntensity={4.0}
+          roughness={0.2}
         />
       </instancedMesh>
 
@@ -202,26 +203,26 @@ export function ConsumerFunnel() {
           {TIERS.map((tier, i) => (
             <Html
               key={tier.label}
-              position={[i % 2 === 0 ? 0.92 : -0.92, tierY(i), 0]}
+              position={[i % 2 === 0 ? 1.05 : -1.05, tierY(i), 0]}
               center
               distanceFactor={LABEL_DF}
               occlude={false}
             >
-              <div style={pillStyle(6)}>
-                <span style={{ fontSize: 9.5, fontWeight: 700, display: 'block' }}>
+              <div style={pillStyle(7.5)}>
+                <span style={{ fontSize: 12, fontWeight: 700, display: 'block' }}>
                   {tier.value}
                 </span>
                 {tier.label}
               </div>
             </Html>
           ))}
-          <Html position={[0, 1.84, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={{ ...pillStyle(8), fontWeight: 700, letterSpacing: '0.24em' }}>
+          <Html position={[0, 1.84, 0]} center distanceFactor={5.5} occlude={false}>
+            <div style={{ ...pillStyle(10), fontWeight: 700, letterSpacing: '0.24em', background: 'rgba(12,6,4,0.95)', border: '1.5px solid rgba(255,185,83,0.85)' }}>
               Consumer Journey
             </div>
           </Html>
           <Html position={[0, 0.36, 0.5]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={pillStyle(5)}>Consumer Journey &mdash; Illustrative</div>
+            <div style={{ ...pillStyle(6), color: 'rgba(255,245,220,0.75)' }}>Consumer Journey &mdash; Illustrative</div>
           </Html>
         </>
       )}
