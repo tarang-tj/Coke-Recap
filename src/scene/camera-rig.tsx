@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { damp3 } from 'maath/easing';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
-import { useExperience } from './experience-context';
+import { useExperience, panelCollapsedStore } from './experience-context';
 import { useNavigation, type ViewId } from './navigation-context';
 import { useRecap } from './recap/recap-context';
 
@@ -85,6 +85,8 @@ const FREE_LOOK_Y = 1.3;
 
 const _targetPos  = new THREE.Vector3();
 const _targetLook = new THREE.Vector3();
+// Scratch vector for push-in direction — reused per frame, no allocation.
+const _pushDir    = new THREE.Vector3();
 
 export function CameraRig() {
   const { camera } = useThree();
@@ -100,6 +102,15 @@ export function CameraRig() {
   viewRef.current = view;
   const recapActiveRef = useRef(phase !== 'idle');
   recapActiveRef.current = phase !== 'idle';
+  // Panel-collapsed: read directly from the external store's snapshot inside
+  // useFrame — zero React re-renders in the render loop.
+  const collapsedRef = useRef(panelCollapsedStore.getSnapshot());
+  // Keep the ref fresh whenever the store changes. Subscribe once.
+  useEffect(() => {
+    return panelCollapsedStore.subscribe(() => {
+      collapsedRef.current = panelCollapsedStore.getSnapshot();
+    });
+  }, []);
 
   // Accumulated, clamped free-look offset in [-1, 1] per axis.
   const drag = useRef({ x: 0, y: 0 });
@@ -174,6 +185,27 @@ export function CameraRig() {
 
     _targetPos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
     _targetLook.set(pose.look[0], pose.look[1], pose.look[2]);
+
+    // Exhibit focus: when a chapter view is active AND the story panel is
+    // collapsed, push the camera ~30% of the way toward the look target so
+    // the now-unobstructed 3-D exhibit fills more of the frame. Machine view,
+    // recap, and pre-start are all unaffected. The offset is applied to the
+    // pose target BEFORE damp3 so it blends into the single existing damp —
+    // no second competing spring.
+    const isChapterView = isStarted && !recapActive && currentView !== 'machine';
+    if (isChapterView && collapsedRef.current) {
+      // Direction from camera-pose position toward look target.
+      _pushDir.set(
+        _targetLook.x - _targetPos.x,
+        _targetLook.y - _targetPos.y,
+        _targetLook.z - _targetPos.z,
+      );
+      const PUSH_FRACTION = 0.30;
+      _targetPos.x += _pushDir.x * PUSH_FRACTION;
+      _targetPos.z += _pushDir.z * PUSH_FRACTION;
+      // Clamp y so the camera never sinks into the street (min 1.2 world units).
+      _targetPos.y = Math.max(1.2, _targetPos.y + _pushDir.y * PUSH_FRACTION);
+    }
 
     if (isStarted && !reduced && !recapActive) {
       const t = clock.elapsedTime;

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
-import { useExperience } from '../scene/experience-context';
+import { useExperience, usePanelCollapsed } from '../scene/experience-context';
 import { Logo } from './brand/logo';
 import {
   CHAPTER_LABELS as LABELS,
@@ -15,23 +15,16 @@ import {
 // Labels + section components come from section-registry (shared with the
 // recap panel's story mode).
 
-// Module-level flag: persists across chapter switches without resetting on
-// the keyed remount of the content column. Default = expanded.
-let _panelCollapsed = false;
-
 export function ChapterOverlay() {
   const { view, setView, goHome } = useNavigation();
   const { phase, activate } = useRecap();
   const { started } = useExperience();
   const isMachine = view === 'machine';
 
-  // Mirror the module-level flag into React state so toggling re-renders.
-  const [collapsed, setCollapsed] = useState(_panelCollapsed);
-
-  const toggle = () => {
-    _panelCollapsed = !_panelCollapsed;
-    setCollapsed(_panelCollapsed);
-  };
+  // Panel-collapsed state lives in the external store (experience-context) so
+  // CameraRig can read the same value without a provider change. Default =
+  // expanded (false), persists across chapter switches.
+  const [collapsed, toggle] = usePanelCollapsed();
 
   // Per-chapter tab title — distinct history entries + tab UX. Lives here
   // (not NavigationProvider) because the labels do: importing the section

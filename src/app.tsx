@@ -25,6 +25,7 @@ import { SceneLoader } from './ui/scene-loader';
 import { ReducedMotionToggle } from './ui/reduced-motion-toggle';
 import { MusicToggle } from './ui/music-toggle';
 import { CreditHud } from './ui/credit-hud';
+import { TourMode } from './ui/tour-mode';
 import { WebglFallbackBoundary } from './ui/webgl-fallback';
 import { LiveAnnouncer } from './ui/live-announcer';
 
@@ -94,6 +95,7 @@ export function App() {
               <StartGate />
               <ReducedMotionToggle />
               <MusicToggle />
+              <TourMode />
               <CreditHud />
               <SceneLoader />
             </WebglFallbackBoundary>
