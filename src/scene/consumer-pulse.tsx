@@ -31,6 +31,14 @@ const GOLD = '#FFB953';
 // Chart data — illustrative indices only, no real figures.
 // ---------------------------------------------------------------------------
 
+// Shared material instances — avoids one material object per bar/cap mesh.
+// These are module-level singletons; R3F disposes them on unmount of the last
+// user, so no manual cleanup needed while the component is always-mounted.
+const matRed   = new THREE.MeshStandardMaterial({ color: '#C8102E', roughness: 0.45, metalness: 0.05 });
+const matCream = new THREE.MeshStandardMaterial({ color: '#FFF2DC', roughness: 0.45, metalness: 0.05 });
+const matGold  = new THREE.MeshStandardMaterial({ color: '#FFB953', roughness: 0.40, metalness: 0.15 });
+const matCap   = new THREE.MeshStandardMaterial({ color: '#B08D57', metalness: 0.85, roughness: 0.3, emissive: '#B08D57', emissiveIntensity: 0.18 });
+
 const OCCASIONS = [
   { label: 'MORNING',    h: 0.38, color: RED  },
   { label: 'WITH MEALS', h: 0.55, color: CREAM },
@@ -57,6 +65,12 @@ const BAR_W    = 0.11;
 const CAP_H    = 0.03;
 const STAGGER  = 0.13;  // seconds between bar starts
 const LABEL_DF = 5.5;   // Html distanceFactor (~5 m from role camera)
+
+// Hoisted here so it isn't rebuilt on every render.
+const FULL_HEIGHTS: number[] = [
+  ...OCCASIONS.map((o) => o.h),
+  ...CATEGORIES.flatMap((c) => [c.vol, c.val]),
+];
 
 // Chart A — occasion bars, centred left half of tabletop
 const OCC_PITCH  = 0.28;
@@ -104,38 +118,47 @@ export function ConsumerPulse() {
   const barRefs = useRef<(THREE.Mesh | null)[]>([]);
   const capRefs = useRef<(THREE.Mesh | null)[]>([]);
 
-  // Full-height targets for each slot
-  const FULL_HEIGHTS: number[] = [
-    ...OCCASIONS.map((o) => o.h),
-    ...CATEGORIES.flatMap((c) => [c.vol, c.val]),
-  ];
-
   const anim = useRef({
     t: 10,
     heights: FULL_HEIGHTS.slice(),
   });
   const wasInRole = useRef(false);
+  // settled=true once the entrance animation is done; reset when re-entering role.
+  const settled = useRef(true);
 
   useEffect(() => {
     if (inRole && !wasInRole.current && !reduced) {
       anim.current.t = 0;
       for (let i = 0; i < N_BARS; i++) anim.current.heights[i] = 0;
+      settled.current = false;
     }
     wasInRole.current = inRole;
   }, [inRole, reduced, N_BARS]);
 
   useFrame((_, delta) => {
+    // Early-out: nothing to animate when bars are at rest.
+    if (settled.current) return;
+
     const a = anim.current;
     a.t += delta;
+
+    // Early-out for reduced motion — snap to full and mark settled.
+    if (reduced) {
+      for (let i = 0; i < N_BARS; i++) {
+        a.heights[i] = FULL_HEIGHTS[i];
+        const bar = barRefs.current[i];
+        if (bar) { bar.scale.y = FULL_HEIGHTS[i]; bar.position.y = TOP_Y + FULL_HEIGHTS[i] / 2; }
+        const cap = capRefs.current[i];
+        if (cap) cap.position.y = TOP_Y + FULL_HEIGHTS[i] + CAP_H / 2;
+      }
+      settled.current = true;
+      return;
+    }
+
     for (let i = 0; i < N_BARS; i++) {
       const full = FULL_HEIGHTS[i];
-      let h: number;
-      if (reduced) {
-        h = full;
-      } else {
-        const target = a.t >= i * STAGGER ? full : a.heights[i];
-        h = THREE.MathUtils.damp(a.heights[i], target, 6, delta);
-      }
+      const target = a.t >= i * STAGGER ? full : a.heights[i];
+      const h = THREE.MathUtils.damp(a.heights[i], target, 6, delta);
       a.heights[i] = h;
       const bar = barRefs.current[i];
       if (bar) {
@@ -145,6 +168,9 @@ export function ConsumerPulse() {
       const cap = capRefs.current[i];
       if (cap) cap.position.y = TOP_Y + h + CAP_H / 2;
     }
+
+    // Mark settled once all stagger slots are open + 1.5 s of damping have elapsed.
+    if (a.t > N_BARS * STAGGER + 1.5) settled.current = true;
   });
 
   return (
@@ -211,20 +237,17 @@ export function ConsumerPulse() {
               raycast={() => null}
               ref={(m) => { barRefs.current[animIdx] = m; }}
               position={[x, TOP_Y + occ.h / 2, 0]}
+              material={occ.color === RED ? matRed : matCream}
             >
               <boxGeometry args={[BAR_W, 1, BAR_W]} />
-              <meshStandardMaterial color={occ.color} roughness={0.45} metalness={0.05} />
             </mesh>
             <mesh
               raycast={() => null}
               ref={(m) => { capRefs.current[animIdx] = m; }}
               position={[x, TOP_Y + occ.h + CAP_H / 2, 0]}
+              material={matCap}
             >
               <boxGeometry args={[BAR_W + 0.04, CAP_H, BAR_W + 0.04]} />
-              <meshStandardMaterial
-                color={BRASS} metalness={0.85} roughness={0.3}
-                emissive={BRASS} emissiveIntensity={0.18}
-              />
             </mesh>
             {inRole && (
               <Html
@@ -253,40 +276,34 @@ export function ConsumerPulse() {
               raycast={() => null}
               ref={(m) => { barRefs.current[iVol] = m; }}
               position={[xVol, TOP_Y + cat.vol / 2, 0]}
+              material={matRed}
             >
               <boxGeometry args={[BAR_W * 0.75, 1, BAR_W * 0.75]} />
-              <meshStandardMaterial color={RED} roughness={0.45} metalness={0.05} />
             </mesh>
             <mesh
               raycast={() => null}
               ref={(m) => { capRefs.current[iVol] = m; }}
               position={[xVol, TOP_Y + cat.vol + CAP_H / 2, 0]}
+              material={matCap}
             >
               <boxGeometry args={[BAR_W * 0.75 + 0.03, CAP_H, BAR_W * 0.75 + 0.03]} />
-              <meshStandardMaterial
-                color={BRASS} metalness={0.85} roughness={0.3}
-                emissive={BRASS} emissiveIntensity={0.18}
-              />
             </mesh>
             {/* Value bar — gold */}
             <mesh
               raycast={() => null}
               ref={(m) => { barRefs.current[iVal] = m; }}
               position={[xVal, TOP_Y + cat.val / 2, 0]}
+              material={matGold}
             >
               <boxGeometry args={[BAR_W * 0.75, 1, BAR_W * 0.75]} />
-              <meshStandardMaterial color={GOLD} roughness={0.4} metalness={0.15} />
             </mesh>
             <mesh
               raycast={() => null}
               ref={(m) => { capRefs.current[iVal] = m; }}
               position={[xVal, TOP_Y + cat.val + CAP_H / 2, 0]}
+              material={matCap}
             >
               <boxGeometry args={[BAR_W * 0.75 + 0.03, CAP_H, BAR_W * 0.75 + 0.03]} />
-              <meshStandardMaterial
-                color={BRASS} metalness={0.85} roughness={0.3}
-                emissive={BRASS} emissiveIntensity={0.18}
-              />
             </mesh>
             {inRole && (
               <Html
@@ -317,22 +334,20 @@ export function ConsumerPulse() {
             </div>
           </Html>
 
-          {/* Chart B sub-label */}
-          <Html position={[CAT_X0 + 1.5 * CAT_PITCH, TOP_Y + 0.72, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={{ ...pillStyle(6), borderColor: 'rgba(255,185,83,0.55)' }}>
-              Volume&nbsp;&times;&nbsp;Value
-            </div>
-          </Html>
-
-          {/* Legend: red = vol, gold = val */}
-          <Html position={[CAT_X0 + 1.5 * CAT_PITCH, TOP_Y + 0.62, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-            <div style={{ display: 'flex', gap: 6, pointerEvents: 'none' }}>
-              <span style={{ ...pillStyle(4.5), borderColor: 'rgba(200,16,46,0.5)' }}>
-                <span style={{ color: RED }}>&#9646;</span> Vol
-              </span>
-              <span style={{ ...pillStyle(4.5), borderColor: 'rgba(255,185,83,0.55)' }}>
-                <span style={{ color: GOLD }}>&#9646;</span> Val
-              </span>
+          {/* Chart B sub-label + legend — merged into one Html to halve DOM roots */}
+          <Html position={[CAT_X0 + 1.5 * CAT_PITCH, TOP_Y + 0.67, 0]} center distanceFactor={LABEL_DF} occlude={false}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, pointerEvents: 'none' }}>
+              <div style={{ ...pillStyle(6), borderColor: 'rgba(255,185,83,0.55)' }}>
+                Volume&nbsp;&times;&nbsp;Value
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <span style={{ ...pillStyle(4.5), borderColor: 'rgba(200,16,46,0.5)' }}>
+                  <span style={{ color: RED }}>&#9646;</span> Vol
+                </span>
+                <span style={{ ...pillStyle(4.5), borderColor: 'rgba(255,185,83,0.55)' }}>
+                  <span style={{ color: GOLD }}>&#9646;</span> Val
+                </span>
+              </div>
             </div>
           </Html>
 

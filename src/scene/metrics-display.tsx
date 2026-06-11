@@ -66,29 +66,44 @@ export function MetricsDisplay() {
   // entering ROLE resets to 0 and the bars rise (staggered ease-out).
   const anim = useRef({ t: 10, heights: BARS.map((b) => b.h) });
   const wasInRole = useRef(false);
+  // settled=true once the entrance animation is done; reset when re-entering role.
+  const settled = useRef(true);
 
   useEffect(() => {
     if (inRole && !wasInRole.current && !reduced) {
       anim.current.t = 0;
       for (let i = 0; i < BARS.length; i++) anim.current.heights[i] = 0;
+      settled.current = false;
     }
     wasInRole.current = inRole;
   }, [inRole, reduced]);
 
   useFrame((_, delta) => {
+    // Early-out: nothing to animate when bars are at rest.
+    if (settled.current) return;
+
     const a = anim.current;
     a.t += delta;
+
+    // Early-out for reduced motion — snap to full and mark settled.
+    if (reduced) {
+      for (let i = 0; i < BARS.length; i++) {
+        a.heights[i] = BARS[i].h;
+        const bar = barRefs.current[i];
+        if (bar) { bar.scale.y = BARS[i].h; bar.position.y = TOP_Y + BARS[i].h / 2; }
+        const cap = capRefs.current[i];
+        if (cap) cap.position.y = TOP_Y + BARS[i].h + CAP_H / 2;
+      }
+      settled.current = true;
+      return;
+    }
+
     for (let i = 0; i < BARS.length; i++) {
       const full = BARS[i].h;
-      let h: number;
-      if (reduced) {
-        h = full;
-      } else {
-        // Hold at current height until this bar's stagger slot opens, then
-        // exponential-damp toward full — ease-out, zero per-frame allocations.
-        const target = a.t >= i * STAGGER ? full : a.heights[i];
-        h = THREE.MathUtils.damp(a.heights[i], target, 6, delta);
-      }
+      // Hold at current height until this bar's stagger slot opens, then
+      // exponential-damp toward full — ease-out, zero per-frame allocations.
+      const target = a.t >= i * STAGGER ? full : a.heights[i];
+      const h = THREE.MathUtils.damp(a.heights[i], target, 6, delta);
       a.heights[i] = h;
       const bar = barRefs.current[i];
       if (bar) {
@@ -98,6 +113,9 @@ export function MetricsDisplay() {
       const cap = capRefs.current[i];
       if (cap) cap.position.y = TOP_Y + h + CAP_H / 2;
     }
+
+    // Mark settled once all stagger slots are open + 1.5 s of damping have elapsed.
+    if (a.t > BARS.length * STAGGER + 1.5) settled.current = true;
   });
 
   return (

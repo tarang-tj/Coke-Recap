@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -27,6 +27,9 @@ const GLOBE_R = 0.45;
 const GLOBE_CY = 1.32; // globe centre height (local)
 const LABEL_DF = 5.5;
 
+// Total pulse instances across all arcs (6 arcs × 3 pulses).
+const TOTAL_PULSES = 18;
+
 // Convert lat/lon (degrees) to a unit Vector3 on the sphere surface.
 function latLonToV3(lat: number, lon: number, r: number): THREE.Vector3 {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -53,19 +56,6 @@ const ARC_SEGMENTS = 32;
 const PULSE_COUNT = 3; // travelling pulses per arc
 const PULSE_SPEED = 0.18; // arc-fraction per second
 
-// Build a tube arc between two lat/lon points lifted above the sphere.
-// Returns TubeGeometry built around a QuadraticBezierCurve3.
-function buildArc(
-  a: { lat: number; lon: number },
-  b: { lat: number; lon: number },
-): THREE.TubeGeometry {
-  const p0 = latLonToV3(a.lat, a.lon, GLOBE_R);
-  const p2 = latLonToV3(b.lat, b.lon, GLOBE_R);
-  const mid = p0.clone().add(p2).multiplyScalar(0.5).normalize().multiplyScalar(GLOBE_R + ARC_LIFT);
-  const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
-  return new THREE.TubeGeometry(curve, ARC_SEGMENTS, 0.006, 5, false);
-}
-
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
@@ -82,19 +72,98 @@ const pillStyle = (size: number): React.CSSProperties => ({
   lineHeight: 1.45,
 });
 
+// ── Animated inner: arcs + pulses — mounted ONLY in tools view ──────────────
+// Keeps the draw cost of 6 arc tubes + 1 pulse InstancedMesh off-screen when
+// the globe is a distant/invisible prop in other views.
+function GlobeArcs({
+  arcGeoms,
+  pulseCurves,
+  reduced,
+}: {
+  arcGeoms: THREE.TubeGeometry[];
+  pulseCurves: THREE.QuadraticBezierCurve3[];
+  reduced: boolean;
+}) {
+  const pulseRef = useRef<THREE.InstancedMesh>(null);
+  const tPulse = useRef(0);
+  const placedPulse = useRef(false);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  // Set a fixed bounding sphere on mount so Three.js frustum-culls correctly.
+  // Pulses stay within GLOBE_R + ARC_LIFT of the globe centre (local origin).
+  // Centre = world-space globe group origin; here we set it in local coords.
+  useEffect(() => {
+    const mesh = pulseRef.current;
+    if (!mesh) return;
+    mesh.geometry.boundingSphere = new THREE.Sphere(
+      new THREE.Vector3(0, 0, 0),
+      GLOBE_R + ARC_LIFT + 0.08,
+    );
+  }, []);
+
+  useFrame((_, delta) => {
+    const animate = !reduced;
+    if (!animate && placedPulse.current) return;
+    tPulse.current = animate ? (tPulse.current + delta * PULSE_SPEED) % 1 : tPulse.current;
+    const mesh = pulseRef.current;
+    if (!mesh) return;
+    for (let a = 0; a < DESTINATIONS.length; a++) {
+      const curve = pulseCurves[a];
+      for (let p = 0; p < PULSE_COUNT; p++) {
+        const u = (tPulse.current + p / PULSE_COUNT) % 1;
+        curve.getPoint(u, dummy.position);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(a * PULSE_COUNT + p, dummy.matrix);
+      }
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    placedPulse.current = true;
+  });
+
+  return (
+    <>
+      {/* Glowing arcs — additive gold tubes */}
+      {arcGeoms.map((geom, i) => (
+        <mesh key={i} geometry={geom} raycast={NO_RAYCAST}>
+          <meshBasicMaterial
+            color={GOLD}
+            transparent
+            opacity={0.72}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      ))}
+
+      {/* Travelling pulses — single InstancedMesh of 18 instances (6 arcs × 3) */}
+      <instancedMesh
+        ref={pulseRef}
+        args={[undefined, undefined, TOTAL_PULSES]}
+        raycast={NO_RAYCAST}
+      >
+        <sphereGeometry args={[0.016, 6, 6]} />
+        {/* meshBasicMaterial: additive glow dots need no PBR lighting */}
+        <meshBasicMaterial
+          color={GOLD}
+          toneMapped={false}
+          transparent
+          opacity={0.9}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </instancedMesh>
+    </>
+  );
+}
+
 export function GlobalReachGlobe() {
   const { view } = useNavigation();
   const reduced = useReducedMotion();
   const inTools = view === 'tools';
 
   const globeRef = useRef<THREE.Group>(null);
-  // One InstancedMesh per arc — 6 arcs × 3 pulses = 18 instances total, but
-  // split across 6 meshes so each reuses its arc's curve without coupling.
-  const pulseRefs = useRef<(THREE.InstancedMesh | null)[]>([]);
-  const tPulse = useRef(0);
-  const placedPulse = useRef(false);
 
-  const { arcGeoms, pulseCurves, dummy } = useMemo(() => {
+  const { arcGeoms, pulseCurves } = useMemo(() => {
     const arcGeoms: THREE.TubeGeometry[] = [];
     const pulseCurves: THREE.QuadraticBezierCurve3[] = [];
     for (const dest of DESTINATIONS) {
@@ -110,7 +179,7 @@ export function GlobalReachGlobe() {
       arcGeoms.push(new THREE.TubeGeometry(curve, ARC_SEGMENTS, 0.006, 5, false));
       pulseCurves.push(curve);
     }
-    return { arcGeoms, pulseCurves, dummy: new THREE.Object3D() };
+    return { arcGeoms, pulseCurves };
   }, []);
 
   // Wireframe shell geometry — a slightly larger sphere for continent suggestion.
@@ -120,29 +189,11 @@ export function GlobalReachGlobe() {
   );
 
   useFrame((_, delta) => {
-    // Globe rotation — zero allocations; skip when reduced.
+    // Globe rotation — gate to tools view; frozen rotation is invisible off-view.
     const g = globeRef.current;
-    if (g && !reduced) {
+    if (g && !reduced && inTools) {
       g.rotation.y += delta * 0.12;
     }
-
-    // Pulse animation — only in tools view; write resting positions once otherwise.
-    const animate = inTools && !reduced;
-    if (!animate && placedPulse.current) return;
-    tPulse.current = animate ? (tPulse.current + delta * PULSE_SPEED) % 1 : tPulse.current;
-    for (let a = 0; a < DESTINATIONS.length; a++) {
-      const mesh = pulseRefs.current[a];
-      if (!mesh) continue;
-      const curve = pulseCurves[a];
-      for (let p = 0; p < PULSE_COUNT; p++) {
-        const u = (tPulse.current + p / PULSE_COUNT) % 1;
-        curve.getPoint(u, dummy.position);
-        dummy.updateMatrix();
-        mesh.setMatrixAt(p, dummy.matrix);
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-    }
-    placedPulse.current = true;
   });
 
   // Atlanta marker position on the globe surface (local to globe group).
@@ -204,52 +255,23 @@ export function GlobalReachGlobe() {
           />
         </mesh>
 
-        {/* Atlanta origin marker — small gold sphere */}
+        {/* Atlanta origin marker — small gold sphere; basic mat, no PBR needed */}
         <mesh position={atlantaPos} raycast={NO_RAYCAST}>
           <sphereGeometry args={[0.018, 8, 8]} />
-          <meshStandardMaterial
+          <meshBasicMaterial
             color={GOLD}
-            emissive={GOLD}
-            emissiveIntensity={2.2}
-            roughness={0.3}
+            toneMapped={false}
           />
         </mesh>
 
-        {/* Glowing arcs — additive gold tubes */}
-        {arcGeoms.map((geom, i) => (
-          <mesh key={i} geometry={geom} raycast={NO_RAYCAST}>
-            <meshBasicMaterial
-              color={GOLD}
-              transparent
-              opacity={0.72}
-              depthWrite={false}
-              blending={THREE.AdditiveBlending}
-            />
-          </mesh>
-        ))}
-
-        {/* Travelling pulses — one InstancedMesh per arc */}
-        {DESTINATIONS.map((_, i) => (
-          <instancedMesh
-            key={i}
-            ref={(m) => { pulseRefs.current[i] = m; }}
-            args={[undefined, undefined, PULSE_COUNT]}
-            frustumCulled={false}
-            raycast={NO_RAYCAST}
-          >
-            <sphereGeometry args={[0.016, 6, 6]} />
-            <meshStandardMaterial
-              color={GOLD}
-              emissive={GOLD}
-              emissiveIntensity={3.5}
-              roughness={0.35}
-              transparent
-              opacity={0.9}
-              depthWrite={false}
-              blending={THREE.AdditiveBlending}
-            />
-          </instancedMesh>
-        ))}
+        {/* Arcs + pulses — mounted only in tools view (MED: off-view draw savings) */}
+        {inTools && (
+          <GlobeArcs
+            arcGeoms={arcGeoms}
+            pulseCurves={pulseCurves}
+            reduced={reduced}
+          />
+        )}
       </group>
 
       {/* ── Html labels — TOOLS view only ── */}

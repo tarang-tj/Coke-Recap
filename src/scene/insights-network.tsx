@@ -43,6 +43,21 @@ const CORE_R      = 0.22;
 const LABEL_DF    = 22;
 const NO_RAYCAST  = () => null;
 
+// --- Shared GlowNode resources (hoisted to module scope) -----------------
+// All 7 regular nodes share NODE_R → one geometry each, two materials per type.
+const _nodeCircleGeo  = new THREE.CircleGeometry(NODE_R * 2.4, 20);
+const _nodeSphereGeo  = new THREE.SphereGeometry(NODE_R, 14, 10);
+// Additive halo materials differ only by color — one per distinct color.
+const _haloMat: Record<string, THREE.MeshBasicMaterial> = {
+  [GOLD]:  new THREE.MeshBasicMaterial({ color: GOLD,  transparent: true, opacity: 0.18, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+  [CREAM]: new THREE.MeshBasicMaterial({ color: CREAM, transparent: true, opacity: 0.18, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+};
+const _sphereMat: Record<string, THREE.MeshBasicMaterial> = {
+  [GOLD]:  new THREE.MeshBasicMaterial({ color: GOLD,  toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+  [CREAM]: new THREE.MeshBasicMaterial({ color: CREAM, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+};
+// -------------------------------------------------------------------------
+
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap', textAlign: 'center',
   padding: '3px 9px', borderRadius: 9999,
@@ -54,26 +69,19 @@ const pillStyle = (size: number): React.CSSProperties => ({
 });
 
 // Shared glow-node (Billboard halo + sphere + pill label).
+// Uses module-level shared geometry + per-color materials (no new allocations per node).
 function GlowNode({
-  pos, color, r, label, labelDx,
+  pos, color, label, labelDx,
 }: {
-  pos: [number,number,number]; color: string; r: number;
+  pos: [number,number,number]; color: string;
   label: string; labelDx: number;
 }) {
   return (
     <group position={pos}>
       <Billboard>
-        <mesh raycast={NO_RAYCAST}>
-          <circleGeometry args={[r * 2.4, 20]} />
-          <meshBasicMaterial color={color} transparent opacity={0.18}
-            toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} />
-        </mesh>
+        <mesh geometry={_nodeCircleGeo} material={_haloMat[color]} raycast={NO_RAYCAST} />
       </Billboard>
-      <mesh raycast={NO_RAYCAST}>
-        <sphereGeometry args={[r, 14, 10]} />
-        <meshBasicMaterial color={color} toneMapped={false}
-          blending={THREE.AdditiveBlending} depthWrite={false} />
-      </mesh>
+      <mesh geometry={_nodeSphereGeo} material={_sphereMat[color]} raycast={NO_RAYCAST} />
       <Html position={[labelDx, 0, 0]} center distanceFactor={LABEL_DF} occlude={false}>
         <div style={pillStyle(6)}>{label}</div>
       </Html>
@@ -94,6 +102,13 @@ function Network() {
   const inputEdges  = useMemo(() => INPUTS.map(n  => [new THREE.Vector3(...n.pos),  ORIGIN.clone()]), []);
   const outputEdges = useMemo(() => OUTPUTS.map(n => [ORIGIN.clone(), new THREE.Vector3(...n.pos)]), []);
 
+  // All 7 base hairlines as flat [start, end, start, end, …] pair list for
+  // a single <Line segments> draw call (14 draws → 1).
+  const allEdgePairs = useMemo(
+    () => [...inputEdges, ...outputEdges].flatMap(([a, b]) => [a, b]),
+    [inputEdges, outputEdges],
+  );
+
   useFrame((_, delta) => {
     if (reduced) return;
     if (groupRef.current) groupRef.current.rotation.y += delta * SPIN_SPEED;
@@ -104,11 +119,9 @@ function Network() {
 
   return (
     <group ref={groupRef}>
-      {/* Base hairline edges */}
-      {[...inputEdges, ...outputEdges].map((pts, i) => (
-        <Line key={`e${i}`} points={pts} color={GOLD} lineWidth={1.1}
-          transparent opacity={0.32} toneMapped={false} depthWrite={false} />
-      ))}
+      {/* Base hairline edges — all 7 in ONE draw call via segments */}
+      <Line segments points={allEdgePairs} color={GOLD} lineWidth={1.1}
+        transparent opacity={0.32} toneMapped={false} depthWrite={false} />
 
       {/* Travelling pulse runners — skipped under reduced-motion */}
       {!reduced && inputEdges.map((pts, i) => (
@@ -125,10 +138,10 @@ function Network() {
       ))}
 
       {/* Input nodes — gold */}
-      {INPUTS.map(n => <GlowNode key={n.id} pos={n.pos} color={GOLD} r={NODE_R} label={n.label} labelDx={-0.38} />)}
+      {INPUTS.map(n => <GlowNode key={n.id} pos={n.pos} color={GOLD} label={n.label} labelDx={-0.38} />)}
 
       {/* Output nodes — cream */}
-      {OUTPUTS.map(n => <GlowNode key={n.id} pos={n.pos} color={CREAM} r={NODE_R} label={n.label} labelDx={0.38} />)}
+      {OUTPUTS.map(n => <GlowNode key={n.id} pos={n.pos} color={CREAM} label={n.label} labelDx={0.38} />)}
 
       {/* Central AGENT core — Coke red, double corona */}
       <group position={CORE_POS}>
