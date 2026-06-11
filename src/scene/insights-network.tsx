@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react';
 import { Billboard, Html, Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { Line2 } from 'three-stdlib';
+import type { Line2, LineSegments2 } from 'three-stdlib';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 
@@ -85,8 +85,10 @@ function GlowNode({
 function Network() {
   const reduced = useReducedMotion();
   const groupRef = useRef<THREE.Group>(null);
-  const inRunners  = useRef<(Line2 | null)[]>([null, null, null, null]);
-  const outRunners = useRef<(Line2 | null)[]>([null, null, null]);
+  // drei <Line> instantiates Line2 or LineSegments2 — both carry a
+  // LineMaterial, whose dashOffset drives the travelling pulse.
+  const inRunners  = useRef<(Line2 | LineSegments2 | null)[]>([null, null, null, null]);
+  const outRunners = useRef<(Line2 | LineSegments2 | null)[]>([null, null, null]);
 
   // Edge point pairs — stable, never reallocated in useFrame.
   const inputEdges  = useMemo(() => INPUTS.map(n  => [new THREE.Vector3(...n.pos),  ORIGIN.clone()]), []);
@@ -96,8 +98,8 @@ function Network() {
     if (reduced) return;
     if (groupRef.current) groupRef.current.rotation.y += delta * SPIN_SPEED;
     const step = delta * PULSE_SPEED;
-    for (const r of inRunners.current)  if (r?.material) (r.material as THREE.LineDashedMaterial).dashOffset -= step;
-    for (const r of outRunners.current) if (r?.material) (r.material as THREE.LineDashedMaterial).dashOffset -= step;
+    for (const r of inRunners.current)  if (r?.material) r.material.dashOffset -= step;
+    for (const r of outRunners.current) if (r?.material) r.material.dashOffset -= step;
   });
 
   return (
