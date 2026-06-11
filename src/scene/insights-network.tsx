@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import type { Line2, LineSegments2 } from 'three-stdlib';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Floating "INSIGHTS NETWORK" constellation — THE AGENT chapter.
 // 4 input signal nodes → central AGENT core → 3 insight/action nodes.
@@ -192,8 +193,16 @@ function Network() {
 export function InsightsNetwork() {
   const { view } = useNavigation();
   if (view !== 'agent') return null;
+  // Proxy box encloses the full constellation: inputs span ±2.5 x ±1.2,
+  // outputs to +2.5, height from mast base (-1.7) to title pill (+2.0) ≈ 3.7.
+  // Centre y = 0.15 in local group space (mast base=-1.7, top≈2.0 → midpoint 0.15).
   return (
     <group position={NET_POS}>
+      <ExhibitHotspot
+        size={[5.2, 3.7, 1.0]}
+        position={[0, 0.15, 0]}
+        label="Insights Network exhibit — click to focus"
+      />
       <Network />
     </group>
   );

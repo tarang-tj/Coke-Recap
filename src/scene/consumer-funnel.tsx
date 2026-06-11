@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useNavigation } from './navigation-context';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import { ExhibitHotspot } from './exhibit-hotspot';
 
 // Diegetic "CONSUMER JOURNEY" funnel for THE AGENT chapter: a freestanding
 // brass-framed exhibit on a dark-wood plinth holding four stacked truncated
@@ -115,8 +116,19 @@ export function ConsumerFunnel() {
     }
   });
 
+  // Proxy covers plinth (1.15 wide, 1.15 deep) through frame top (1.66) + slight
+  // headroom. Width/depth 1.15, height from 0 to ~1.7 → centre y = 0.85.
+  const hotspot = inAgent ? (
+    <ExhibitHotspot
+      size={[1.15, 1.7, 1.15]}
+      position={[0, 0.85, 0]}
+      label="Consumer Journey funnel exhibit — click to focus"
+    />
+  ) : null;
+
   return (
     <group position={POS} rotation={[0, ROT_Y, 0]} raycast={NO_RAYCAST}>
+      {hotspot}
       {/* Plinth — dark wood base, pedestal, cap */}
       <mesh position={[0, 0.05, 0]} raycast={NO_RAYCAST}>
         <boxGeometry args={[1.15, 0.1, 1.15]} />

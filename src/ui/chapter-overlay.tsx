@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigation, CHAPTERS } from '../scene/navigation-context';
 import { useRecap } from '../scene/recap/recap-context';
 import { useExperience, usePanelCollapsed } from '../scene/experience-context';
@@ -8,6 +8,23 @@ import {
   CHAPTER_SECTIONS as SECTIONS,
   type ChapterId,
 } from './sections/section-registry';
+
+// Session-level flag: fire the attention pulse only once per browser session.
+const SESSION_KEY = 'coke-recap-tab-pulsed';
+function shouldPulse(): boolean {
+  try {
+    if (sessionStorage.getItem(SESSION_KEY)) return false;
+    // Also skip under prefers-reduced-motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      return false;
+    }
+    sessionStorage.setItem(SESSION_KEY, '1');
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // DOM navigation + content layer. Chapter copy lives in a high-contrast LEFT
 // column over a dark-red scrim (so text is always readable, never floating on
@@ -26,6 +43,10 @@ export function ChapterOverlay() {
   // expanded (false), persists across chapter switches.
   const [collapsed, toggle] = usePanelCollapsed();
 
+  // One-time attention pulse: fire on the first chapter entry per session.
+  const tabRef = useRef<HTMLButtonElement>(null);
+  const pulseScheduled = useRef(false);
+
   // Per-chapter tab title — distinct history entries + tab UX. Lives here
   // (not NavigationProvider) because the labels do: importing the section
   // registry into the provider would be a circular import.
@@ -38,6 +59,22 @@ export function ChapterOverlay() {
       document.title = base;
     };
   }, [view, isMachine]);
+
+  // Fire the one-time attention pulse on the first chapter view this session.
+  useEffect(() => {
+    if (isMachine || !started || pulseScheduled.current) return;
+    if (!shouldPulse()) return;
+    pulseScheduled.current = true;
+    // Small delay so the chapter fade-in completes before the pulse fires.
+    const id = setTimeout(() => {
+      const el = tabRef.current;
+      if (!el) return;
+      el.classList.add('tab-pulse-once');
+      el.addEventListener('animationend', () => el.classList.remove('tab-pulse-once'), { once: true });
+    }, 700);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, isMachine]);
 
   // Nothing here is usable behind the start gate — rendering it anyway would
   // leave invisible tab stops underneath the gate's modal.
@@ -111,20 +148,25 @@ export function ChapterOverlay() {
       {/* Collapse / expand toggle — only on chapter views (not machine) */}
       {!isMachine && Section && (
         <button
+          ref={tabRef}
           onClick={toggle}
           aria-expanded={!collapsed}
           aria-label={collapsed ? 'Expand story panel' : 'Collapse story panel'}
           className={[
             'pointer-events-auto fixed z-40',
-            // Vertical slim tab at left edge — shifts right when expanded so
-            // it clears the home logo; anchors at left:0 when collapsed.
+            // Vertical tab at left edge. Touch target ≥44×44 px via padding;
+            // the visual inner pill stays slim — padding is the extra hit area.
             'top-1/2 -translate-y-1/2',
+            // Collapsed: flush left (respecting notch safe area), full border ring.
+            // Expanded: slight inset, left border suppressed (panel edge acts as wall).
             collapsed
-              ? 'left-0 rounded-r-md border-r border-t border-b'
+              ? 'rounded-r-md border-r border-t border-b'
               : 'left-1 rounded-md border',
             'flex flex-col items-center justify-center gap-1',
             'border-off-white/25 bg-coke-black/60 backdrop-blur-sm',
-            'px-1.5 py-3',
+            // px-3 py-3 gives ≥44px height with inner content; min-w/h ensure
+            // the hit target meets WCAG 2.5.5 on all orientations.
+            'px-3 py-3 min-w-[2.75rem] min-h-[2.75rem]',
             'font-body text-[0.55rem] uppercase tracking-[0.25em] text-off-white/70',
             'transition-all duration-300 ease-out',
             'hover:text-off-white hover:border-off-white/50 hover:bg-coke-black/80',
@@ -134,6 +176,9 @@ export function ChapterOverlay() {
           style={{
             writingMode: 'vertical-rl',
             textOrientation: 'mixed',
+            // Flush left when collapsed, honouring notched-phone safe area in
+            // landscape (env() is 0 on non-notched devices).
+            left: collapsed ? 'max(0px, env(safe-area-inset-left))' : undefined,
           }}
         >
           {/* Chevron indicator */}
@@ -157,7 +202,9 @@ export function ChapterOverlay() {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="select-none">{collapsed ? 'story' : 'hide'}</span>
+          {/* "story" signals what the panel contains; "scene" signals you'll
+              see the 3-D view — clearer than "hide". */}
+          <span className="select-none">{collapsed ? 'story' : 'scene'}</span>
         </button>
       )}
 
