@@ -67,6 +67,7 @@ function Ribbon() {
   const reduced = useReducedMotion();
   const glowMat = useRef<THREE.MeshBasicMaterial>(null);
   const runner = useRef<Line2>(null);
+  const pulseRingRef = useRef<THREE.Mesh>(null);
 
   const { curve, linePoints, markers } = useMemo(() => {
     const curve = new THREE.CatmullRomCurve3(
@@ -82,13 +83,23 @@ function Ribbon() {
   // Soft pulse travelling along the tube: the dashed overlay's dashOffset
   // decreases, so its bright runs march toward increasing arc length
   // (left -> right, 1886 -> today). The base tube breathes faintly.
-  // Reduced motion: static glow (the dashed runner isn't even mounted).
+  // The end-cap ring slowly pulses in scale (additive, toneMapped=false).
+  // Reduced motion: static glow (the dashed runner isn't even mounted;
+  // end-cap ring held at rest scale).
   useFrame((state, delta) => {
     if (reduced) return;
     const mat = runner.current?.material;
     if (mat) mat.dashOffset -= delta * PULSE_SPEED;
     const glow = glowMat.current;
     if (glow) glow.opacity = BASE_OPACITY - 0.07 + 0.07 * Math.sin(state.clock.elapsedTime * 1.7);
+    const ring = pulseRingRef.current;
+    if (ring) {
+      // Slow breathe: scale 1.0 → 1.55 at ~0.6 Hz, in sync with a warm halo fade
+      const s = 1.0 + 0.55 * (0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 3.8));
+      ring.scale.setScalar(s);
+      const ringMat = ring.material as THREE.MeshBasicMaterial;
+      ringMat.opacity = 0.55 - 0.45 * (0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 3.8));
+    }
   });
 
   return (
@@ -157,6 +168,37 @@ function Ribbon() {
           </Html>
         </group>
       ))}
+
+      {/* "Today" terminus end-cap: brighter halo + slow-pulsing outer ring.
+          Reduced motion: rings are static (no scale animation in useFrame). */}
+      <group position={markers[markers.length - 1].pos}>
+        <Billboard>
+          {/* Bright inner halo — larger + more opaque than the standard marker halo */}
+          <mesh position={[0, 0, -0.02]}>
+            <circleGeometry args={[0.85, 24]} />
+            <meshBasicMaterial
+              color={GOLD_BRIGHT}
+              transparent
+              opacity={0.5}
+              toneMapped={false}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Pulsing outer ring (scale + opacity animated in useFrame when !reduced) */}
+          <mesh ref={pulseRingRef} position={[0, 0, -0.03]}>
+            <ringGeometry args={[0.9, 1.3, 32]} />
+            <meshBasicMaterial
+              color={GOLD}
+              transparent
+              opacity={0.35}
+              toneMapped={false}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+        </Billboard>
+      </group>
 
       {/* Caption plate near the 1886 start — content provenance */}
       <Html

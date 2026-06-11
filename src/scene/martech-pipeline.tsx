@@ -172,7 +172,7 @@ export function MartechPipeline() {
               occlude={false}
             >
               <div style={pillStyle(6)}>
-                <span style={{ fontSize: 9.5, fontWeight: 700, display: 'block' }}>{s.label}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 700, display: 'block' }}>{s.label}</span>
                 {s.sub}
               </div>
             </Html>
@@ -190,9 +190,9 @@ export function MartechPipeline() {
         <sphereGeometry args={[0.024, 8, 8]} />
         <meshStandardMaterial
           color={DROPLET}
-          emissive={DROPLET}
-          emissiveIntensity={2.6}
-          roughness={0.4}
+          emissive={'#FF7A40'}
+          emissiveIntensity={3.2}
+          roughness={0.3}
         />
       </instancedMesh>
 
