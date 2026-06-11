@@ -25,7 +25,7 @@ const DROPLET = '#FF5A1F';
 const POS: [number, number, number] = [5.23, 0, -9.06];
 const ROT_Y = 2.67;
 const TOP_Y = 0.51; // bench top surface height (local)
-const LABEL_DF = 5.5; // Html distanceFactor, matching metrics-display pills
+const LABEL_DF = 4.0; // Html distanceFactor — reduced for larger pill at tools camera distance
 const SPEED = 0.06; // droplet loops per second — steady, calm flow
 const COUNT = 12; // droplet instances
 
@@ -59,17 +59,17 @@ const NO_RAYCAST = () => null;
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap',
   textAlign: 'center',
-  padding: '3px 9px',
+  padding: '4px 11px',
   borderRadius: 9999,
-  background: 'rgba(24,12,8,0.8)',
-  border: '1px solid rgba(176,141,87,0.45)',
+  background: 'rgba(18,8,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.7)',
   color: '#FFF6E9',
   fontSize: size,
-  letterSpacing: '0.16em',
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   userSelect: 'none',
   pointerEvents: 'none',
-  lineHeight: 1.45,
+  lineHeight: 1.5,
 });
 
 export function MartechPipeline() {
@@ -171,8 +171,8 @@ export function MartechPipeline() {
               distanceFactor={LABEL_DF}
               occlude={false}
             >
-              <div style={pillStyle(6)}>
-                <span style={{ fontSize: 10.5, fontWeight: 700, display: 'block' }}>{s.label}</span>
+              <div style={pillStyle(8)}>
+                <span style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>{s.label}</span>
                 {s.sub}
               </div>
             </Html>
@@ -191,15 +191,15 @@ export function MartechPipeline() {
         <meshStandardMaterial
           color={DROPLET}
           emissive={'#FF7A40'}
-          emissiveIntensity={3.2}
-          roughness={0.3}
+          emissiveIntensity={5.0}
+          roughness={0.25}
         />
       </instancedMesh>
 
       {/* Caption pill — TOOLS view only, like the metrics-display labels */}
       {inTools && (
         <Html position={[0, 0.3, 0.26]} center distanceFactor={LABEL_DF} occlude={false}>
-          <div style={pillStyle(5.5)}>Martech Pipeline &mdash; Illustrative</div>
+          <div style={pillStyle(7)}>Martech Pipeline &mdash; Illustrative</div>
         </Html>
       )}
     </group>

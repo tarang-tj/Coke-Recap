@@ -38,19 +38,20 @@ const ORIGIN = new THREE.Vector3(...CORE_POS);
 
 const PULSE_SPEED = 3.5;
 const SPIN_SPEED  = 0.12;
-const NODE_R      = 0.14;
-const CORE_R      = 0.22;
-const LABEL_DF    = 22;
+const NODE_R      = 0.20; // larger nodes for visibility
+const CORE_R      = 0.30; // larger core sphere
+const LABEL_DF    = 18;   // smaller distanceFactor → bigger pill text on screen
 const NO_RAYCAST  = () => null;
 
 // --- Shared GlowNode resources (hoisted to module scope) -----------------
 // All 7 regular nodes share NODE_R → one geometry each, two materials per type.
-const _nodeCircleGeo  = new THREE.CircleGeometry(NODE_R * 2.4, 20);
+// Geometries are lazy-evaluated at first use; NODE_R is const so no hot-swap needed.
+const _nodeCircleGeo  = new THREE.CircleGeometry(NODE_R * 2.8, 20); // wider halo
 const _nodeSphereGeo  = new THREE.SphereGeometry(NODE_R, 14, 10);
 // Additive halo materials differ only by color — one per distinct color.
 const _haloMat: Record<string, THREE.MeshBasicMaterial> = {
-  [GOLD]:  new THREE.MeshBasicMaterial({ color: GOLD,  transparent: true, opacity: 0.18, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
-  [CREAM]: new THREE.MeshBasicMaterial({ color: CREAM, transparent: true, opacity: 0.18, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+  [GOLD]:  new THREE.MeshBasicMaterial({ color: GOLD,  transparent: true, opacity: 0.32, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+  [CREAM]: new THREE.MeshBasicMaterial({ color: CREAM, transparent: true, opacity: 0.32, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
 };
 const _sphereMat: Record<string, THREE.MeshBasicMaterial> = {
   [GOLD]:  new THREE.MeshBasicMaterial({ color: GOLD,  toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -60,10 +61,11 @@ const _sphereMat: Record<string, THREE.MeshBasicMaterial> = {
 
 const pillStyle = (size: number): React.CSSProperties => ({
   whiteSpace: 'nowrap', textAlign: 'center',
-  padding: '3px 9px', borderRadius: 9999,
-  background: 'rgba(24,12,8,0.82)',
-  border: '1px solid rgba(176,141,87,0.45)',
-  color: CREAM, fontSize: size,
+  padding: '4px 11px', borderRadius: 9999,
+  background: 'rgba(12,6,4,0.92)',
+  border: '1.5px solid rgba(255,185,83,0.70)',
+  color: '#FFFAF0', fontSize: size,
+  fontWeight: 600,
   letterSpacing: '0.16em', textTransform: 'uppercase',
   userSelect: 'none', pointerEvents: 'none', lineHeight: 1.45,
 });
@@ -83,7 +85,7 @@ function GlowNode({
       </Billboard>
       <mesh geometry={_nodeSphereGeo} material={_sphereMat[color]} raycast={NO_RAYCAST} />
       <Html position={[labelDx, 0, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-        <div style={pillStyle(6)}>{label}</div>
+        <div style={pillStyle(7.5)}>{label}</div>
       </Html>
     </group>
   );
@@ -119,22 +121,22 @@ function Network() {
 
   return (
     <group ref={groupRef}>
-      {/* Base hairline edges — all 7 in ONE draw call via segments */}
-      <Line segments points={allEdgePairs} color={GOLD} lineWidth={1.1}
-        transparent opacity={0.32} toneMapped={false} depthWrite={false} />
+      {/* Base edges — all 7 in ONE draw call via segments, thicker for visibility */}
+      <Line segments points={allEdgePairs} color={GOLD} lineWidth={2.2}
+        transparent opacity={0.55} toneMapped={false} depthWrite={false} />
 
       {/* Travelling pulse runners — skipped under reduced-motion */}
       {!reduced && inputEdges.map((pts, i) => (
         <Line key={`ip${i}`} ref={el => { inRunners.current[i] = el; }}
-          points={pts} color={GOLD_BRIGHT} lineWidth={2.6}
-          dashed dashSize={1.2} gapSize={4.5}
-          transparent opacity={0.9} toneMapped={false} depthWrite={false} />
+          points={pts} color={GOLD_BRIGHT} lineWidth={3.5}
+          dashed dashSize={1.2} gapSize={3.8}
+          transparent opacity={1.0} toneMapped={false} depthWrite={false} />
       ))}
       {!reduced && outputEdges.map((pts, i) => (
         <Line key={`op${i}`} ref={el => { outRunners.current[i] = el; }}
-          points={pts} color={CREAM} lineWidth={2.0}
-          dashed dashSize={1.0} gapSize={4.0}
-          transparent opacity={0.75} toneMapped={false} depthWrite={false} />
+          points={pts} color={CREAM} lineWidth={2.8}
+          dashed dashSize={1.0} gapSize={3.5}
+          transparent opacity={0.90} toneMapped={false} depthWrite={false} />
       ))}
 
       {/* Input nodes — gold */}
@@ -147,15 +149,15 @@ function Network() {
       <group position={CORE_POS}>
         <Billboard>
           <mesh raycast={NO_RAYCAST}>
-            <circleGeometry args={[CORE_R * 3.2, 24]} />
-            <meshBasicMaterial color={COKE_RED} transparent opacity={0.10}
+            <circleGeometry args={[CORE_R * 3.5, 24]} />
+            <meshBasicMaterial color={COKE_RED} transparent opacity={0.18}
               toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} />
           </mesh>
         </Billboard>
         <Billboard>
           <mesh raycast={NO_RAYCAST}>
-            <circleGeometry args={[CORE_R * 1.85, 24]} />
-            <meshBasicMaterial color={COKE_RED} transparent opacity={0.32}
+            <circleGeometry args={[CORE_R * 2.0, 24]} />
+            <meshBasicMaterial color={COKE_RED} transparent opacity={0.45}
               toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} />
           </mesh>
         </Billboard>
@@ -164,8 +166,8 @@ function Network() {
           <meshBasicMaterial color={COKE_RED} toneMapped={false}
             blending={THREE.AdditiveBlending} depthWrite={false} />
         </mesh>
-        <Html position={[0, CORE_R + 0.46, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-          <div style={{ ...pillStyle(7), fontWeight: 700, letterSpacing: '0.22em', borderColor: 'rgba(200,16,46,0.55)' }}>
+        <Html position={[0, CORE_R + 0.52, 0]} center distanceFactor={LABEL_DF} occlude={false}>
+          <div style={{ ...pillStyle(9), fontWeight: 700, letterSpacing: '0.22em', borderColor: 'rgba(200,16,46,0.70)', background: 'rgba(12,6,4,0.95)' }}>
             Agent
           </div>
         </Html>
@@ -178,8 +180,8 @@ function Network() {
       </mesh>
 
       {/* Title pill above the whole group */}
-      <Html position={[0, CORE_R + 1.55, 0]} center distanceFactor={LABEL_DF} occlude={false}>
-        <div style={{ ...pillStyle(8), fontWeight: 700, letterSpacing: '0.28em' }}>
+      <Html position={[0, CORE_R + 1.65, 0]} center distanceFactor={15} occlude={false}>
+        <div style={{ ...pillStyle(10), fontWeight: 700, letterSpacing: '0.28em', background: 'rgba(12,6,4,0.95)', border: '1.5px solid rgba(255,185,83,0.85)' }}>
           Insights Network
         </div>
       </Html>

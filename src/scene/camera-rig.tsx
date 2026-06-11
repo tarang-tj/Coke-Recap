@@ -31,16 +31,27 @@ const POSES: Record<ViewId, Pose> = {
   // traffic (wagon at z≈-14) reading as foreground depth. The recap machine is
   // a small part of the wider scene — the pulsing beacon (see VendingHotspot)
   // is what draws the eye to it, not the camera framing.
-  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]    },
-  // Role: intimate storefront — look toward the glowing soda fountain where
-  // Coca-Cola was first served.
-  role:      { pos: [2.6, 2.4, -12], look: [2.6, 1.6, -2]  },
-  // Stack: the Coca-Cola vending machine + delivery crates on the sidewalk.
-  tools:     { pos: [7, 2.4, -12.5], look: [3.7, 1.0, -5.9] },
-  // Agent: a low axial view straight down the street past the lamp-lined facades.
-  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.3, -15.5] },
-  // Takeaways: grand pull-back over the whole block at golden hour.
-  takeaways: { pos: [0, 17, -50],    look: [0, 6, -4]      },
+  machine:   { pos: [-8, 7, -34],    look: [0, 5.5, -2]     },
+  // Role: intimate storefront — look toward the exhibit cluster (MetricsDisplay
+  // at [1.1,0,-6.8] and ConsumerPulse at [4.6,0,-7.6]) so the stands fill the
+  // right frame once the DOM column scrim fades out. lookAt pulled to z≈-6
+  // (was -2) to seat the exhibits on-screen rather than framing the distant
+  // facade as the primary subject.
+  role:      { pos: [2.6, 2.4, -12], look: [3.0, 1.4, -6.0] },
+  // Stack: the MartechPipeline bench ([5.23,0,-9.06]) and GlobalReach globe
+  // ([7.2,0,-9.8]) sit to camera-right. Nudging pos.x +0.5 and shifting look
+  // target right (+0.6 x) frames the globe stand into the right half without
+  // losing the vending machine anchor.
+  tools:     { pos: [7.5, 2.4, -12.5], look: [4.3, 1.0, -7.2] },
+  // Agent: low axial view straight down the street past the lamp-lined facades.
+  // ConsumerFunnel at [32,0,-20.2] reads at far right, InsightsNetwork at
+  // [14,3.4,-15] reads mid-right. Raising lookAt.y slightly (1.3→1.6) keeps
+  // the constellation in frame without disturbing the corridor depth read.
+  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.6, -15.5] },
+  // Takeaways: grand pull-back over the whole block. The growth ribbon arc
+  // spans [4,9,-8] → [-26,20,-10]. Lifting lookAt.y (6→7.5) brings the lower
+  // ribbon arc slightly higher in frame so the rooftop glow reads better.
+  takeaways: { pos: [0, 17, -50],    look: [0, 7.5, -4]    },
 };
 
 // Close focus on the vending machine — frames the coin slot + the bottle's hero

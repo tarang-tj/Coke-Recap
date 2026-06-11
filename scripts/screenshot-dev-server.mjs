@@ -32,7 +32,8 @@ const defaultName = `screenshot-${new Date()
 const outputPath = resolve(argOutput ?? `plans/reports/${defaultName}`);
 const delayMs = Number(argDelay ?? 4500);
 // Optional deep-link hash: appended as /#<hash> when provided and non-empty.
-const BASE_URL = 'http://localhost:5173';
+// SHOT_BASE_URL lets parallel agents point at dev servers on other ports.
+const BASE_URL = process.env.SHOT_BASE_URL ?? 'http://localhost:5173';
 const targetUrl = argHash && argHash.trim() ? `${BASE_URL}/#${argHash.trim()}` : BASE_URL;
 
 await mkdir(dirname(outputPath), { recursive: true });
