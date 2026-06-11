@@ -36,3 +36,11 @@ yarn-error.log*
 
 # deploy
 .vercel
+
+# swarm runtime artifacts
+.claude-flow/
+.swarm/
+
+# Blender autosaves
+*.blend
+*.blend1

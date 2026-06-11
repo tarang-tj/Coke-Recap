@@ -187,12 +187,12 @@ export function ConsumerFunnel() {
 
       {/* Drip loop — tiny emissive droplets falling tier to tier */}
       <instancedMesh ref={dropsRef} args={[undefined, undefined, DROP_COUNT]} raycast={NO_RAYCAST}>
-        <sphereGeometry args={[0.022, 6, 5]} />
+        <sphereGeometry args={[0.03, 6, 5]} />
         <meshStandardMaterial
-          color={COKE_RED}
-          emissive={'#ff3a2a'}
-          emissiveIntensity={2.2}
-          roughness={0.3}
+          color={'#e8201a'}
+          emissive={'#ff5040'}
+          emissiveIntensity={2.8}
+          roughness={0.25}
         />
       </instancedMesh>
 

@@ -13,6 +13,11 @@ import { MartechPipeline } from './scene/martech-pipeline';
 import { ConsumerFunnel } from './scene/consumer-funnel';
 import { GrowthRibbon } from './scene/growth-ribbon';
 import { DriftingClouds } from './scene/drifting-clouds';
+import { PlaceAnalytics } from './scene/place-analytics';
+import { InsightsNetwork } from './scene/insights-network';
+import { GlobalReachGlobe } from './scene/global-reach-globe';
+import { ConsumerPulse } from './scene/consumer-pulse';
+import { LampMotes } from './scene/lamp-motes';
 import { RecapPanel } from './ui/recap/recap-panel';
 import { ChapterOverlay } from './ui/chapter-overlay';
 import { StartGate } from './ui/start-gate';
@@ -45,6 +50,11 @@ function SceneContent() {
       <ConsumerFunnel />
       <GrowthRibbon />
       <DriftingClouds />
+      <PlaceAnalytics />
+      <InsightsNetwork />
+      <GlobalReachGlobe />
+      <ConsumerPulse />
+      <LampMotes />
     </>
   );
 }

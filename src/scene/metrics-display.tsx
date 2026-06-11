@@ -165,12 +165,18 @@ export function MetricsDisplay() {
               position={[x, TOP_Y + b.h + CAP_H / 2, 0]}
             >
               <boxGeometry args={[BAR_W + 0.04, CAP_H, BAR_W + 0.04]} />
-              <meshStandardMaterial color={BRASS} metalness={0.85} roughness={0.3} />
+              <meshStandardMaterial
+                color={BRASS}
+                metalness={0.85}
+                roughness={0.3}
+                emissive={BRASS}
+                emissiveIntensity={0.18}
+              />
             </mesh>
             {inRole && (
               <Html position={[x, labelY, 0]} center distanceFactor={LABEL_DF} occlude={false}>
                 <div style={pillStyle(6)}>
-                  <span style={{ fontSize: 9.5, fontWeight: 700, display: 'block' }}>{b.value}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, display: 'block' }}>{b.value}</span>
                   {b.label}
                 </div>
               </Html>
