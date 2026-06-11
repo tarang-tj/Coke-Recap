@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { Billboard, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -152,6 +152,16 @@ function Pin({ data, reduced }: PinProps) {
     line.raycast = () => null;
     return line;
   }, [data.pos, data.lineBottom]);
+
+  // Dispose hairline GPU resources on unmount — component unmounts on every
+  // home↔chapter view switch, so without this each toggle leaks one buffer
+  // + one material per pin (4 total).
+  useEffect(() => {
+    return () => {
+      hairline.geometry.dispose();
+      (hairline.material as THREE.Material).dispose();
+    };
+  }, [hairline]);
 
   return (
     <group>

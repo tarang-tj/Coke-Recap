@@ -78,6 +78,7 @@ export function LampMotes() {
   }, []);
 
   useFrame(({ clock }, delta) => {
+    if (reduced) return;
     const geo = geoRef.current;
     if (!geo) return;
 
@@ -137,9 +138,9 @@ export function LampMotes() {
   // Populate the live buffer from static layout on first render.
   useMemo(() => posArr.set(staticPos), [posArr, staticPos]);
 
-  // Under reduced motion hold the static positions (no useFrame mutation path).
-  // The frozen positions are set once into the buffer; after that the geo just
-  // stays still — no per-frame write needed.
+  // Under reduced motion useFrame returns early (first line), so no buffer
+  // writes occur. When switching into reduced motion, the effect below snaps
+  // positions to the static layout once so the geo stays frozen cleanly.
   const prevReduced = useRef(reduced);
   useEffect(() => {
     if (reduced && !prevReduced.current) {
