@@ -20,13 +20,17 @@ import { useRecap } from './recap/recap-context';
 //     the visitor can glance around the diorama.
 
 type Pose = { pos: [number, number, number]; look: [number, number, number] };
+// A view may declare an explicit collapsed focus pose. When collapsed the rig
+// damps toward this instead of applying the generic push fraction. Views that
+// don't declare one fall back to a gentler ~15% push toward the look target.
+type ViewPose = Pose & { focus?: Pose };
 
 // All vantage points live in the diorama's native world coordinates. The
 // building block runs along X with every facade facing -Z (the street side),
 // so the camera always sits on the -Z side looking back toward +Z.
 //   Pharmacy center ≈ (0, 6, -2)   soda fountain ≈ (2.6, 1.0, -1.5)
 //   vending machine ≈ (3.6, 0.8, -5.9)   delivery wagon ≈ (32, 1.1, -13.5)
-const POSES: Record<ViewId, Pose> = {
+const POSES: Record<ViewId, ViewPose> = {
   // Home: wide establishing hero of the pharmacy facade with the street and
   // traffic (wagon at z≈-14) reading as foreground depth. The recap machine is
   // a small part of the wider scene — the pulsing beacon (see VendingHotspot)
@@ -47,7 +51,16 @@ const POSES: Record<ViewId, Pose> = {
   // ConsumerFunnel at [32,0,-20.2] reads at far right, InsightsNetwork at
   // [14,3.4,-15] reads mid-right. Raising lookAt.y slightly (1.3→1.6) keeps
   // the constellation in frame without disturbing the corridor depth read.
-  agent:     { pos: [40, 2.2, -16.5], look: [-25, 1.6, -15.5] },
+  //
+  // focus: keep camera near its base x (38) so neither exhibit ends up behind
+  // the lens; swing the look target to x≈5 to centre both the funnel (x=32)
+  // and the network (x=14) in the wider half of the viewport. Gentle pull-in
+  // on z (-17→-17.5) adds depth without distorting the street corridor.
+  agent:     {
+    pos:   [40,  2.2, -16.5],
+    look:  [-25, 1.6, -15.5],
+    focus: { pos: [38, 2.2, -17.5], look: [5, 2.0, -16.5] },
+  },
   // Takeaways: grand pull-back over the whole block. The growth ribbon arc
   // spans [4,9,-8] → [-26,20,-10]. Lifting lookAt.y (6→7.5) brings the lower
   // ribbon arc slightly higher in frame so the rooftop glow reads better.
@@ -187,24 +200,38 @@ export function CameraRig() {
     _targetLook.set(pose.look[0], pose.look[1], pose.look[2]);
 
     // Exhibit focus: when a chapter view is active AND the story panel is
-    // collapsed, push the camera ~30% of the way toward the look target so
-    // the now-unobstructed 3-D exhibit fills more of the frame. Machine view,
-    // recap, and pre-start are all unaffected. The offset is applied to the
-    // pose target BEFORE damp3 so it blends into the single existing damp —
-    // no second competing spring.
+    // collapsed, blend toward a per-view focus pose so the now-unobstructed
+    // 3-D exhibit fills more of the frame. Machine view, recap, and pre-start
+    // are all unaffected. The offset is applied to the pose target BEFORE
+    // damp3 so it blends into the single existing damp — no second spring.
+    //
+    // If the view declares an explicit `focus` pose (e.g. agent) we lerp
+    // straight to that pose — this avoids the generic push accidentally
+    // sending the camera behind an exhibit. Otherwise we use a gentle 15%
+    // push toward the look target (feels like a tasteful lean-in, not a
+    // teleport).
+    const PUSH_FRACTION = 0.15; // gentle default — dial-in per view via focus pose
     const isChapterView = isStarted && !recapActive && currentView !== 'machine';
     if (isChapterView && collapsedRef.current) {
-      // Direction from camera-pose position toward look target.
-      _pushDir.set(
-        _targetLook.x - _targetPos.x,
-        _targetLook.y - _targetPos.y,
-        _targetLook.z - _targetPos.z,
-      );
-      const PUSH_FRACTION = 0.30;
-      _targetPos.x += _pushDir.x * PUSH_FRACTION;
-      _targetPos.z += _pushDir.z * PUSH_FRACTION;
-      // Clamp y so the camera never sinks into the street (min 1.2 world units).
-      _targetPos.y = Math.max(1.2, _targetPos.y + _pushDir.y * PUSH_FRACTION);
+      const viewPose = POSES[currentView] as ViewPose;
+      const focusPose = viewPose.focus;
+      if (focusPose) {
+        // Explicit focus pose: lerp _targetPos/_targetLook to it so the single
+        // downstream damp3 animates us there smoothly.
+        _targetPos.set(focusPose.pos[0], focusPose.pos[1], focusPose.pos[2]);
+        _targetLook.set(focusPose.look[0], focusPose.look[1], focusPose.look[2]);
+      } else {
+        // Generic gentle push — direction from pose position toward look target.
+        _pushDir.set(
+          _targetLook.x - _targetPos.x,
+          _targetLook.y - _targetPos.y,
+          _targetLook.z - _targetPos.z,
+        );
+        _targetPos.x += _pushDir.x * PUSH_FRACTION;
+        _targetPos.z += _pushDir.z * PUSH_FRACTION;
+        // Clamp y so the camera never sinks below street level (1.2 world units).
+        _targetPos.y = Math.max(1.2, _targetPos.y + _pushDir.y * PUSH_FRACTION);
+      }
     }
 
     if (isStarted && !reduced && !recapActive) {
