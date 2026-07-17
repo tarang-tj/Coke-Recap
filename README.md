@@ -1,6 +1,6 @@
 # Coke-Recap
 
-A personal capstone project: an interactive 3D recreation of Five Points, Atlanta as it looked in 1886, the block around Jacobs' Pharmacy where Coca-Cola was first served on May 8, 1886. The whole scene runs in the browser at golden hour, and you explore it by dragging to look around and clicking your way through the diorama.
+Built as the capstone of my Coca-Cola internship: an interactive 3D recreation of Five Points, Atlanta as it looked in 1886, the block around Jacobs' Pharmacy where Coca-Cola was first served on May 8, 1886. The whole scene runs in the browser at golden hour, and you explore it by dragging to look around and clicking your way through the diorama.
 
 🥤 **Live:** [coke-recap.vercel.app](https://coke-recap.vercel.app)
 
