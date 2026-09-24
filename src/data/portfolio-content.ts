@@ -79,6 +79,6 @@ export const learnings = [
 
 export const contact = {
   github: 'https://github.com/tarang-tj',
-  linkedin: 'https://www.linkedin.com/in/tarang-jammalamadaka/',
+  linkedin: 'https://www.linkedin.com/in/tarang-tj/',
   email: 'tarangjammalamadaka9@gmail.com',
 };

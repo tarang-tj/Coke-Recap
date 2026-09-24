@@ -32,7 +32,7 @@ names; tools by name with generic blurbs; the agent described conceptually.
 
 Tarang Jammalamadaka
 - GitHub: https://github.com/tarang-tj
-- LinkedIn: https://www.linkedin.com/in/tarang-jammalamadaka/
+- LinkedIn: https://www.linkedin.com/in/tarang-tj/
 - Email: tarangjammalamadaka9@gmail.com
 
 ## Tech
